@@ -19,13 +19,23 @@ export const rome: DestinationProfile = {
     localTransportPerDay: 7,
   },
   access: {
-    mode: "avion",
     from: "Paris",
-    durationLabel: "2 h 05",
-    durationHours: 2.1,
-    roundTripPerPerson: 140,
+    routes: [
+      {
+        mode: "avion",
+        durationLabel: "2 h 05",
+        durationHours: 2.1,
+        roundTripPerPerson: 140,
+        details: "Vol direct, train express jusqu'au centre",
+      },
+    ],
   },
-  localTransport: "Centre historique à pied, métro et bus pour le reste",
+  localMobility: [
+    { mode: "marche", description: "Le centre historique se visite à pied" },
+    { mode: "metro", description: "Pratique pour le Vatican et le Colisée" },
+    { mode: "bus", description: "Réseau dense pour les autres quartiers" },
+    { mode: "taxi", description: "Utile le soir pour rentrer" },
+  ],
   idealDays: { min: 3, max: 6 },
   bestMonths: [3, 4, 5, 6, 9, 10, 11],
   styles: { culture: 3, gastronomie: 3, romantique: 3, ville: 3, shopping: 2, fete: 1, detente: 1 },

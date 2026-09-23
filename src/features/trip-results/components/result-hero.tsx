@@ -10,10 +10,11 @@ import type { TravelPlan } from "@/types/travel-plan";
 import { SaveTripButton } from "./save-trip-button";
 
 const sections = [
-  { href: "#pourquoi", label: "Pourquoi" },
+  { href: "#pourquoi", label: "Résumé" },
+  { href: "#transport", label: "Transport" },
+  { href: "#hebergement", label: "Hébergement" },
   { href: "#programme", label: "Programme" },
   { href: "#budget", label: "Budget" },
-  { href: "#infos", label: "Infos pratiques" },
 ];
 
 export function ResultHero({ plan }: { plan: TravelPlan }) {

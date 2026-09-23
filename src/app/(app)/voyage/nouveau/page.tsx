@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function NewTripPage({ searchParams }: PageProps<"/voyage/nouveau">) {
-  const { destination, modifier } = await searchParams;
+  const { destination, modifier, nouveau } = await searchParams;
   const initialDestination = typeof destination === "string" ? findDestinationById(destination) : null;
 
   // « Modifier mon voyage » : réponses transmises depuis la page de résultats.
@@ -18,5 +18,11 @@ export default async function NewTripPage({ searchParams }: PageProps<"/voyage/n
     typeof modifier === "string" ? tripRequestBaseSchema.safeParse(decodeTripRequestParam(modifier)) : null;
   const initialRequest = parsed?.success ? parsed.data : null;
 
-  return <TripBuilder initialDestination={initialDestination} initialRequest={initialRequest} />;
+  return (
+    <TripBuilder
+      initialDestination={initialDestination}
+      initialRequest={initialRequest}
+      startFresh={nouveau === "1"}
+    />
+  );
 }

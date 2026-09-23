@@ -19,13 +19,43 @@ export const amsterdam: DestinationProfile = {
     localTransportPerDay: 9,
   },
   access: {
-    mode: "train",
     from: "Paris",
-    durationLabel: "3 h 20 en train",
-    durationHours: 3.3,
-    roundTripPerPerson: 140,
+    routes: [
+      {
+        mode: "train",
+        durationLabel: "3 h 20",
+        durationHours: 3.3,
+        roundTripPerPerson: 140,
+        details: "Train direct à grande vitesse, centre à centre",
+      },
+      {
+        mode: "avion",
+        durationLabel: "1 h 20",
+        durationHours: 1.3,
+        roundTripPerPerson: 130,
+        details: "Vol court, train direct vers la gare centrale",
+      },
+      {
+        mode: "bus",
+        durationLabel: "7 h 30",
+        durationHours: 7.5,
+        roundTripPerPerson: 60,
+        details: "Autocar longue distance, idéal petit budget",
+      },
+      {
+        mode: "voiture",
+        durationLabel: "5 h",
+        durationHours: 5,
+        roundTripPerVehicle: 180,
+        details: "Environ 500 km : carburant + péages, parking à prévoir",
+      },
+    ],
   },
-  localTransport: "Vélo de location, tram et marche",
+  localMobility: [
+    { mode: "velo", description: "LE moyen de transport local : loue un vélo" },
+    { mode: "tram", description: "Le tram couvre tout le centre" },
+    { mode: "marche", description: "Les canaux se parcourent très bien à pied" },
+  ],
   idealDays: { min: 2, max: 5 },
   bestMonths: [4, 5, 6, 7, 8, 9],
   styles: {

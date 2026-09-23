@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Container } from "@/components/ui/container";
 import { budgetRangeOptions, budgetScopeLabels } from "@/lib/trip/options";
 import { cn, formatPrice } from "@/lib/utils";
-import type { BudgetCategory, BudgetStatus, ComfortTier, EstimatedBudget } from "@/types/travel-plan";
+import type { BudgetCategory, BudgetStatus, ComfortTier, TravelBudget } from "@/types/travel-plan";
 import type { TripRequest } from "@/types/trip";
 import { DemoNotice } from "./demo-notice";
 import { SectionTitle } from "./section-title";
@@ -51,12 +51,18 @@ function userBudgetLabel(request: TripRequest) {
 }
 
 interface BudgetSectionProps {
-  budget: EstimatedBudget;
+  budget: TravelBudget;
   request: TripRequest;
   travelers: number;
+  nights: number;
 }
 
-export function BudgetSection({ budget, request, travelers }: BudgetSectionProps) {
+export function BudgetSection({ budget, request, travelers, nights }: BudgetSectionProps) {
+  const details: Partial<Record<BudgetCategory, string>> = {
+    transport: "Aller-retour + déplacements sur place",
+    accommodation: `${nights} nuit${nights > 1 ? "s" : ""}`,
+    other: "Assurance, souvenirs, imprévus",
+  };
   const [active, setActive] = useState<BudgetCategory | null>(null);
   const status = STATUS[budget.status];
   const percent = (value: number) => Math.round((value / budget.total) * 100);
@@ -73,14 +79,16 @@ export function BudgetSection({ budget, request, travelers }: BudgetSectionProps
           {/* Chiffres clés */}
           <div className="flex flex-col justify-between gap-6 rounded-4xl bg-white/[0.04] p-6 ring-1 ring-white/10 sm:p-8">
             <div>
-              <p className="text-xs font-bold tracking-[0.18em] text-night-100/60 uppercase">Total estimé</p>
+              <p className="text-xs font-bold tracking-[0.18em] text-night-100/60 uppercase">
+                {travelers > 1 ? "Total pour le groupe" : "Total estimé"}
+              </p>
               <p className="mt-2 font-display text-5xl font-extrabold tracking-tight tabular-nums sm:text-6xl">
                 {formatPrice(budget.total)}
               </p>
               {travelers > 1 && (
                 <p className="mt-2 text-lg text-night-100/80">
-                  soit <strong className="text-white tabular-nums">{formatPrice(budget.perPerson)}</strong>{" "}
-                  par personne
+                  ≈ <strong className="text-white tabular-nums">{formatPrice(budget.perPerson)}</strong> par
+                  personne
                 </p>
               )}
             </div>
@@ -157,7 +165,14 @@ export function BudgetSection({ budget, request, travelers }: BudgetSectionProps
                       <span className="flex items-center gap-2.5">
                         <span aria-hidden="true" className={cn("size-3 shrink-0 rounded-[3px]", c.color)} />
                         <span aria-hidden="true">{c.emoji}</span>
-                        {c.label}
+                        <span>
+                          {c.label}
+                          {details[c.id] && (
+                            <span className="block text-xs font-normal text-night-100/55">
+                              {details[c.id]}
+                            </span>
+                          )}
+                        </span>
                       </span>
                     </th>
                     <td className="py-3 text-right font-semibold tabular-nums">
@@ -172,7 +187,7 @@ export function BudgetSection({ budget, request, travelers }: BudgetSectionProps
               <tfoot>
                 <tr>
                   <th scope="row" className="pt-4 text-left font-bold">
-                    Total estimé
+                    {travelers > 1 ? "Total pour le groupe" : "Total estimé"}
                   </th>
                   <td className="pt-4 text-right font-bold tabular-nums">{formatPrice(budget.total)}</td>
                   <td />

@@ -17,13 +17,22 @@ export const split: DestinationProfile = {
     localTransportPerDay: 6,
   },
   access: {
-    mode: "avion",
     from: "Paris",
-    durationLabel: "2 h 15",
-    durationHours: 2.25,
-    roundTripPerPerson: 190,
+    routes: [
+      {
+        mode: "avion",
+        durationLabel: "2 h 15",
+        durationHours: 2.25,
+        roundTripPerPerson: 190,
+        details: "Vol direct (surtout en saison), navette vers le port",
+      },
+    ],
   },
-  localTransport: "Vieille ville à pied, bateaux et ferries pour les îles",
+  localMobility: [
+    { mode: "marche", description: "La vieille ville est entièrement piétonne" },
+    { mode: "ferry", description: "Ferries et catamarans vers les îles" },
+    { mode: "bus", description: "Bus locaux pour les plages et Krka" },
+  ],
   idealDays: { min: 4, max: 9 },
   bestMonths: [5, 6, 7, 8, 9],
   styles: { plage: 3, fete: 3, nature: 3, aventure: 3, detente: 2, culture: 2, romantique: 2, festivals: 2 },

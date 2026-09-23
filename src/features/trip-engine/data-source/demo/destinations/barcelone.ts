@@ -19,13 +19,29 @@ export const barcelone: DestinationProfile = {
     localTransportPerDay: 7,
   },
   access: {
-    mode: "avion",
     from: "Paris",
-    durationLabel: "1 h 45",
-    durationHours: 1.75,
-    roundTripPerPerson: 130,
+    routes: [
+      {
+        mode: "avion",
+        durationLabel: "1 h 45",
+        durationHours: 1.75,
+        roundTripPerPerson: 130,
+        details: "Vol direct, aéroport relié au centre en train ou bus",
+      },
+      {
+        mode: "train",
+        durationLabel: "6 h 35",
+        durationHours: 6.6,
+        roundTripPerPerson: 160,
+        details: "Train direct à grande vitesse",
+      },
+    ],
   },
-  localTransport: "Métro rapide et quartiers faciles à parcourir à pied",
+  localMobility: [
+    { mode: "metro", description: "Rapide et fréquent, idéal pour tout le séjour" },
+    { mode: "marche", description: "Vieille ville et front de mer se font à pied" },
+    { mode: "velo", description: "Pistes cyclables le long de la plage" },
+  ],
   idealDays: { min: 3, max: 6 },
   bestMonths: [5, 6, 7, 8, 9, 10],
   styles: {

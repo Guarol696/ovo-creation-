@@ -19,13 +19,23 @@ export const lisbonne: DestinationProfile = {
     localTransportPerDay: 6,
   },
   access: {
-    mode: "avion",
     from: "Paris",
-    durationLabel: "2 h 35",
-    durationHours: 2.6,
-    roundTripPerPerson: 150,
+    routes: [
+      {
+        mode: "avion",
+        durationLabel: "2 h 35",
+        durationHours: 2.6,
+        roundTripPerPerson: 150,
+        details: "Vol direct, environ 30 min de l'aéroport au centre",
+      },
+    ],
   },
-  localTransport: "Métro, tramways et beaucoup de marche (ça grimpe !)",
+  localMobility: [
+    { mode: "tram", description: "Les tramways historiques pour grimper les collines" },
+    { mode: "metro", description: "4 lignes rapides pour traverser la ville" },
+    { mode: "marche", description: "Le centre se découvre à pied (ça grimpe !)" },
+    { mode: "taxi", description: "Taxis et VTC abordables pour rentrer le soir" },
+  ],
   idealDays: { min: 3, max: 6 },
   bestMonths: [4, 5, 6, 7, 8, 9, 10],
   styles: {

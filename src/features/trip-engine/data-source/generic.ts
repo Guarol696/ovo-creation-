@@ -1,7 +1,7 @@
 import type { ComfortTier } from "@/types/travel-plan";
 import type { DestinationPlace } from "@/types/trip";
 import { normalizeText } from "@/features/trip-builder/lib/destination-search";
-import type { ActivityTemplate, DestinationProfile, RestaurantTemplate } from "./types";
+import type { ActivityTemplate, DestinationProfile, RestaurantTemplate, TransportRoute } from "./types";
 
 /**
  * Profil « programme type » pour une destination absente du catalogue
@@ -338,6 +338,60 @@ const genericRestaurants: RestaurantTemplate[] = [
   },
 ];
 
+/** Pays reliés à Paris par des trains directs à grande vitesse. */
+const HIGH_SPEED_RAIL = new Set(["BE", "NL", "GB", "DE", "CH", "LU"]);
+
+function genericRoutes(
+  place: DestinationPlace,
+  region: Region,
+  access: { roundTrip: number; hours: number; label: string },
+): TransportRoute[] {
+  const plane: TransportRoute = {
+    mode: "avion",
+    durationLabel: access.label,
+    durationHours: access.hours,
+    roundTripPerPerson: access.roundTrip,
+  };
+  if (place.countryCode === "FR") {
+    return [
+      {
+        mode: "train",
+        durationLabel: "environ 3 à 6 h",
+        durationHours: 4.5,
+        roundTripPerPerson: 90,
+        details: "Train à grande vitesse depuis Paris",
+      },
+      {
+        mode: "voiture",
+        durationLabel: "environ 6 à 9 h",
+        durationHours: 7.5,
+        roundTripPerVehicle: 220,
+        details: "Carburant + péages, selon la distance",
+      },
+      {
+        mode: "avion",
+        durationLabel: "environ 1 h 30",
+        durationHours: 1.5,
+        roundTripPerPerson: 130,
+        details: "Vol intérieur",
+      },
+    ];
+  }
+  if (place.countryCode && HIGH_SPEED_RAIL.has(place.countryCode)) {
+    return [
+      {
+        mode: "train",
+        durationLabel: "environ 2 à 5 h",
+        durationHours: 3.5,
+        roundTripPerPerson: 150,
+        details: "Train direct ou avec une correspondance",
+      },
+      plane,
+    ];
+  }
+  return region === "europe" ? [plane] : [{ ...plane, details: "Vol avec ou sans escale" }];
+}
+
 export function buildGenericProfile(place: DestinationPlace): DestinationProfile {
   const region = (place.countryCode && REGION_BY_COUNTRY[place.countryCode]) || "europe";
   const access = ACCESS_BY_REGION[region];
@@ -360,14 +414,12 @@ export function buildGenericProfile(place: DestinationPlace): DestinationProfile
       foodPerDay: costs.food,
       localTransportPerDay: costs.local,
     },
-    access: {
-      mode: "avion",
-      from: "France",
-      durationLabel: access.label,
-      durationHours: access.hours,
-      roundTripPerPerson: access.roundTrip,
-    },
-    localTransport: "Transports en commun et marche",
+    access: { from: "Paris", routes: genericRoutes(place, region, access) },
+    localMobility: [
+      { mode: "metro", description: "Métro ou bus pour les longues distances" },
+      { mode: "marche", description: "Le centre se découvre à pied" },
+      { mode: "taxi", description: "Taxi ou VTC pour les retours tardifs" },
+    ],
     idealDays: isLongHaul ? { min: 7, max: 16 } : { min: 3, max: 7 },
     bestMonths: [],
     styles: {},

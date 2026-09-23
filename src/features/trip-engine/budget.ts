@@ -1,16 +1,27 @@
-import type { BudgetStatus, ComfortTier, EstimatedBudget } from "@/types/travel-plan";
+import type {
+  BudgetStatus,
+  ComfortTier,
+  PlanAccommodation,
+  PlanTransport,
+  TravelBudget,
+} from "@/types/travel-plan";
 import type { DestinationProfile } from "./data-source/types";
 import type { Preferences } from "./preferences";
+import { accommodationNightlyPrice, accommodationTypeFor } from "./services/accommodation";
+import { recommendedRoute } from "./services/transport";
 
 /**
- * Estimation du budget à partir des coûts indicatifs d'une destination.
- * Montants de DÉMONSTRATION : jamais présentés comme des prix réels.
+ * Estimation du budget. Montants de DÉMONSTRATION : jamais présentés comme
+ * des prix réels.
+ *
+ * - `estimateBudget` : estimation rapide (catalogue) pour classer les
+ *   destinations et choisir le niveau de confort.
+ * - `buildTravelBudget` : budget final, qui reprend EXACTEMENT les options de
+ *   transport et d'hébergement retenues (mêmes montants que les cartes).
  */
 
 /** Les enfants consomment un peu moins (repas, activités). */
 const CHILD_FACTOR = 0.7;
-/** Les enfants partagent la chambre des adultes. */
-const CHILD_ROOM_FACTOR = 0.5;
 /** Part « autres » : assurance, souvenirs, imprévus. */
 const OTHER_RATE = 0.07;
 /** Nombre moyen d'activités payantes par jour (avant construction du programme). */
@@ -29,7 +40,34 @@ function averageActivityCost(profile: DestinationProfile) {
   return paid.reduce((sum, a) => sum + a.cost, 0) / paid.length;
 }
 
-export interface BudgetBreakdownInput {
+interface BreakdownParts {
+  /** Aller-retour pour tout le groupe. */
+  transportRoundTrip: number;
+  localTransportPerDayPerPerson: number;
+  /** Hébergement pour tout le séjour et tout le groupe. */
+  accommodation: number;
+  foodPerDayPerPerson: number;
+  activitiesPerPerson: number;
+}
+
+function computeBreakdown(prefs: Preferences, parts: BreakdownParts) {
+  const people = Math.max(1, prefs.travelers);
+  const eaters = effectiveEaters(prefs);
+
+  const transport = Math.round(
+    parts.transportRoundTrip + parts.localTransportPerDayPerPerson * prefs.days * people,
+  );
+  const accommodation = Math.round(parts.accommodation);
+  const food = roundTo10(parts.foodPerDayPerPerson * prefs.days * eaters);
+  const activities = roundTo10(parts.activitiesPerPerson * eaters);
+  const other = roundTo10((transport + accommodation + food + activities) * OTHER_RATE);
+
+  const breakdown = { transport, accommodation, food, activities, other };
+  const total = transport + accommodation + food + activities + other;
+  return { breakdown, total, perPerson: Math.round(total / people) };
+}
+
+export interface EstimateInput {
   profile: DestinationProfile;
   prefs: Preferences;
   tier: ComfortTier;
@@ -37,31 +75,18 @@ export interface BudgetBreakdownInput {
   activitiesPerPerson?: number;
 }
 
-export function estimateBudget({ profile, prefs, tier, activitiesPerPerson }: BudgetBreakdownInput) {
-  const { costs, access } = profile;
-  const people = prefs.travelers;
-  const eaters = effectiveEaters(prefs);
-  // Au-delà de 4 voyageurs, on loue un appartement : un peu moins cher par personne.
-  const groupDiscount = people >= 4 ? 0.9 : 1;
-  const sleepers = prefs.adults + prefs.children * CHILD_ROOM_FACTOR;
-
-  const activitiesPP = activitiesPerPerson ?? averageActivityCost(profile) * ACTIVITIES_PER_DAY * prefs.days;
-
-  const transport = access.roundTripPerPerson * people + costs.localTransportPerDay * prefs.days * people;
-  const accommodation = costs.accommodationPerNight[tier] * prefs.nights * sleepers * groupDiscount;
-  const food = costs.foodPerDay[tier] * prefs.days * eaters;
-  const activities = activitiesPP * eaters;
-  const other = (transport + accommodation + food + activities) * OTHER_RATE;
-
-  const breakdown = {
-    transport: roundTo10(transport),
-    accommodation: roundTo10(accommodation),
-    food: roundTo10(food),
-    activities: roundTo10(activities),
-    other: roundTo10(other),
-  };
-  const total = Object.values(breakdown).reduce((sum, v) => sum + v, 0);
-  return { breakdown, total, perPerson: roundTo10(total / people) };
+/** Estimation rapide à partir des données du catalogue (sans appel aux services). */
+export function estimateBudget({ profile, prefs, tier, activitiesPerPerson }: EstimateInput) {
+  const route = recommendedRoute(profile, prefs);
+  const nightly = accommodationNightlyPrice(profile, prefs, tier, accommodationTypeFor(prefs, tier));
+  return computeBreakdown(prefs, {
+    transportRoundTrip: route.total,
+    localTransportPerDayPerPerson: profile.costs.localTransportPerDay,
+    accommodation: nightly * Math.max(1, prefs.nights),
+    foodPerDayPerPerson: profile.costs.foodPerDay[tier],
+    activitiesPerPerson:
+      activitiesPerPerson ?? averageActivityCost(profile) * ACTIVITIES_PER_DAY * prefs.days,
+  });
 }
 
 export function budgetStatus(total: number, prefs: Preferences): BudgetStatus {
@@ -86,15 +111,37 @@ export function selectTier(profile: DestinationProfile, prefs: Preferences): Com
   return "eco";
 }
 
-export function buildEstimatedBudget(input: Required<BudgetBreakdownInput>): EstimatedBudget {
-  const { breakdown, total, perPerson } = estimateBudget(input);
-  const { prefs, profile } = input;
+export interface TravelBudgetInput {
+  profile: DestinationProfile;
+  prefs: Preferences;
+  tier: ComfortTier;
+  transport: PlanTransport;
+  accommodation: PlanAccommodation;
+  activitiesPerPerson: number;
+}
+
+/** Budget final : reprend les options de transport et d'hébergement retenues. */
+export function buildTravelBudget({
+  profile,
+  prefs,
+  tier,
+  transport,
+  accommodation,
+  activitiesPerPerson,
+}: TravelBudgetInput): TravelBudget {
+  const { breakdown, total, perPerson } = computeBreakdown(prefs, {
+    transportRoundTrip: transport.main.estimatedRoundTripTotal,
+    localTransportPerDayPerPerson: transport.local.estimatedCostPerDayPerPerson,
+    accommodation: accommodation.main.estimatedTotal,
+    foodPerDayPerPerson: profile.costs.foodPerDay[tier],
+    activitiesPerPerson,
+  });
   return {
     currency: "EUR",
     breakdown,
     total,
     perPerson,
-    tier: input.tier,
+    tier,
     userBudget: {
       min: prefs.budget.min,
       max: Number.isFinite(prefs.budget.max) ? prefs.budget.max : null,

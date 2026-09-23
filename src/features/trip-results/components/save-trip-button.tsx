@@ -12,7 +12,7 @@ interface SaveTripButtonProps {
 }
 
 /**
- * « Sauvegarder mon voyage » : les comptes arrivent à une prochaine étape.
+ * « Enregistrer mon voyage » : les comptes arrivent à une prochaine étape.
  * En attendant, on explique et on propose de copier le lien du voyage.
  */
 export function SaveTripButton({ destinationName, className, variant = "primary" }: SaveTripButtonProps) {
@@ -38,7 +38,7 @@ export function SaveTripButton({ destinationName, className, variant = "primary"
         onClick={() => dialogRef.current?.showModal()}
         aria-haspopup="dialog"
       >
-        <Heart className="size-5" /> Sauvegarder mon voyage
+        <Heart className="size-5" /> Enregistrer mon voyage
       </Button>
 
       <dialog

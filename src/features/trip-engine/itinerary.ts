@@ -7,6 +7,8 @@ import type {
   ItinerarySlot,
   PlanActivity,
   PlanRestaurant,
+  TransportMode,
+  TransportOption,
 } from "@/types/travel-plan";
 import type { TripRequest } from "@/types/trip";
 import { effectiveEaters } from "./budget";
@@ -41,6 +43,8 @@ interface BuildInput {
   tier: ComfortTier;
   request: TripRequest;
   neighborhood: Neighborhood;
+  /** Trajet retenu, pour décrire l'arrivée et le départ. */
+  transport: TransportOption;
 }
 
 const DAY_TITLES: Record<ActivityCategory, string> = {
@@ -89,7 +93,14 @@ function excursionCount(days: number) {
   return 0;
 }
 
-export function buildItinerary({ profile, prefs, tier, request, neighborhood }: BuildInput): ItineraryResult {
+export function buildItinerary({
+  profile,
+  prefs,
+  tier,
+  request,
+  neighborhood,
+  transport,
+}: BuildInput): ItineraryResult {
   const source = profile.source;
   const usage = new Map<string, number>();
   const restaurantUsage = new Map<string, number>();
@@ -213,7 +224,13 @@ export function buildItinerary({ profile, prefs, tier, request, neighborhood }: 
   // --- Construction jour par jour ------------------------------------------
   const days: ItineraryDay[] = [];
   const wantsNightlife = prefs.nightlife >= 2.5 && prefs.children === 0;
-  const transportLabel = profile.access.mode === "train" ? "Train" : "Vol";
+  const ARRIVAL_LABELS: Record<TransportMode, { trip: string; back: string }> = {
+    avion: { trip: "Vol", back: "puis direction l'aéroport pour le retour" },
+    train: { trip: "Train", back: "puis direction la gare pour le retour" },
+    bus: { trip: "Bus", back: "puis direction la gare routière pour le retour" },
+    voiture: { trip: "Route", back: "puis on reprend la route" },
+  };
+  const arrival = ARRIVAL_LABELS[transport.mode];
   const startDate = request.dates.mode === "fixed" ? request.dates.departureDate : null;
   let previousNightOut = false;
 
@@ -234,7 +251,7 @@ export function buildItinerary({ profile, prefs, tier, request, neighborhood }: 
         freeSlot(
           "morning",
           `Arrivée à ${profile.name}`,
-          `${transportLabel} depuis ${profile.access.from} (${profile.access.durationLabel}), puis installation dans le quartier ${neighborhood.name}.`,
+          `${arrival.trip} depuis ${transport.from} (${transport.durationLabel}), puis installation dans le quartier ${neighborhood.name}.`,
         ),
       );
     } else if (excursion) {
@@ -278,13 +295,7 @@ export function buildItinerary({ profile, prefs, tier, request, neighborhood }: 
 
     // Après-midi
     if (isDeparture) {
-      slots.push(
-        freeSlot(
-          "afternoon",
-          "Retour",
-          `Dernier café, puis direction ${profile.access.mode === "train" ? "la gare" : "l'aéroport"} pour le retour.`,
-        ),
-      );
+      slots.push(freeSlot("afternoon", "Retour", `Dernier café, ${arrival.back}.`));
     } else if (excursion) {
       slots.push(
         freeSlot("afternoon", "Suite de l'excursion", "Fin de journée sur place, puis retour en ville."),

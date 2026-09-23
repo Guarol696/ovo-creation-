@@ -1,8 +1,7 @@
 import { Pencil, RotateCcw } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import { routes } from "@/config/site";
-import { editTripUrl } from "@/lib/trip/links";
+import { editTripUrl, newTripUrl } from "@/lib/trip/links";
 import type { TravelPlan } from "@/types/travel-plan";
 import { SaveTripButton } from "./save-trip-button";
 
@@ -21,15 +20,15 @@ export function ResultCta({ plan }: { plan: TravelPlan }) {
           <p className="mx-auto mt-4 max-w-xl text-night-100/75">
             Garde ce voyage sous le coude, ou ajuste tes critères pour une nouvelle proposition.
           </p>
-          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+          <div className="mt-8 flex flex-col flex-wrap justify-center gap-3 sm:flex-row">
             <SaveTripButton destinationName={plan.destination.name} />
             <ButtonLink href={editTripUrl(plan.request)} size="lg" variant="outline-light">
               <Pencil className="size-4" /> Modifier mon voyage
             </ButtonLink>
+            <ButtonLink href={newTripUrl} size="lg" variant="ghost-light">
+              <RotateCcw className="size-4" /> Recommencer
+            </ButtonLink>
           </div>
-          <ButtonLink href={routes.createTrip} variant="ghost-light" className="mt-4">
-            <RotateCcw className="size-4" /> Créer un autre voyage
-          </ButtonLink>
         </div>
       </Container>
     </section>

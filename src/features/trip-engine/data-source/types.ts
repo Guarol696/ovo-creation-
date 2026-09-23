@@ -1,4 +1,10 @@
-import type { ActivityCategory, ComfortTier, DataSource } from "@/types/travel-plan";
+import type {
+  ActivityCategory,
+  ComfortTier,
+  DataSource,
+  LocalMobilityMode,
+  TransportMode,
+} from "@/types/travel-plan";
 import type { Ambiance, DestinationPlace, Priority, TravelStyle } from "@/types/trip";
 
 /**
@@ -45,6 +51,23 @@ export interface RestaurantTemplate {
   tags: TravelStyle[];
 }
 
+export interface TransportRoute {
+  mode: TransportMode;
+  durationLabel: string;
+  /** Durée du trajet porte à porte hors attente (heures). */
+  durationHours: number;
+  /** Aller-retour par personne (avion, train, bus). */
+  roundTripPerPerson?: number;
+  /** Aller-retour par véhicule : carburant + péages (voiture). */
+  roundTripPerVehicle?: number;
+  details?: string;
+}
+
+export interface LocalMobilityHint {
+  mode: LocalMobilityMode;
+  description: string;
+}
+
 export interface Neighborhood {
   name: string;
   vibe: string;
@@ -71,14 +94,13 @@ export interface DestinationProfile {
     foodPerDay: Record<ComfortTier, number>;
     localTransportPerDay: number;
   };
+  /** Trajets aller-retour depuis la ville de départ (prix moyens indicatifs). */
   access: {
-    mode: "avion" | "train";
     from: string;
-    durationLabel: string;
-    durationHours: number;
-    roundTripPerPerson: number;
+    routes: TransportRoute[];
   };
-  localTransport: string;
+  /** Façons conseillées de se déplacer sur place. */
+  localMobility: LocalMobilityHint[];
   idealDays: { min: number; max: number };
   /** Mois conseillés (1 = janvier). */
   bestMonths: number[];

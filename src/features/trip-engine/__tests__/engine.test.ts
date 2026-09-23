@@ -97,7 +97,7 @@ describe("scénario 1 — destination précise, petit budget, voyage économique
     expect(plan.destination.name).toBe("Lisbonne");
     expect(plan.destination.recommended).toBe(false);
     expect(plan.estimatedBudget.tier).toBe("eco");
-    expect(plan.accommodation.type).toMatch(/Auberge/);
+    expect(plan.accommodation.main.type).toBe("auberge");
     expect(plan.itinerary[0]!.date).toBe(departure);
     expect(["tight", "over"]).toContain(plan.estimatedBudget.status);
     expect(plan.warnings.join(" ")).toMatch(/budget|Budget/);
@@ -164,7 +164,7 @@ describe("scénario 4 — plusieurs voyageurs, durée longue", () => {
     expectCoherent(plan);
     expect(plan.duration.days).toBe(10);
     expect(plan.travelers.total).toBe(6);
-    expect(plan.accommodation.type).toMatch(/groupe|maison/i);
+    expect(plan.accommodation.main.type).toBe("appartement");
     expect(categories(plan).filter((c) => c === "excursion").length).toBeGreaterThanOrEqual(2);
     // Pas de sorties nocturnes avec des enfants.
     expect(categories(plan)).not.toContain("nightlife");
@@ -225,7 +225,7 @@ describe("recommandations", () => {
     );
     expectCoherent(plan);
     expect(plan.destination.isGeneric).toBe(true);
-    expect(plan.transport.toDestination.estimatedCostPerPerson).toBeGreaterThan(500);
+    expect(plan.transport.main.estimatedRoundTripPerPerson).toBeGreaterThan(500);
     expect(plan.warnings.join(" ")).toMatch(/programme est un modèle/);
   });
 

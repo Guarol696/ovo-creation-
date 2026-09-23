@@ -19,13 +19,22 @@ export const athenes: DestinationProfile = {
     localTransportPerDay: 5,
   },
   access: {
-    mode: "avion",
     from: "Paris",
-    durationLabel: "3 h 20",
-    durationHours: 3.3,
-    roundTripPerPerson: 180,
+    routes: [
+      {
+        mode: "avion",
+        durationLabel: "3 h 20",
+        durationHours: 3.3,
+        roundTripPerPerson: 180,
+        details: "Vol direct, métro direct vers le centre",
+      },
+    ],
   },
-  localTransport: "Métro moderne, tram jusqu'à la côte",
+  localMobility: [
+    { mode: "metro", description: "Moderne, relie aussi l'aéroport" },
+    { mode: "tram", description: "Jusqu'aux plages de la Riviera" },
+    { mode: "marche", description: "Plaka et le centre historique à pied" },
+  ],
   idealDays: { min: 3, max: 7 },
   bestMonths: [4, 5, 6, 7, 8, 9, 10],
   styles: { culture: 3, plage: 2, gastronomie: 2, fete: 2, ville: 2, romantique: 2, detente: 2, nature: 1 },

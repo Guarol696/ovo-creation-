@@ -68,6 +68,8 @@ interface TripBuilderProps {
   initialDestination?: DestinationPlace | null;
   /** Réponses à modifier (depuis la page de résultats). */
   initialRequest?: TripRequest | null;
+  /** « Recommencer » : ignorer le questionnaire sauvegardé. */
+  startFresh?: boolean;
 }
 
 const subscribeNoop = () => () => {};
@@ -100,7 +102,11 @@ interface InitialState {
 function restoreInitialState(
   initialDestination: DestinationPlace | null,
   initialRequest: TripRequest | null,
+  startFresh: boolean,
 ): InitialState {
+  if (startFresh) {
+    return { draft: initialDraft, stepId: "destination", view: "questions", restored: false };
+  }
   if (initialRequest) {
     const draft = fromTripRequest(initialRequest);
     // Réponses devenues invalides (ex. dates passées) : on ouvre l'étape à corriger.
@@ -125,10 +131,14 @@ function restoreInitialState(
   return { draft, stepId, view, restored: true };
 }
 
-function TripBuilderFlow({ initialDestination = null, initialRequest = null }: TripBuilderProps) {
+function TripBuilderFlow({
+  initialDestination = null,
+  initialRequest = null,
+  startFresh = false,
+}: TripBuilderProps) {
   const formId = useId();
   const router = useRouter();
-  const [initial] = useState(() => restoreInitialState(initialDestination, initialRequest));
+  const [initial] = useState(() => restoreInitialState(initialDestination, initialRequest, startFresh));
   const [draft, dispatch] = useReducer(draftReducer, initial.draft);
   const [view, setView] = useState<View>(initial.view);
   const [stepId, setStepId] = useState<StepId>(initial.stepId);
@@ -144,8 +154,10 @@ function TripBuilderFlow({ initialDestination = null, initialRequest = null }: T
   // Les paramètres de l'URL sont appliqués une seule fois : on nettoie l'URL
   // pour qu'un rechargement reprenne la sauvegarde locale.
   useEffect(() => {
-    if (initialDestination || initialRequest) window.history.replaceState(null, "", window.location.pathname);
-  }, [initialDestination, initialRequest]);
+    if (initialDestination || initialRequest || startFresh) {
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+  }, [initialDestination, initialRequest, startFresh]);
 
   // Sauvegarde automatique à chaque changement (navigateur uniquement).
   useEffect(() => {

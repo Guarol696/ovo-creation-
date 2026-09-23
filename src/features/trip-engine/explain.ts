@@ -1,7 +1,7 @@
 import { formatMonthFr } from "@/lib/dates";
 import { ambianceOptions, travelStyleOptions } from "@/lib/trip/options";
 import { formatPrice } from "@/lib/utils";
-import type { EstimatedBudget, PlanHighlight } from "@/types/travel-plan";
+import type { PlanHighlight, TransportOption, TravelBudget } from "@/types/travel-plan";
 import type { DestinationProfile } from "./data-source/types";
 import type { ItineraryResult } from "./itinerary";
 import type { Preferences } from "./preferences";
@@ -22,8 +22,9 @@ function joinFr(items: string[]) {
 export function buildReasons(
   profile: DestinationProfile,
   prefs: Preferences,
-  budget: EstimatedBudget,
+  budget: TravelBudget,
   recommended: boolean,
+  transport: TransportOption,
 ): string[] {
   const reasons: string[] = [];
   const matchedStyles = prefs.styles.filter((s) => (profile.styles[s] ?? 0) >= 2);
@@ -61,8 +62,8 @@ export function buildReasons(
     reasons.push(`${prefs.days} jours, c'est le format idéal pour profiter de ${profile.name} sans courir.`);
   }
 
-  if (prefs.priorities.has("rapidite") && profile.access.durationHours <= 3.5) {
-    reasons.push(`Accès rapide : ${profile.access.durationLabel} depuis ${profile.access.from}.`);
+  if (prefs.priorities.has("rapidite") && transport.durationHours <= 3.5) {
+    reasons.push(`Accès rapide : ${transport.durationLabel} depuis ${transport.from}.`);
   }
 
   if (prefs.month !== null && profile.bestMonths.includes(prefs.month)) {
@@ -83,7 +84,7 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 export function buildWarnings(
   profile: DestinationProfile,
   prefs: Preferences,
-  budget: EstimatedBudget,
+  budget: TravelBudget,
 ): string[] {
   const warnings: string[] = [];
   if (budget.status === "tight") {

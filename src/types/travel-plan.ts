@@ -85,9 +85,15 @@ export type ComfortTier = "eco" | "standard" | "confort";
 
 export type BudgetStatus = "within" | "tight" | "over";
 
-export interface EstimatedBudget {
+/**
+ * Budget global du voyage, pour tout le groupe.
+ * Les postes transport et hébergement reprennent exactement les options
+ * retenues (`PlanTransport.main`, `PlanAccommodation.main`).
+ */
+export interface TravelBudget {
   currency: "EUR";
   breakdown: Record<BudgetCategory, number>;
+  /** Total pour tout le groupe. */
   total: number;
   perPerson: number;
   tier: ComfortTier;
@@ -97,27 +103,79 @@ export interface EstimatedBudget {
   source: DataSource;
 }
 
-export interface PlanAccommodation {
-  type: string;
-  area: string;
+// --- Transport ---------------------------------------------------------------
+
+export type TransportMode = "avion" | "train" | "voiture" | "bus";
+
+/** Une façon de rejoindre la destination (aller-retour). */
+export interface TransportOption {
+  id: string;
+  mode: TransportMode;
+  from: string;
+  to: string;
+  durationLabel: string;
+  durationHours: number;
+  /** Prix indicatif aller-retour par personne, en euros. */
+  estimatedRoundTripPerPerson: number;
+  /** Prix indicatif aller-retour pour tout le groupe, en euros. */
+  estimatedRoundTripTotal: number;
+  /** Pourquoi cette option (ex. « Centre-ville à centre-ville »). */
+  highlight: string;
+  details?: string;
+  source: DataSource;
+}
+
+export type LocalMobilityMode = "metro" | "tram" | "bus" | "marche" | "taxi" | "velo" | "ferry";
+
+/** Recommandation pour se déplacer sur place. */
+export interface LocalMobilityOption {
+  mode: LocalMobilityMode;
+  label: string;
   description: string;
+}
+
+export interface PlanTransport {
+  /** Option recommandée par OVO (utilisée dans le budget). */
+  main: TransportOption;
+  alternatives: TransportOption[];
+  local: {
+    options: LocalMobilityOption[];
+    estimatedCostPerDayPerPerson: number;
+  };
+  source: DataSource;
+}
+
+// --- Hébergement -------------------------------------------------------------
+
+export type AccommodationType = "hotel" | "appartement" | "auberge";
+
+/** Un hébergement proposé (fictif tant que la source est « demo »). */
+export interface AccommodationOption {
+  id: string;
+  name: string;
+  type: AccommodationType;
+  area: string;
+  areaDescription: string;
+  /** Note sur 5 — fictive tant que la source n'est pas une API. */
+  rating: number;
   estimatedPricePerNight: number;
   nights: number;
+  /** Prix pour tout le séjour et tout le groupe. */
+  estimatedTotal: number;
+  guests: number;
+  /** Ex. « 2 chambres », « Logement entier ». */
+  capacityLabel: string;
+  amenities: string[];
+  /** Pourquoi cette option (ex. « Idéal en solo à petit prix »). */
+  highlight: string;
   tier: ComfortTier;
   source: DataSource;
 }
 
-export interface PlanTransport {
-  toDestination: {
-    mode: "avion" | "train";
-    from: string;
-    durationLabel: string;
-    estimatedCostPerPerson: number;
-  };
-  local: {
-    description: string;
-    estimatedCostPerDayPerPerson: number;
-  };
+export interface PlanAccommodation {
+  /** Option recommandée par OVO (utilisée dans le budget). */
+  main: AccommodationOption;
+  alternatives: AccommodationOption[];
   source: DataSource;
 }
 
@@ -163,7 +221,7 @@ export interface TravelPlan {
   transport: PlanTransport;
   activities: PlanActivity[];
   restaurants: PlanRestaurant[];
-  estimatedBudget: EstimatedBudget;
+  estimatedBudget: TravelBudget;
   /** Autres destinations compatibles (si OVO a choisi). */
   alternatives: { id: string; name: string; country: string }[];
 }

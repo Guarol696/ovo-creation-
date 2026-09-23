@@ -8,3 +8,6 @@ export const tripResultUrl = (request: TripRequest) => `${routes.tripResult}?v=$
 /** URL du questionnaire pré-rempli avec une demande (« Modifier mon voyage »). */
 export const editTripUrl = (request: TripRequest) =>
   `${routes.createTrip}?modifier=${encodeTripRequest(request)}`;
+
+/** Questionnaire vierge (« Recommencer ») : ignore les réponses sauvegardées. */
+export const newTripUrl = `${routes.createTrip}?nouveau=1`;

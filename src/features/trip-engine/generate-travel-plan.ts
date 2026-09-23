@@ -1,14 +1,16 @@
 import type { TravelPlan } from "@/types/travel-plan";
 import type { TripRequest } from "@/types/trip";
-import { buildEstimatedBudget, estimateBudget, selectTier } from "./budget";
+import { buildTravelBudget, estimateBudget, selectTier } from "./budget";
 import { demoDataSource } from "./data-source/demo";
 import { buildGenericProfile } from "./data-source/generic";
 import type { DestinationProfile, TravelDataSource } from "./data-source/types";
 import { buildHighlights, buildReasons, buildSummary, buildWarnings } from "./explain";
 import { buildItinerary } from "./itinerary";
-import { buildAccommodation, buildTransport, chooseNeighborhood } from "./logistics";
+import { chooseNeighborhood } from "./logistics";
 import { analyzePreferences } from "./preferences";
 import { rankDestinations } from "./scoring";
+import { demoAccommodationProvider, type AccommodationProvider } from "./services/accommodation";
+import { demoTransportProvider, type TransportProvider } from "./services/transport";
 
 /**
  * Moteur de génération OVO.
@@ -17,20 +19,28 @@ import { rankDestinations } from "./scoring";
  *     → analyse des préférences
  *     → sélection de la destination (choisie ou recommandée par score)
  *     → niveau de confort adapté au budget
+ *     → transport (service transport) et hébergement (service hébergement)
  *     → programme jour par jour
  *     → budget détaillé, explications et moments forts
  *
  * Déterministe : les mêmes réponses donnent toujours le même voyage.
- * Les données viennent d'une `TravelDataSource` injectable (démo par défaut).
+ * Chaque source est injectable (démo par défaut) : destinations, transport et
+ * hébergement pourront être branchés sur de vraies API indépendamment.
  */
 
 export interface GenerateOptions {
   dataSource?: TravelDataSource;
+  transportProvider?: TransportProvider;
+  accommodationProvider?: AccommodationProvider;
 }
 
 export async function generateTravelPlan(
   request: TripRequest,
-  { dataSource = demoDataSource }: GenerateOptions = {},
+  {
+    dataSource = demoDataSource,
+    transportProvider = demoTransportProvider,
+    accommodationProvider = demoAccommodationProvider,
+  }: GenerateOptions = {},
 ): Promise<TravelPlan> {
   const prefs = analyzePreferences(request);
   const candidates = await dataSource.listDestinations();
@@ -52,16 +62,31 @@ export async function generateTravelPlan(
       .map((s) => s.profile);
   }
 
-  // 2. Niveau de confort, quartier et programme
+  // 2. Niveau de confort, transport et hébergement
   const tier = selectTier(profile, prefs);
   const neighborhood = chooseNeighborhood(profile, prefs, tier);
-  const itinerary = buildItinerary({ profile, prefs, tier, request, neighborhood });
+  const [transport, accommodation] = await Promise.all([
+    transportProvider.getTransport({ profile, prefs }),
+    accommodationProvider.getAccommodation({ profile, prefs, tier, neighborhood }),
+  ]);
 
-  // 3. Budget détaillé à partir du programme réel
-  const estimatedBudget = buildEstimatedBudget({
+  // 3. Programme jour par jour
+  const itinerary = buildItinerary({
     profile,
     prefs,
     tier,
+    request,
+    neighborhood,
+    transport: transport.main,
+  });
+
+  // 4. Budget : reprend exactement les options retenues
+  const estimatedBudget = buildTravelBudget({
+    profile,
+    prefs,
+    tier,
+    transport,
+    accommodation,
     activitiesPerPerson: itinerary.activitiesCostPerPerson,
   });
 
@@ -106,12 +131,12 @@ export async function generateTravelPlan(
     travelStyle: request.styles,
     atmosphere: request.ambiances,
     summary: buildSummary(profile, prefs),
-    reasons: buildReasons(profile, prefs, estimatedBudget, recommended),
+    reasons: buildReasons(profile, prefs, estimatedBudget, recommended, transport.main),
     warnings: buildWarnings(profile, prefs, estimatedBudget),
     highlights: buildHighlights(itinerary, profile),
     itinerary: itinerary.days,
-    accommodation: buildAccommodation(profile, prefs, tier, neighborhood),
-    transport: buildTransport(profile),
+    accommodation,
+    transport,
     activities: itinerary.activities,
     restaurants: itinerary.restaurants,
     estimatedBudget,

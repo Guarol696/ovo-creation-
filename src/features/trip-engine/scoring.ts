@@ -2,6 +2,7 @@ import type { Priority } from "@/types/trip";
 import { estimateBudget, selectTier } from "./budget";
 import type { DestinationProfile } from "./data-source/types";
 import type { Preferences } from "./preferences";
+import { fastestDuration } from "./services/transport";
 
 /**
  * Score de compatibilité d'une destination avec les préférences.
@@ -30,7 +31,7 @@ const ratio = (sum: number, count: number) => (count === 0 ? 0 : sum / (3 * coun
 function priorityAffinity(profile: DestinationProfile, priority: Priority): number {
   if (priority === "prix") return Math.max(0, 4 - profile.costLevel);
   if (priority === "rapidite") {
-    const h = profile.access.durationHours;
+    const h = fastestDuration(profile);
     return h <= 2 ? 3 : h <= 3.5 ? 2 : h <= 6 ? 1 : 0;
   }
   return profile.strengths[priority] ?? 0;

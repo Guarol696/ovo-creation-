@@ -19,13 +19,21 @@ export const marrakech: DestinationProfile = {
     localTransportPerDay: 5,
   },
   access: {
-    mode: "avion",
     from: "Paris",
-    durationLabel: "3 h 15",
-    durationHours: 3.25,
-    roundTripPerPerson: 170,
+    routes: [
+      {
+        mode: "avion",
+        durationLabel: "3 h 15",
+        durationHours: 3.25,
+        roundTripPerPerson: 170,
+        details: "Vol direct, 15 min de l'aéroport à la médina",
+      },
+    ],
   },
-  localTransport: "À pied dans la médina, petits taxis pour le reste",
+  localMobility: [
+    { mode: "marche", description: "La médina se parcourt uniquement à pied" },
+    { mode: "taxi", description: "Petits taxis : fixe le prix avant de monter" },
+  ],
   idealDays: { min: 3, max: 7 },
   bestMonths: [3, 4, 5, 10, 11, 12],
   styles: {

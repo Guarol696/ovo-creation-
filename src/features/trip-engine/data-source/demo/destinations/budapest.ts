@@ -19,13 +19,22 @@ export const budapest: DestinationProfile = {
     localTransportPerDay: 5,
   },
   access: {
-    mode: "avion",
     from: "Paris",
-    durationLabel: "2 h 10",
-    durationHours: 2.2,
-    roundTripPerPerson: 150,
+    routes: [
+      {
+        mode: "avion",
+        durationLabel: "2 h 10",
+        durationHours: 2.2,
+        roundTripPerPerson: 150,
+        details: "Vol direct, bus express vers le centre",
+      },
+    ],
   },
-  localTransport: "Métro, trams le long du Danube et marche",
+  localMobility: [
+    { mode: "tram", description: "Le tram 2 longe le Danube" },
+    { mode: "metro", description: "Métro rapide, dont la plus ancienne ligne du continent" },
+    { mode: "marche", description: "Pest se découvre facilement à pied" },
+  ],
   idealDays: { min: 3, max: 5 },
   bestMonths: [4, 5, 6, 7, 8, 9, 12],
   styles: { fete: 3, detente: 3, culture: 3, ville: 2, romantique: 2, festivals: 3, gastronomie: 2 },
