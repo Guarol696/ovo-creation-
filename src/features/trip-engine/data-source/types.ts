@@ -3,6 +3,7 @@ import type {
   ActivityMoment,
   ComfortTier,
   DataSource,
+  GeoPoint,
   LocalMobilityMode,
   Meal,
   RestaurantKind,
@@ -83,6 +84,19 @@ export interface Neighborhood {
   tags: TravelStyle[];
 }
 
+/**
+ * Coordonnées de DÉMONSTRATION d'une destination (approximatives).
+ * Remplaçables plus tard par un service de géocodage.
+ */
+export interface DestinationGeo {
+  center: GeoPoint;
+  zoom: number;
+  /** Clé = nom du quartier (`Neighborhood.name`). */
+  neighborhoods: Record<string, GeoPoint>;
+  /** Clé = identifiant d'activité : lieux connus (monuments, plages…). */
+  places: Record<string, GeoPoint>;
+}
+
 export interface DestinationProfile {
   id: string;
   name: string;
@@ -116,6 +130,8 @@ export interface DestinationProfile {
   neighborhoods: Neighborhood[];
   activities: ActivityTemplate[];
   restaurants: RestaurantTemplate[];
+  /** Absent pour une destination sans coordonnées (programme type). */
+  geo?: DestinationGeo;
   source: DataSource;
 }
 

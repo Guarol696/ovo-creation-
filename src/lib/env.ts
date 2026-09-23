@@ -7,6 +7,12 @@ export const publicEnv = {
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
   supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
+  /** Fond de carte raster (gratuit par défaut : CARTO, données © OpenStreetMap). */
+  mapTilesUrl:
+    process.env.NEXT_PUBLIC_MAP_TILES_URL ?? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+  mapAttribution:
+    process.env.NEXT_PUBLIC_MAP_ATTRIBUTION ??
+    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
 } as const;
 
 export function isSupabaseConfigured() {

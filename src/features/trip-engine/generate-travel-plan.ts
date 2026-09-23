@@ -6,6 +6,7 @@ import { buildGenericProfile } from "./data-source/generic";
 import type { DestinationProfile, TravelDataSource } from "./data-source/types";
 import { buildHighlights, buildReasons, buildSummary, buildWarnings } from "./explain";
 import { buildItinerary } from "./itinerary";
+import { annotateItinerary, buildTripMap } from "./locations";
 import { chooseNeighborhood } from "./logistics";
 import { analyzePreferences } from "./preferences";
 import { rankDestinations } from "./scoring";
@@ -23,6 +24,7 @@ import { demoTransportProvider, type TransportProvider } from "./services/transp
  *     → niveau de confort adapté au budget
  *     → transport, hébergement, activités et restaurants (un service chacun)
  *     → programme jour par jour, construit à partir de ces activités et restaurants
+ *     → lieux de la carte, horaires et trajets estimés entre étapes
  *     → budget détaillé, explications et moments forts
  *
  * Déterministe : les mêmes réponses donnent toujours le même voyage.
@@ -91,7 +93,11 @@ export async function generateTravelPlan(
     restaurants: restaurantCandidates,
   });
 
-  // 4. Budget : reprend exactement les options retenues
+  // 4. Lieux de la carte, horaires indicatifs et trajets entre étapes
+  const map = buildTripMap({ profile, itinerary, accommodation });
+  const days = annotateItinerary(itinerary.days, map);
+
+  // 5. Budget : reprend exactement les options retenues
   const estimatedBudget = buildTravelBudget({
     profile,
     prefs,
@@ -145,12 +151,13 @@ export async function generateTravelPlan(
     reasons: buildReasons(profile, prefs, estimatedBudget, recommended, transport.main),
     warnings: buildWarnings(profile, prefs, estimatedBudget),
     highlights: buildHighlights(itinerary),
-    itinerary: itinerary.days,
+    itinerary: days,
     accommodation,
     transport,
     activities: itinerary.activities,
     restaurants: itinerary.restaurants,
     estimatedBudget,
+    map,
     alternatives: alternatives.map((a) => ({ id: a.id, name: a.name, country: a.country })),
   };
 }

@@ -197,3 +197,134 @@
     transform: none;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Carte (Leaflet) — marqueurs et popups aux couleurs OVO              */
+/* ------------------------------------------------------------------ */
+.ovo-map {
+  background: var(--color-night-900);
+  font-family: var(--font-sans);
+}
+
+.ovo-map .leaflet-control-attribution {
+  background: color-mix(in oklab, var(--color-night-950) 80%, transparent);
+  color: var(--color-night-100);
+  font-size: 10px;
+}
+
+.ovo-map .leaflet-control-attribution a {
+  color: var(--color-gold-300);
+}
+
+.ovo-map .leaflet-bar a {
+  background: var(--color-night-800);
+  color: #fff;
+  border-color: color-mix(in oklab, #fff 15%, transparent);
+  width: 36px;
+  height: 36px;
+  line-height: 36px;
+}
+
+.ovo-map .leaflet-bar a:hover {
+  background: var(--color-night-700);
+}
+
+.ovo-map .leaflet-popup-content-wrapper,
+.ovo-map .leaflet-popup-tip {
+  background: var(--color-night-900);
+  color: #fff;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.45);
+  border: 1px solid color-mix(in oklab, #fff 12%, transparent);
+}
+
+.ovo-map .leaflet-popup-content-wrapper {
+  border-radius: 1.25rem;
+}
+
+.ovo-map .leaflet-popup-content {
+  margin: 14px 16px;
+  line-height: 1.45;
+}
+
+.ovo-map .leaflet-container a.leaflet-popup-close-button {
+  color: var(--color-night-100);
+  width: 32px;
+  height: 32px;
+  font-size: 20px;
+}
+
+.ovo-pin {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 9999px 9999px 9999px 4px;
+  transform: rotate(-45deg);
+  border: 2px solid #fff;
+  box-shadow: 0 6px 16px rgb(0 0 0 / 0.4);
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease,
+    filter 0.2s ease;
+}
+
+.ovo-pin__emoji {
+  transform: rotate(45deg);
+  font-size: 17px;
+  line-height: 1;
+}
+
+.ovo-pin__day {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  transform: rotate(45deg);
+  min-width: 22px;
+  padding: 1px 5px;
+  border-radius: 9999px;
+  background: var(--color-night-950);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border: 1px solid color-mix(in oklab, #fff 40%, transparent);
+}
+
+.ovo-pin--accommodation {
+  background: var(--color-gold-400);
+}
+.ovo-pin--activity {
+  background: var(--color-sun-500);
+}
+.ovo-pin--restaurant {
+  background: #e05d8f;
+}
+.ovo-pin--poi {
+  background: var(--color-night-400);
+}
+
+.leaflet-marker-icon.is-dimmed .ovo-pin {
+  opacity: 0.35;
+  filter: grayscale(0.7);
+}
+
+.leaflet-marker-icon.is-selected .ovo-pin {
+  transform: rotate(-45deg) scale(1.25);
+  box-shadow:
+    0 0 0 4px color-mix(in oklab, var(--color-sun-400) 55%, transparent),
+    0 8px 20px rgb(0 0 0 / 0.5);
+}
+
+.leaflet-marker-icon:focus-visible {
+  outline: none;
+}
+
+.leaflet-marker-icon:focus-visible .ovo-pin {
+  box-shadow: 0 0 0 4px var(--color-sun-400);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ovo-pin {
+    transition: none;
+  }
+}

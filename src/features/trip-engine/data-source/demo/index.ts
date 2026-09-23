@@ -1,5 +1,6 @@
 import { normalizeText } from "@/features/trip-builder/lib/destination-search";
 import type { DestinationProfile, TravelDataSource } from "../types";
+import { DEMO_GEO } from "./geo";
 import { amsterdam } from "./destinations/amsterdam";
 import { athenes } from "./destinations/athenes";
 import { barcelone } from "./destinations/barcelone";
@@ -26,7 +27,7 @@ export const demoDestinations: DestinationProfile[] = [
   budapest,
   athenes,
   split,
-];
+].map((profile) => ({ ...profile, geo: DEMO_GEO[profile.id] }));
 
 export const demoDataSource: TravelDataSource = {
   id: "ovo-demo",

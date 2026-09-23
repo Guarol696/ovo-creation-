@@ -8,6 +8,7 @@ le nombre de voyageurs et son style, et OVO lui propose un voyage personnalisé.
 - [Next.js 16](https://nextjs.org) (App Router) · React 19 · TypeScript (strict)
 - Tailwind CSS v4 (design tokens dans `src/app/globals.css`)
 - Supabase (base de données + authentification, via `@supabase/ssr`)
+- Leaflet (carte interactive, chargé uniquement côté navigateur ; fond de carte OpenStreetMap/CARTO)
 - Déploiement prévu sur Vercel
 
 ## Démarrer
@@ -61,10 +62,11 @@ src/
 │   │   ├── budget.ts         # Estimation par catégorie + niveau de confort
 │   │   ├── itinerary.ts      # Programme jour par jour
 │   │   ├── logistics.ts      # Choix du quartier où loger
+│   │   ├── locations.ts      # Lieux de la carte, horaires indicatifs, trajets estimés
 │   │   ├── services/         # Transport, hébergement, activités, restaurants (démo → API)
 │   │   ├── explain.ts        # « Pourquoi OVO… », alertes, moments forts
 │   │   └── generate-travel-plan.ts  # Orchestrateur du pipeline
-│   └── trip-results/         # Page de résultats (sections, budget, sauvegarde)
+│   └── trip-results/         # Page de résultats (sections, carte + programme, budget, sauvegarde)
 ├── config/                   # Config du site (nav, routes, images, réseaux sociaux)
 ├── data/                     # Données statiques de démonstration
 ├── lib/
@@ -110,6 +112,15 @@ Questionnaire → validation (zod, serveur) → analyse des préférences
 - **Budget** : nourriture = repas réellement programmés + petits-déjeuners/en-cas ; activités =
   activités programmées. Les postes transport et hébergement reprennent exactement les options affichées
   (mêmes montants que les cartes). Établissements, notes et prix sont fictifs et signalés comme tels.
+- **Carte & itinéraire** : `TravelPlan → itinéraire → lieux (TripMap.locations) → marqueurs`.
+  `locations.ts` construit les lieux (hébergement, activités, restaurants, points d'intérêt) à partir
+  du programme et des coordonnées de démonstration (`data-source/demo/geo.ts`), puis ajoute à chaque
+  étape un horaire indicatif, son lieu (`locationId`) et un trajet estimé depuis l'étape précédente
+  (distance à vol d'oiseau, temps approximatif — aucun calcul d'itinéraire réel). Une destination
+  sans coordonnées affiche le programme sans carte. Côté interface, `DayExplorer` synchronise jours,
+  étapes, filtres et carte ; `TravelMap` (Leaflet) crée les marqueurs une seule fois par voyage.
+  Le fond de carte se configure via `NEXT_PUBLIC_MAP_TILES_URL` / `NEXT_PUBLIC_MAP_ATTRIBUTION`
+  (voir `.env.example`) ; en production, prévoir un fournisseur de tuiles adapté au trafic.
 - **Remplaçable** : le moteur ne dépend que de l'interface `TravelDataSource`
   (`generateTravelPlan(request, { dataSource })`). Chaque bloc du `TravelPlan` porte sa `source`
   (`demo`, `generic`, `api`) pour brancher progressivement vols, hôtels, activités ou une IA.
@@ -127,6 +138,7 @@ fonctionne sans compte ni configuration Supabase.
 - [x] Étape 3 — Moteur de génération (démo) & page de résultats (`/voyage/resultat`)
 - [x] Étape 4 — Transport (« Comment y aller ? ») & hébergement (« Où dormir ? ») intégrés au budget
 - [x] Étape 5 — Activités (« Que faire ? ») & restaurants (« Où manger ? ») avec filtres, intégrés au programme et au budget
+- [x] Étape 6 — Carte interactive (« Ton voyage sur la carte ») & itinéraire jour par jour synchronisé
 - [ ] Authentification Supabase, profil, voyages sauvegardés
-- [ ] Partage, carte interactive, export PDF
+- [ ] Partage, export PDF
 - [ ] OVO Premium & paiements

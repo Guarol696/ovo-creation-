@@ -110,6 +110,54 @@ export interface PlanRestaurant {
   source: DataSource;
 }
 
+// --- Carte ---------------------------------------------------------------------
+
+export interface GeoPoint {
+  lat: number;
+  lng: number;
+}
+
+export type LocationCategory = "accommodation" | "activity" | "restaurant" | "poi";
+
+/**
+ * Lieu affiché sur la carte (« Location » / « MapMarker »).
+ * Coordonnées de démonstration tant que la source n'est pas une API.
+ */
+export interface PlanLocation {
+  id: string;
+  name: string;
+  category: LocationCategory;
+  /** Sous-catégorie lisible (ex. « Culture », « Cuisine portugaise »). */
+  label: string;
+  emoji: string;
+  point: GeoPoint;
+  /** « landmark » : lieu connu ; « approximate » : position indicative. */
+  precision: "landmark" | "approximate";
+  description: string;
+  /** Jours du programme concernés (vide = hors programme). */
+  dayNumbers: number[];
+  estimatedCostPerPerson: number | null;
+  /** Identifiant de l'activité / du restaurant / de l'hébergement lié. */
+  refId: string;
+  source: DataSource;
+}
+
+/** Trajet estimé entre deux étapes (distance à vol d'oiseau, pas d'itinéraire réel). */
+export interface TravelLeg {
+  distanceKm: number;
+  minutes: number;
+  mode: "walk" | "transit" | "road";
+}
+
+export interface TripMap {
+  /** false si aucune coordonnée n'est disponible pour la destination. */
+  available: boolean;
+  center: GeoPoint | null;
+  zoom: number;
+  locations: PlanLocation[];
+  source: DataSource;
+}
+
 /**
  * Élément du programme (« ItineraryItem ») : un moment de la journée avec
  * une activité et/ou un restaurant du TravelPlan, ou un temps libre.
@@ -122,6 +170,13 @@ export interface ItinerarySlot {
   restaurant?: PlanRestaurant;
   /** Coût estimé par personne pour ce créneau. */
   estimatedCostPerPerson: number;
+  /** Horaires indicatifs, ex. « 9 h 30 » – « 12 h ». */
+  startTime?: string;
+  endTime?: string;
+  /** Lieu associé sur la carte. */
+  locationId?: string;
+  /** Trajet estimé depuis l'étape précédente de la journée. */
+  legFromPrevious?: TravelLeg;
 }
 
 export interface ItineraryDay {
@@ -294,6 +349,8 @@ export interface TravelPlan {
   activities: PlanActivity[];
   restaurants: PlanRestaurant[];
   estimatedBudget: TravelBudget;
+  /** Lieux du voyage pour la carte interactive. */
+  map: TripMap;
   /** Autres destinations compatibles (si OVO a choisi). */
   alternatives: { id: string; name: string; country: string }[];
 }

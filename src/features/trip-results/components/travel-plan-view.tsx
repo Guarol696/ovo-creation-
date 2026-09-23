@@ -3,9 +3,9 @@ import type { TravelPlan } from "@/types/travel-plan";
 import { AccommodationSection } from "./accommodation-section";
 import { ActivitiesSection } from "./activities-section";
 import { BudgetSection } from "./budget-section";
+import { DayExplorer } from "./day-explorer";
 import { DemoNotice } from "./demo-notice";
 import { HighlightsSection } from "./highlights-section";
-import { ItinerarySection } from "./itinerary-section";
 import { RestaurantsSection } from "./restaurants-section";
 import { ResultCta } from "./result-cta";
 import { ResultHero } from "./result-hero";
@@ -15,7 +15,7 @@ import { WhySection } from "./why-section";
 /**
  * Page de résultats : assemble les sections à partir d'un TravelPlan.
  * Ordre : destination → résumé → moments forts → transport → hébergement
- * → itinéraire → activités → restaurants → budget → actions.
+ * → itinéraire + carte → activités → restaurants → budget → actions.
  */
 export function TravelPlanView({ plan }: { plan: TravelPlan }) {
   return (
@@ -32,7 +32,7 @@ export function TravelPlanView({ plan }: { plan: TravelPlan }) {
       <HighlightsSection plan={plan} />
       <TransportSection transport={plan.transport} travelers={plan.travelers.total} />
       <AccommodationSection accommodation={plan.accommodation} />
-      <ItinerarySection days={plan.itinerary} />
+      <DayExplorer days={plan.itinerary} map={plan.map} />
       <ActivitiesSection activities={plan.activities} />
       <RestaurantsSection restaurants={plan.restaurants} />
       <BudgetSection
