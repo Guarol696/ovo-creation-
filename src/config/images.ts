@@ -18,4 +18,8 @@ export const destinationImages = {
   rome: unsplash("photo-1552832230-c0197dd311b5", 1200),
   marrakech: unsplash("photo-1597212618440-806262de4f6b", 1200),
   "new-york": unsplash("photo-1496442226666-8d4d0e62e6e9", 1200),
+  londres: unsplash("photo-1513635269975-59663e0ac1ad", 1200),
+  prague: unsplash("photo-1519677100203-a0e668c92439", 1200),
+  budapest: unsplash("photo-1541343672885-9be56236302a", 1200),
+  athenes: unsplash("photo-1555993539-1732b0258235", 1200),
 } as const;

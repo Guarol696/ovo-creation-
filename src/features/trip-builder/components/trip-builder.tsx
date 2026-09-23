@@ -13,15 +13,18 @@ import {
   type ReactNode,
 } from "react";
 import { Container } from "@/components/ui/container";
-import type { DestinationPlace } from "@/types/trip";
+import { useRouter } from "next/navigation";
+import { tripResultUrl } from "@/lib/trip/links";
+import type { DestinationPlace, TripRequest } from "@/types/trip";
 import { prepareTripRequest } from "../actions";
 import { clearProgress, isDraftEmpty, loadProgress, saveProgress } from "../draft-storage";
+import { fromTripRequest } from "../from-trip-request";
 import { draftReducer, initialDraft } from "../state";
 import { getVisibleSteps } from "../steps";
 import { toTripRequest } from "../to-trip-request";
 import type { MultiChoiceField, StepId, TripDraft } from "../types";
 import { validateStep } from "../validation";
-import { GenerationScreen } from "./generation-screen";
+import { GENERATION_STEP_MS, GENERATION_STEPS, GenerationScreen } from "./generation-screen";
 import { ProgressHeader } from "./progress-header";
 import { StepNavigation } from "./step-navigation";
 import type { StepProps } from "./step-props";
@@ -35,10 +38,10 @@ import { WishesStep } from "./steps/wishes-step";
 import { ambianceOptions, priorityOptions, travelStyleOptions } from "@/lib/trip/options";
 import { TripSummary } from "./trip-summary";
 
-type View = "questions" | "summary" | "generating" | "ready";
+type View = "questions" | "summary" | "generating";
 
-/** Durée minimale de l'écran de transition, pour une animation lisible. */
-const MIN_TRANSITION_MS = 2200;
+/** Durée minimale de la transition : juste le temps de voir les 4 étapes. */
+const MIN_TRANSITION_MS = GENERATION_STEP_MS * GENERATION_STEPS.length;
 
 const stepComponents: Record<StepId, (props: StepProps) => ReactNode> = {
   destination: DestinationStep,
@@ -63,6 +66,8 @@ const stepComponents: Record<StepId, (props: StepProps) => ReactNode> = {
 interface TripBuilderProps {
   /** Destination pré-sélectionnée (ex. depuis une carte « Inspiration »). */
   initialDestination?: DestinationPlace | null;
+  /** Réponses à modifier (depuis la page de résultats). */
+  initialRequest?: TripRequest | null;
 }
 
 const subscribeNoop = () => () => {};
@@ -92,7 +97,18 @@ interface InitialState {
 }
 
 /** Reprend le questionnaire sauvegardé et applique la destination pré-sélectionnée. */
-function restoreInitialState(initialDestination: DestinationPlace | null): InitialState {
+function restoreInitialState(
+  initialDestination: DestinationPlace | null,
+  initialRequest: TripRequest | null,
+): InitialState {
+  if (initialRequest) {
+    const draft = fromTripRequest(initialRequest);
+    // Réponses devenues invalides (ex. dates passées) : on ouvre l'étape à corriger.
+    const invalid = getVisibleSteps(draft).find((step) => validateStep(step.id, draft) !== null);
+    return invalid
+      ? { draft, stepId: invalid.id, view: "questions", restored: false }
+      : { draft, stepId: "destination", view: "summary", restored: false };
+  }
   const saved = loadProgress();
   const hasSaved = saved !== null && !isDraftEmpty(saved.draft);
   let draft: TripDraft = hasSaved ? saved.draft : initialDraft;
@@ -109,9 +125,10 @@ function restoreInitialState(initialDestination: DestinationPlace | null): Initi
   return { draft, stepId, view, restored: true };
 }
 
-function TripBuilderFlow({ initialDestination = null }: TripBuilderProps) {
+function TripBuilderFlow({ initialDestination = null, initialRequest = null }: TripBuilderProps) {
   const formId = useId();
-  const [initial] = useState(() => restoreInitialState(initialDestination));
+  const router = useRouter();
+  const [initial] = useState(() => restoreInitialState(initialDestination, initialRequest));
   const [draft, dispatch] = useReducer(draftReducer, initial.draft);
   const [view, setView] = useState<View>(initial.view);
   const [stepId, setStepId] = useState<StepId>(initial.stepId);
@@ -124,11 +141,11 @@ function TripBuilderFlow({ initialDestination = null }: TripBuilderProps) {
   const headingRef = useRef<HTMLHeadingElement>(null);
   const hasNavigated = useRef(false);
 
-  // La destination de l'URL est appliquée une seule fois : on nettoie l'URL
-  // pour qu'un rechargement ne ramène pas à la première étape.
+  // Les paramètres de l'URL sont appliqués une seule fois : on nettoie l'URL
+  // pour qu'un rechargement reprenne la sauvegarde locale.
   useEffect(() => {
-    if (initialDestination) window.history.replaceState(null, "", window.location.pathname);
-  }, [initialDestination]);
+    if (initialDestination || initialRequest) window.history.replaceState(null, "", window.location.pathname);
+  }, [initialDestination, initialRequest]);
 
   // Sauvegarde automatique à chaque changement (navigateur uniquement).
   useEffect(() => {
@@ -229,7 +246,8 @@ function TripBuilderFlow({ initialDestination = null }: TripBuilderProps) {
           new Promise((resolve) => setTimeout(resolve, MIN_TRANSITION_MS)),
         ]);
         if (result.ok) {
-          setView("ready");
+          // La transition reste affichée jusqu'au rendu de la page de résultats.
+          router.push(tripResultUrl(result.request));
         } else {
           setSubmitError(result.error);
           navigate({ view: "summary" }, -1);
@@ -318,13 +336,7 @@ function TripBuilderFlow({ initialDestination = null }: TripBuilderProps) {
             />
           )}
 
-          {(view === "generating" || view === "ready") && (
-            <GenerationScreen
-              status={view === "ready" ? "ready" : "pending"}
-              onBackToSummary={() => navigate({ view: "summary" }, -1)}
-              headingRef={headingRef}
-            />
-          )}
+          {view === "generating" && <GenerationScreen headingRef={headingRef} />}
         </Container>
       </div>
 

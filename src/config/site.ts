@@ -13,6 +13,7 @@ export const siteConfig = {
 export const routes = {
   home: "/",
   createTrip: "/voyage/nouveau",
+  tripResult: "/voyage/resultat",
   login: "/connexion",
   about: "/a-propos",
   contact: "/contact",

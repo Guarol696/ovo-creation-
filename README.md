@@ -26,6 +26,7 @@ npm run dev                  # http://localhost:3000
 | `npm run lint`      | ESLint                                |
 | `npm run typecheck` | Génère les types de routes + `tsc`    |
 | `npm run format`    | Prettier (+ tri des classes Tailwind) |
+| `npm test`          | Tests unitaires (Vitest)              |
 
 ## Architecture
 
@@ -52,7 +53,17 @@ src/
 │       ├── to-trip-request.ts# Brouillon → TripRequest structuré
 │       ├── draft-storage.ts  # Sauvegarde locale du questionnaire en cours
 │       ├── actions.ts        # Server Action : validation + sauvegarde optionnelle
-│       └── components/       # Orchestrateur, étapes, récap, écran de transition
+│   │   └── components/       # Orchestrateur, étapes, récap, écran de transition
+│   ├── trip-engine/          # Moteur de génération (serveur uniquement)
+│   │   ├── data-source/      # Contrat TravelDataSource + catalogue de démo + profil générique
+│   │   ├── preferences.ts    # Réponses → préférences pondérées
+│   │   ├── scoring.ts        # Score de compatibilité des destinations (interne)
+│   │   ├── budget.ts         # Estimation par catégorie + niveau de confort
+│   │   ├── itinerary.ts      # Programme jour par jour
+│   │   ├── logistics.ts      # Hébergement & transport types
+│   │   ├── explain.ts        # « Pourquoi OVO… », alertes, moments forts
+│   │   └── generate-travel-plan.ts  # Orchestrateur du pipeline
+│   └── trip-results/         # Page de résultats (sections, budget, sauvegarde)
 ├── config/                   # Config du site (nav, routes, images, réseaux sociaux)
 ├── data/                     # Données statiques de démonstration
 ├── lib/
@@ -76,6 +87,22 @@ src/
 - **Images** : centralisées dans `src/config/images.ts` ; les domaines distants sont autorisés dans
   `next.config.ts`. Chaque image a un dégradé de secours si elle ne charge pas.
 
+## Moteur de génération
+
+```
+Questionnaire → validation (zod, serveur) → analyse des préférences
+  → destination (choisie, ou recommandée par score) → niveau de confort selon le budget
+  → programme jour par jour → budget détaillé → explications & moments forts → TravelPlan
+```
+
+- **Déterministe** : mêmes réponses = même voyage. Les réponses sont encodées dans l'URL
+  (`/voyage/resultat?v=…`), ce qui rend le résultat rechargeable et partageable sans base de données.
+- **Données de démonstration** : `src/features/trip-engine/data-source/demo/` (10 destinations).
+  Aucun prix n'est réel ; l'interface le rappelle systématiquement.
+- **Remplaçable** : le moteur ne dépend que de l'interface `TravelDataSource`
+  (`generateTravelPlan(request, { dataSource })`). Chaque bloc du `TravelPlan` porte sa `source`
+  (`demo`, `generic`, `api`) pour brancher progressivement vols, hôtels, activités ou une IA.
+
 ## Supabase
 
 Les migrations SQL sont dans `supabase/migrations/`. La table `trip_requests` (protégée par RLS)
@@ -86,7 +113,7 @@ fonctionne sans compte ni configuration Supabase.
 
 - [x] Étape 1 — Fondations + landing page
 - [x] Étape 2 — Questionnaire « Créer mon voyage » (`/voyage/nouveau`)
-- [ ] Génération de voyage & page de résultats
+- [x] Étape 3 — Moteur de génération (démo) & page de résultats (`/voyage/resultat`)
 - [ ] Authentification Supabase, profil, voyages sauvegardés
 - [ ] Partage, carte interactive, export PDF
 - [ ] OVO Premium & paiements

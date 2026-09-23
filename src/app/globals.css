@@ -28,6 +28,14 @@
   --color-gold-400: #e9c065;
   --color-gold-500: #d4a441;
 
+  /* Données (graphique budget) — palette catégorielle validée sur fond nuit
+     (daltonisme, contraste ≥ 3:1) : ne pas réordonner. */
+  --color-viz-1: #3987e5;
+  --color-viz-2: #d95926;
+  --color-viz-3: #199e70;
+  --color-viz-4: #c98500;
+  --color-viz-5: #d55181;
+
   /* Fonds clairs */
   --color-sand-50: #fbf8f3;
   --color-sand-100: #f4eee4;
@@ -111,6 +119,8 @@
 /* ------------------------------------------------------------------ */
 @layer base {
   html {
+    /* Couleur du « rebond » de défilement sur mobile (le body garde son fond). */
+    @apply bg-night-950;
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
   }
