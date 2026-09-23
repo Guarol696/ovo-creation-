@@ -205,9 +205,11 @@ Premium inclut tout Medium, et Medium inclut tout le gratuit. Aucune fonctionnal
 | Medium  | Carnet de voyage PDF (alternatives, checklist de départ, notes), 60 voyages enregistrés  |
 | Premium | Liens de partage à durée limitée (7 j / 30 j / sans limite), 200 voyages enregistrés     |
 
-- **Configuration unique** : `src/config/premium.ts` règle les noms, les prix affichés (`PLANS`), les fonctionnalités et l'offre minimum de chacune (`FEATURES`), ainsi que les limites (`PLAN_LIMITS`).
-  - Les montants réellement facturés sont ceux des Prices Stripe. Leurs identifiants sont lus dans `STRIPE_MEDIUM_PRICE_ID` et `STRIPE_PREMIUM_PRICE_ID`.
-  - Garder les deux sources identiques.
+- **Configuration unique** : `src/config/premium.ts` règle les noms, les prix annoncés (`PLANS`), les fonctionnalités et l'offre minimum de chacune (`FEATURES`), ainsi que les limites (`PLAN_LIMITS`).
+  - **Stripe fait foi** pour le montant, la devise, la période et le Price ID. Les identifiants sont lus dans `STRIPE_MEDIUM_PRICE_ID` et `STRIPE_PREMIUM_PRICE_ID`, côté serveur. Le navigateur n'envoie que `medium` ou `premium`.
+  - `/premium` et « Mon offre » affichent le prix lu sur le Price Stripe (`server/prices.ts`, cache de 5 min). Si Stripe est injoignable, ils reprennent la valeur de la configuration.
+  - Chaque Price est comparé à la configuration (`price-check.ts`). Un écart (par exemple 5,99 € annoncé contre 6,99 € chez Stripe) est journalisé et affiché en encadré rouge sur `/premium`, en développement et en mode test.
+  - Un Price archivé ou non récurrent bloque le Checkout, avec un message clair.
 - **Base** : la table `subscriptions` compte une ligne par utilisateur. La migration `20260926090000_stripe_billing.sql` ajoute les colonnes suivantes :
   - `stripe_customer_id`, `stripe_subscription_id`, `stripe_price_id` ;
   - `plan`, `subscription_status` ;
@@ -220,12 +222,28 @@ Premium inclut tout Medium, et Medium inclut tout le gratuit. Aucune fonctionnal
   2. Elle crée ou réutilise le Customer Stripe lié au compte (`metadata.ovo_user_id`).
   3. Elle redirige vers Stripe Checkout en mode abonnement.
 
-  Un visiteur est envoyé vers la connexion. Les changements d'offre, l'annulation, la carte et les factures passent par le Customer Portal (`openBillingPortal`).
+  Un visiteur est envoyé vers la connexion. Les changements d'offre, l'annulation, la carte et les factures passent par le Customer Portal (`openBillingPortal`) :
+  - « Passer à Premium » et « Passer à Medium » ouvrent directement la confirmation du changement (`subscription_update_confirm`), avec le Price choisi par le serveur ;
+  - « Repasser en gratuit » ouvre l'annulation en fin de période (`subscription_cancel`) ;
+  - si ces parcours ne sont pas activés dans le portail, le portail classique s'ouvre.
+
+  Au retour (`/compte?retour=portail`), OVO relit l'état synchronisé. Rien ne change tant que Stripe n'a pas confirmé.
 
 - **Synchronisation** : `POST /api/stripe/webhook` vérifie la signature, puis relit l'abonnement chez Stripe avant d'écrire.
   - Événements traités : `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, `invoice.payment_failed`.
-  - La page `/payment/success` n'active rien. Elle attend que le webhook ait synchronisé l'abonnement.
-- **Droits** : ils sont décidés côté serveur par `getEntitlements()` et `canUseFeature()` (`src/features/premium/server`).
+  - **Idempotence** : chaque événement est enregistré dans `stripe_webhook_events` (migration `20260927090000_stripe_webhook_events.sql`), par la fonction atomique `claim_stripe_webhook_event`.
+    - Un événement relivré et déjà traité est ignoré.
+    - Un événement en cours de traitement reçoit 409, et Stripe relivrera.
+    - Un échec renvoie 500, et l'événement sera retraité.
+    - La table n'est accessible qu'au rôle service.
+  - La page `/payment/success` n'active rien : « Paiement reçu 🎉 — Nous confirmons ton abonnement… », puis « Abonnement confirmé ✓ » quand le webhook a mis la base à jour (rafraîchissement toutes les 3 s).
+    - Elle lit la session Checkout pour afficher « Paiement non finalisé » si la session n'a pas été payée.
+    - Elle ne l'utilise jamais pour accorder des droits.
+  - **Réconciliation** : `GET /api/stripe/reconcile`, protégée par `Authorization: Bearer CRON_SECRET`, est appelée chaque jour par Vercel Cron (`vercel.json`).
+    - Elle relit chez Stripe l'abonnement de chaque compte lié à un client Stripe, pour rattraper un webhook perdu.
+    - Un abonnement que Stripe ne connaît plus perd son accès.
+    - Elle purge les événements traités de plus de 90 jours.
+- **Droits** : ils sont décidés côté serveur par `getEntitlements()` et `canUseFeature()` (`src/features/premium/server`). Ces deux fonctions appliquent `hasFeatureAccess(droits, fonctionnalité)` (`src/features/premium/plan.ts`) à l'abonnement lu en base.
   - Les statuts `active`, `trialing` et `past_due` donnent accès à l'offre. `past_due` correspond à la période de relance, et l'utilisateur est prévenu.
   - Les autres statuts renvoient au gratuit.
   - `<PremiumFeature feature="…">` affiche la fonctionnalité ou une carte verrouillée. Les routes et les actions revérifient les droits.
@@ -247,8 +265,9 @@ Premium inclut tout Medium, et Medium inclut tout le gratuit. Aucune fonctionnal
    - `STRIPE_MEDIUM_PRICE_ID` ;
    - `STRIPE_PREMIUM_PRICE_ID` ;
    - `SUPABASE_SERVICE_ROLE_KEY` ;
+   - `CRON_SECRET` (au moins 16 caractères aléatoires, pour la réconciliation quotidienne) ;
    - facultatif : `STRIPE_PORTAL_CONFIGURATION_ID`.
-6. Appliquer la migration : `supabase db push`, ou exécuter le fichier SQL.
+6. Appliquer les migrations : `supabase db push`, ou exécuter les fichiers SQL dans l'ordre.
 7. En local : `stripe listen --forward-to localhost:3000/api/stripe/webhook`. Utiliser le `whsec_` affiché par la commande.
 8. Cartes de test :
    - `4242 4242 4242 4242` : paiement accepté ;

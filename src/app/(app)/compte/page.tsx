@@ -10,8 +10,10 @@ import { FormMessage } from "@/features/auth/components/form-controls";
 import { ProfileForm } from "@/features/auth/components/profile-form";
 import { param } from "@/features/auth/page-params";
 import { getCurrentUser } from "@/features/auth/server/session";
-import { PLANS } from "@/config/premium";
+import { isPaidPlan, PLANS } from "@/config/premium";
+import { PortalReturnNotice } from "@/features/billing/components/portal-return-notice";
 import { SubscriptionCard } from "@/features/billing/components/subscription-card";
+import { getPlanPrices } from "@/features/billing/server/prices";
 import { PlanBadge } from "@/features/premium/components/premium-badge";
 import { getEntitlements } from "@/features/premium/server/entitlements";
 import { MySpaceHeader } from "@/features/saved-trips/components/my-space-header";
@@ -30,7 +32,7 @@ export default async function AccountPage({ searchParams }: PageProps<"/compte">
   if (!user) redirect(authUrl(routes.login, routes.account));
 
   const supabase = await createClient();
-  const [tripsCount, profile, entitlements] = await Promise.all([
+  const [tripsCount, profile, entitlements, planPrices] = await Promise.all([
     countSavedTrips(supabase).catch(() => null),
     supabase
       .from("profiles")
@@ -39,11 +41,14 @@ export default async function AccountPage({ searchParams }: PageProps<"/compte">
       .maybeSingle<{ display_name: string }>()
       .then(({ data }) => data),
     getEntitlements(),
+    getPlanPrices(),
   ]);
   const { limits } = entitlements;
   const plan = PLANS[entitlements.plan];
   const displayName = profile?.display_name ?? user.displayName;
-  const passwordChanged = param((await searchParams).motdepasse) === "modifie";
+  const query = await searchParams;
+  const passwordChanged = param(query.motdepasse) === "modifie";
+  const fromPortal = param(query.retour) === "portail";
 
   const card = "rounded-4xl bg-white/[0.05] p-5 ring-1 ring-white/10 sm:p-7";
   return (
@@ -58,6 +63,11 @@ export default async function AccountPage({ searchParams }: PageProps<"/compte">
         description={`Membre depuis ${memberSince.format(new Date(user.createdAt))}.`}
       />
       <Container className="grid max-w-5xl grid-cols-1 gap-5 pb-20 sm:pb-28 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+        {fromPortal && (
+          <div className="lg:col-span-2">
+            <PortalReturnNotice />
+          </div>
+        )}
         <div className="min-w-0 space-y-5">
           {passwordChanged && <FormMessage tone="success">Ton mot de passe a bien été modifié ✓</FormMessage>}
           <section aria-labelledby="profil-infos" className={card}>
@@ -73,7 +83,10 @@ export default async function AccountPage({ searchParams }: PageProps<"/compte">
         </div>
 
         <div className="min-w-0 space-y-5">
-          <SubscriptionCard entitlements={entitlements} />
+          <SubscriptionCard
+            entitlements={entitlements}
+            price={isPaidPlan(entitlements.plan) ? planPrices.prices[entitlements.plan] : null}
+          />
           <section aria-labelledby="profil-voyages" className={card}>
             <h2 id="profil-voyages" className="font-display text-xl font-bold">
               Mes voyages

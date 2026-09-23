@@ -1,9 +1,10 @@
-import { ChevronDown, FlaskConical } from "lucide-react";
+import { AlertTriangle, ChevronDown, FlaskConical } from "lucide-react";
 import type { Metadata } from "next";
 import { Container } from "@/components/ui/container";
 import { PAID_PLANS, PLAN_LIMITS, PLANS, type PlanId } from "@/config/premium";
 import { param } from "@/features/auth/page-params";
 import { getBillingStatus } from "@/features/billing/server/env";
+import { getPlanPrices, showPriceDiagnostics } from "@/features/billing/server/prices";
 import { ONGOING_STATUSES } from "@/features/billing/stripe-mapping";
 import { FeatureTable } from "@/features/premium/components/feature-table";
 import { PlanCards } from "@/features/premium/components/plan-cards";
@@ -42,6 +43,8 @@ const FAQ = [
 export default async function PremiumPage({ searchParams }: PageProps<"/premium">) {
   const [entitlements, params] = await Promise.all([getEntitlements(), searchParams]);
   const billing = getBillingStatus();
+  const { prices, issues } = await getPlanPrices();
+  const priceIssues = showPriceDiagnostics() ? PAID_PLANS.flatMap((plan) => issues[plan]) : [];
   const offer = param(params.offre);
   const highlighted = PAID_PLANS.includes(offer as never) ? (offer as PlanId) : null;
   const hasOngoingSubscription = Boolean(
@@ -83,6 +86,26 @@ export default async function PremiumPage({ searchParams }: PageProps<"/premium"
               aucune carte réelle n&apos;est débitée.
             </p>
           )}
+          {priceIssues.length > 0 && (
+            <div
+              role="alert"
+              data-testid="price-diagnostics"
+              className="mx-auto mt-4 max-w-xl rounded-2xl bg-red-500/10 px-4 py-3 text-left text-xs text-red-100 ring-1 ring-red-400/40"
+            >
+              <p className="flex items-center gap-2 font-semibold">
+                <AlertTriangle className="size-4 shrink-0" aria-hidden="true" /> Configuration Stripe à
+                vérifier (visible en développement et en mode test uniquement)
+              </p>
+              <ul className="mt-2 list-disc space-y-1 pl-5">
+                {priceIssues.map((issue) => (
+                  <li key={issue.message}>{issue.message}</li>
+                ))}
+              </ul>
+              <p className="mt-2 text-red-100/75">
+                Les montants affichés ci-dessous sont ceux de Stripe, qui seront réellement facturés.
+              </p>
+            </div>
+          )}
         </Container>
       </section>
 
@@ -92,10 +115,14 @@ export default async function PremiumPage({ searchParams }: PageProps<"/premium"
             currentPlan={entitlements.signedIn ? entitlements.plan : null}
             hasOngoingSubscription={hasOngoingSubscription}
             billingReady={billing.checkoutReady}
+            prices={prices}
+            cancelAtPeriodEnd={entitlements.cancelAtPeriodEnd}
+            currentPeriodEnd={entitlements.currentPeriodEnd}
             highlighted={highlighted}
           />
           <p className="mt-6 text-center text-xs text-night-100/55">
-            Prix TTC, prélevés chaque mois par Stripe. Paiement sécurisé, résiliable à tout moment.
+            Prix TTC, prélevés automatiquement par Stripe à chaque période. Paiement sécurisé, résiliable à
+            tout moment.
           </p>
         </Container>
       </section>

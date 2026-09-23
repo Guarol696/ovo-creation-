@@ -8,7 +8,7 @@ import { tripPdfFilename } from "@/features/trip-export/filename";
 import { tripPdfUrl } from "@/features/trip-export/pdf-url";
 import { addDays, todayIso } from "@/lib/dates";
 import type { TripRequest } from "@/types/trip";
-import { resolveEntitlements, statusLabel, type SubscriptionRow } from "../plan";
+import { hasFeatureAccess, resolveEntitlements, statusLabel, type SubscriptionRow } from "../plan";
 
 const now = new Date("2026-09-24T12:00:00Z");
 const row = (overrides: Partial<SubscriptionRow>): SubscriptionRow => ({
@@ -18,6 +18,23 @@ const row = (overrides: Partial<SubscriptionRow>): SubscriptionRow => ({
   current_period_end: "2026-10-01T00:00:00Z",
   cancel_at_period_end: false,
   ...overrides,
+});
+
+describe("hasFeatureAccess (droits issus de l'abonnement réel)", () => {
+  it("Free < Medium < Premium, et un abonnement terminé ne donne plus rien", () => {
+    const medium = resolveEntitlements(row({ plan: "medium" }), now);
+    const premium = resolveEntitlements(row({}), now);
+    const ended = resolveEntitlements(row({ subscription_status: "canceled" }), now);
+    const unpaid = resolveEntitlements(row({ subscription_status: "unpaid" }), now);
+    expect(hasFeatureAccess(resolveEntitlements(null, now), "pdf_export")).toBe(true);
+    expect(hasFeatureAccess(resolveEntitlements(null, now), "pdf_travel_book")).toBe(false);
+    expect(hasFeatureAccess(medium, "pdf_travel_book")).toBe(true);
+    expect(hasFeatureAccess(medium, "share_expiring_links")).toBe(false);
+    expect(hasFeatureAccess(premium, "share_expiring_links")).toBe(true);
+    expect(hasFeatureAccess(premium, "pdf_travel_book")).toBe(true);
+    expect(hasFeatureAccess(ended, "pdf_travel_book")).toBe(false);
+    expect(hasFeatureAccess(unpaid, "pdf_travel_book")).toBe(false);
+  });
 });
 
 describe("offre de l'utilisateur (statuts Stripe)", () => {

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { planIncludes, type FeatureId } from "@/config/premium";
+import type { FeatureId } from "@/config/premium";
+import { hasFeatureAccess } from "../plan";
 import { getEntitlements } from "../server/entitlements";
 import { PremiumLockedCard } from "./premium-locked-card";
 
@@ -17,7 +18,6 @@ interface PremiumFeatureProps {
  * revérifient les droits avec `canUseFeature` (défense en profondeur).
  */
 export async function PremiumFeature({ feature, children, fallback }: PremiumFeatureProps) {
-  const { plan } = await getEntitlements();
-  if (planIncludes(plan, feature)) return <>{children}</>;
+  if (hasFeatureAccess(await getEntitlements(), feature)) return <>{children}</>;
   return <>{fallback ?? <PremiumLockedCard feature={feature} />}</>;
 }

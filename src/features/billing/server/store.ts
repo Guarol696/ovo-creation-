@@ -74,3 +74,30 @@ export async function saveSubscription(userId: string, fields: SubscriptionField
     );
   if (error) throw error;
 }
+
+/** Comptes liés à un client Stripe, les moins récemment synchronisés d'abord. */
+export async function listBillingCustomers(limit: number) {
+  const { data, error } = await createAdminClient()
+    .from("subscriptions")
+    .select("user_id, stripe_customer_id")
+    .not("stripe_customer_id", "is", null)
+    .order("stripe_synced_at", { ascending: true, nullsFirst: true })
+    .limit(limit)
+    .returns<{ user_id: string; stripe_customer_id: string }[]>();
+  if (error) throw error;
+  return data;
+}
+
+/** Abonnement enregistré que Stripe ne connaît plus : statut « annulé » (plus aucun droit). */
+export async function endMissingSubscription(userId: string, subscriptionId: string) {
+  const { error } = await createAdminClient()
+    .from("subscriptions")
+    .update({
+      subscription_status: "canceled",
+      cancel_at_period_end: false,
+      stripe_synced_at: new Date().toISOString(),
+    })
+    .eq("user_id", userId)
+    .eq("stripe_subscription_id", subscriptionId);
+  if (error) throw error;
+}

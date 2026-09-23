@@ -1,11 +1,12 @@
 import "server-only";
 import { unstable_rethrow } from "next/navigation";
 import { cache } from "react";
-import { planIncludes, type FeatureId } from "@/config/premium";
+import type { FeatureId } from "@/config/premium";
 import { getCurrentUser } from "@/features/auth/server/session";
 import { createClient } from "@/lib/supabase/server";
 import {
   FREE_ENTITLEMENTS,
+  hasFeatureAccess,
   resolveEntitlements,
   SUBSCRIPTION_COLUMNS,
   type Entitlements,
@@ -47,7 +48,11 @@ export const getEntitlements = cache(async (): Promise<UserEntitlements> => {
   }
 });
 
-/** Vérification serveur d'une fonctionnalité (routes, actions, composants serveur). */
+/**
+ * Vérification serveur d'une fonctionnalité pour l'utilisateur connecté
+ * (routes, Server Actions, composants serveur) : `hasFeatureAccess` appliqué
+ * aux droits lus en base, jamais à une donnée envoyée par le navigateur.
+ */
 export async function canUseFeature(feature: FeatureId) {
-  return planIncludes((await getEntitlements()).plan, feature);
+  return hasFeatureAccess(await getEntitlements(), feature);
 }

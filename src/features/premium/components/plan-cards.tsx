@@ -1,11 +1,20 @@
 import { Check, LogIn } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
-import { featuresOf, isPaidPlan, PLAN_LIMITS, PLAN_ORDER, PLANS, type PlanId } from "@/config/premium";
+import {
+  featuresOf,
+  isPaidPlan,
+  PLAN_LIMITS,
+  PLAN_ORDER,
+  PLANS,
+  type PaidPlanId,
+  type PlanId,
+} from "@/config/premium";
 import { routes } from "@/config/site";
 import { CheckoutButton, ManageBillingButton } from "@/features/billing/components/billing-buttons";
+import { formatInterval, formatMoney, type PlanPrice } from "@/features/billing/price-check";
 import { authUrl } from "@/lib/auth/redirect";
 import { cn } from "@/lib/utils";
-import { formatPlanPrice } from "../format";
+import { formatBillingDate } from "../format";
 import { PlanBadge } from "./premium-badge";
 
 export interface PlanCardsProps {
@@ -15,6 +24,11 @@ export interface PlanCardsProps {
   hasOngoingSubscription: boolean;
   /** Paiement configuré côté serveur (clés et Price IDs Stripe). */
   billingReady: boolean;
+  /** Prix des offres payantes, lus chez Stripe (source de vérité) ou, à défaut, dans la configuration. */
+  prices: Record<PaidPlanId, PlanPrice>;
+  /** Annulation déjà programmée chez Stripe, et date de fin de la période payée. */
+  cancelAtPeriodEnd?: boolean;
+  currentPeriodEnd?: string | null;
   /** Offre mise en avant (ex. ?offre=premium au retour de la connexion). */
   highlighted?: PlanId | null;
 }
@@ -38,8 +52,12 @@ export function PlanCards({
   currentPlan,
   hasOngoingSubscription,
   billingReady,
+  prices,
+  cancelAtPeriodEnd = false,
+  currentPeriodEnd = null,
   highlighted,
 }: PlanCardsProps) {
+  const isSubscriber = hasOngoingSubscription && currentPlan !== null && currentPlan !== "free";
   return (
     <div className="grid gap-5 lg:grid-cols-3 lg:items-stretch">
       {PLAN_ORDER.map((plan, index) => {
@@ -47,6 +65,7 @@ export function PlanCards({
         const previous = index > 0 ? PLANS[PLAN_ORDER[index - 1]!] : null;
         const limit = PLAN_LIMITS[plan].savedTrips;
         const isCurrent = currentPlan === plan;
+        const price = isPaidPlan(plan) ? prices[plan] : null;
         return (
           <article
             key={plan}
@@ -72,11 +91,11 @@ export function PlanCards({
             </div>
             <p className="relative mt-2 text-sm text-night-100/80">{def.tagline}</p>
             <p className="relative mt-6">
-              <span className="font-display text-5xl font-extrabold">
-                {def.monthlyPrice === 0 ? "0 €" : formatPlanPrice(def.monthlyPrice)}
+              <span className="font-display text-5xl font-extrabold" data-testid={`price-${plan}`}>
+                {price ? formatMoney(price.unitAmount, price.currency) : "0 €"}
               </span>
               <span className="ml-2 text-sm text-night-100/70">
-                {def.monthlyPrice === 0 ? "pour toujours" : "/ mois"}
+                {price ? `/ ${formatInterval(price.interval, price.intervalCount)}` : "pour toujours"}
               </span>
             </p>
             {isPaidPlan(plan) && (
@@ -120,7 +139,28 @@ export function PlanCards({
             </ul>
 
             <div className="relative mt-8">
-              {plan === "free" ? (
+              {plan === "free" && isSubscriber ? (
+                cancelAtPeriodEnd ? (
+                  <p
+                    role="status"
+                    data-testid="free-return"
+                    className="rounded-2xl bg-white/5 px-4 py-3 text-center text-sm text-night-100/75 ring-1 ring-white/10"
+                  >
+                    Retour à l&apos;offre gratuite prévu
+                    {currentPeriodEnd
+                      ? ` le ${formatBillingDate(currentPeriodEnd)}`
+                      : " à la fin de ta période"}
+                    .
+                  </p>
+                ) : (
+                  <>
+                    <ManageBillingButton intent="cancel" label="Repasser en gratuit" />
+                    <p className="mt-3 text-center text-xs text-night-100/60">
+                      Tu gardes ton offre jusqu&apos;à la fin de la période déjà payée.
+                    </p>
+                  </>
+                )
+              ) : plan === "free" ? (
                 <ButtonLink href={routes.createTrip} size="lg" variant="outline-light" className="w-full">
                   Créer un voyage gratuitement
                 </ButtonLink>
@@ -141,7 +181,7 @@ export function PlanCards({
               ) : isCurrent ? (
                 <ManageBillingButton />
               ) : hasOngoingSubscription ? (
-                <ManageBillingButton label={`Passer à ${def.shortName}`} />
+                <ManageBillingButton intent={plan} label={`Passer à ${def.shortName}`} />
               ) : billingReady ? (
                 <CheckoutButton plan={plan} variant={plan === "premium" ? "primary" : "outline-light"} />
               ) : (

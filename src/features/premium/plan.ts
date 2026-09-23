@@ -1,4 +1,4 @@
-import { PLAN_LIMITS, type PlanId } from "@/config/premium";
+import { PLAN_LIMITS, planIncludes, type FeatureId, type PlanId } from "@/config/premium";
 
 /**
  * Résolution des droits d'un utilisateur à partir de sa ligne `subscriptions`,
@@ -80,6 +80,15 @@ export function resolveEntitlements(row: SubscriptionRow | null, now = new Date(
     cancelAtPeriodEnd: row.cancel_at_period_end,
     limits: PLAN_LIMITS[plan],
   };
+}
+
+/**
+ * Accès à une fonctionnalité selon les droits résolus (Free ⊂ Medium ⊂ Premium).
+ * Côté serveur, passer par `canUseFeature()` qui lit l'abonnement en base ;
+ * ne jamais appeler ceci avec des droits venus du navigateur pour autoriser une action.
+ */
+export function hasFeatureAccess(entitlements: Pick<Entitlements, "plan">, feature: FeatureId) {
+  return planIncludes(entitlements.plan, feature);
 }
 
 /** Libellé lisible d'un statut d'abonnement. */

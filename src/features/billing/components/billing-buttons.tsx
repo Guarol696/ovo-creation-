@@ -65,19 +65,25 @@ export function CheckoutButton({
   );
 }
 
-/** « Gérer mon abonnement » → portail client Stripe (paiement, factures, offre, annulation). */
+/**
+ * « Gérer mon abonnement » → portail client Stripe (paiement, factures, offre, annulation).
+ * `intent` ouvre directement la confirmation d'un changement d'offre ou l'annulation.
+ */
 export function ManageBillingButton({
   className,
   label = "Gérer mon abonnement",
   variant = "outline-light",
+  intent,
 }: {
   className?: string;
   label?: string;
   variant?: "primary" | "outline-light";
+  intent?: PaidPlanId | "cancel";
 }) {
   const [state, action] = useActionState(openBillingPortal, idle);
   return (
     <form action={action} className={cn("space-y-3", className)}>
+      {intent && <input type="hidden" name="intent" value={intent} />}
       <PendingButton pendingLabel="Ouverture…" variant={variant} className="w-full">
         <Settings2 className="size-4" aria-hidden="true" /> {label}
       </PendingButton>

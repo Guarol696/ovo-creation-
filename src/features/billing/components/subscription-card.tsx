@@ -3,10 +3,11 @@ import { ButtonLink } from "@/components/ui/button";
 import { PLANS } from "@/config/premium";
 import { routes } from "@/config/site";
 import { PlanBadge } from "@/features/premium/components/premium-badge";
-import { formatBillingDate, formatPlanPrice } from "@/features/premium/format";
+import { formatBillingDate } from "@/features/premium/format";
 import { statusLabel } from "@/features/premium/plan";
 import type { UserEntitlements } from "@/features/premium/server/entitlements";
 import { cn } from "@/lib/utils";
+import { formatPlanPriceLabel, type PlanPrice } from "../price-check";
 import { ManageBillingButton } from "./billing-buttons";
 
 /**
@@ -14,7 +15,14 @@ import { ManageBillingButton } from "./billing-buttons";
  * portail Stripe. Toutes les données viennent de l'abonnement synchronisé par
  * le webhook Stripe (jamais d'une page de retour de paiement).
  */
-export function SubscriptionCard({ entitlements }: { entitlements: UserEntitlements }) {
+export function SubscriptionCard({
+  entitlements,
+  price,
+}: {
+  entitlements: UserEntitlements;
+  /** Prix de l'offre actuelle, lu chez Stripe. */
+  price: PlanPrice | null;
+}) {
   const {
     plan,
     subscribedPlan,
@@ -28,7 +36,7 @@ export function SubscriptionCard({ entitlements }: { entitlements: UserEntitleme
   const current = PLANS[plan];
 
   const rows: [string, string][] = [["Statut", statusLabel(entitlements)]];
-  if (isPaid) rows.push(["Prix", `${formatPlanPrice(current.monthlyPrice)} / mois`]);
+  if (isPaid && price) rows.push(["Prix", formatPlanPriceLabel(price)]);
   if (isPaid && currentPeriodEnd) {
     rows.push([
       cancelAtPeriodEnd ? "Se termine le" : "Renouvellement le",
@@ -69,6 +77,16 @@ export function SubscriptionCard({ entitlements }: { entitlements: UserEntitleme
           <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
           Ton dernier paiement a échoué. Stripe va réessayer automatiquement : mets à jour ton moyen de
           paiement pour garder ton offre.
+        </p>
+      )}
+      {!isPaid && status === "unpaid" && (
+        <p
+          role="alert"
+          className="mt-4 flex items-start gap-2 rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-100 ring-1 ring-red-400/30"
+        >
+          <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          Ton abonnement {PLANS[subscribedPlan].name} est suspendu : les paiements ont échoué. Règle la
+          facture en attente depuis « Gérer mon abonnement » pour le réactiver.
         </p>
       )}
 
