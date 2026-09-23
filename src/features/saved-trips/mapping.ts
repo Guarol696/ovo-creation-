@@ -24,6 +24,7 @@ export interface SavedTripRow {
   is_public: boolean;
   share_token: string | null;
   shared_at: string | null;
+  share_expires_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -126,7 +127,9 @@ export function rowToSummary(row: SavedTripRow, now = new Date()): SavedTripSumm
     travelers: row.travelers,
     budget: row.budget,
     createdAt: row.created_at,
-    isPublic: row.is_public,
+    // Un lien expiré ne fonctionne plus : le voyage n'est plus considéré comme partagé.
+    isPublic:
+      row.is_public && !(row.share_expires_at && new Date(row.share_expires_at).getTime() <= now.getTime()),
   };
 }
 

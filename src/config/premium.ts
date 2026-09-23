@@ -1,45 +1,65 @@
 /**
- * OVO Premium — configuration centrale.
+ * Offres OVO — configuration centrale (Gratuit, Medium, Premium).
  *
- * Tout ce qui distingue Gratuit et Premium se règle ici :
- * - `PREMIUM_PRICING` : prix indicatif affiché (aucun paiement n'est branché) ;
- * - `FEATURES` : chaque fonctionnalité déclare le plan minimum requis ;
- * - `PLAN_LIMITS` : limites chiffrées par plan.
+ * Tout ce qui distingue les offres se règle ici :
+ * - `PLANS` : nom, accroche et prix mensuel affiché de chaque offre ;
+ * - `FEATURES` : chaque fonctionnalité déclare l'offre minimum requise ;
+ * - `PLAN_LIMITS` : limites chiffrées par offre.
  *
- * Passer une fonctionnalité de Premium à Gratuit (ou l'inverse) = changer `plan`
- * ci-dessous, sans toucher au reste de l'application. Les droits réels sont
- * toujours vérifiés côté serveur (voir src/features/premium/server).
+ * Les prix réellement facturés sont ceux des « Prices » Stripe (identifiants dans
+ * les variables d'environnement STRIPE_MEDIUM_PRICE_ID / STRIPE_PREMIUM_PRICE_ID) :
+ * garder les montants ci-dessous identiques à ceux configurés dans Stripe.
+ *
+ * Les droits réels sont toujours décidés côté serveur à partir de l'abonnement
+ * synchronisé avec Stripe (voir src/features/premium/server et src/features/billing).
  */
 
-export type PlanId = "free" | "premium";
+export type PlanId = "free" | "medium" | "premium";
+export type PaidPlanId = Exclude<PlanId, "free">;
 
-export const PLANS: Record<PlanId, { name: string; shortName: string; emoji: string; tagline: string }> = {
+/** Ordre des offres : une offre inclut tout ce que contiennent les offres inférieures. */
+export const PLAN_ORDER: PlanId[] = ["free", "medium", "premium"];
+export const PAID_PLANS: PaidPlanId[] = ["medium", "premium"];
+
+export interface PlanDefinition {
+  name: string;
+  shortName: string;
+  emoji: string;
+  tagline: string;
+  /** Prix mensuel affiché (TTC, en euros) ; `0` pour l'offre gratuite. */
+  monthlyPrice: number;
+}
+
+export const PLANS: Record<PlanId, PlanDefinition> = {
   free: {
     name: "OVO Gratuit",
     shortName: "Gratuit",
     emoji: "🆓",
     tagline: "Tout pour imaginer, organiser et partager tes voyages.",
+    monthlyPrice: 0,
+  },
+  medium: {
+    name: "OVO Medium",
+    shortName: "Medium",
+    emoji: "⭐",
+    tagline: "Pour préparer tes voyages plus sereinement.",
+    monthlyPrice: 5.99,
   },
   premium: {
     name: "OVO Premium",
     shortName: "Premium",
     emoji: "✨",
     tagline: "Va plus loin dans la préparation de tes voyages.",
+    monthlyPrice: 9.99,
   },
 };
 
-/** Prix indicatif (en euros, TTC). Modifiable ici uniquement. */
-export const PREMIUM_PRICING = {
-  monthly: 4.99,
-  yearly: 39.99,
-  currency: "EUR",
-  /** Aucun paiement n'est encore disponible : le prix est affiché à titre indicatif. */
-  paymentAvailable: false,
-} as const;
+export const CURRENCY = "EUR";
 
-/** Limites par plan (`null` = pas de limite). */
+/** Limites par offre (`null` = pas de limite). */
 export const PLAN_LIMITS: Record<PlanId, { savedTrips: number | null }> = {
   free: { savedTrips: 20 },
+  medium: { savedTrips: 60 },
   premium: { savedTrips: 200 },
 };
 
@@ -52,125 +72,96 @@ export type FeatureId =
   | "share_link"
   | "pdf_export"
   | "pdf_travel_book"
-  | "saved_trips_plus"
-  | "detailed_trips"
-  | "personalized_itinerary"
-  | "more_recommendations"
-  | "share_advanced";
+  | "share_expiring_links";
 
 export interface FeatureDefinition {
   label: string;
   description: string;
   emoji: string;
-  /** Plan minimum requis. */
+  /** Offre minimum requise. */
   plan: PlanId;
-  /** « soon » : annoncée sur la page Premium, pas encore construite. */
-  availability: "available" | "soon";
 }
 
+/**
+ * Uniquement des fonctionnalités qui existent réellement : aucune promesse
+ * « à venir » n'est affichée aux utilisateurs.
+ */
 export const FEATURES: Record<FeatureId, FeatureDefinition> = {
   trip_creation: {
     label: "Création de voyages",
     description: "Questionnaire, destination adaptée et voyage complet en deux minutes.",
     emoji: "🧭",
     plan: "free",
-    availability: "available",
   },
   itinerary: {
     label: "Itinéraire jour par jour",
     description: "Matin, midi, après-midi, soir, avec horaires et trajets indicatifs.",
     emoji: "📅",
     plan: "free",
-    availability: "available",
   },
   budget: {
     label: "Budget détaillé",
     description: "Transport, hébergement, nourriture et activités, estimés pour ton groupe.",
     emoji: "💰",
     plan: "free",
-    availability: "available",
   },
   map: {
     label: "Carte interactive",
     description: "Tous les lieux de ton voyage, jour par jour.",
     emoji: "🗺️",
     plan: "free",
-    availability: "available",
   },
   saved_trips: {
     label: "Voyages enregistrés",
     description: "Retrouve tes voyages dans ton compte, sur tous tes appareils.",
     emoji: "💾",
     plan: "free",
-    availability: "available",
   },
   share_link: {
     label: "Partage par lien",
     description: "Un lien privé à envoyer à tes amis, désactivable à tout moment.",
     emoji: "📤",
     plan: "free",
-    availability: "available",
   },
   pdf_export: {
     label: "Export PDF",
     description: "Ton voyage complet dans un PDF propre, à garder ou imprimer.",
     emoji: "📄",
     plan: "free",
-    availability: "available",
   },
   pdf_travel_book: {
     label: "Carnet de voyage PDF",
     description:
       "Export PDF avancé : toutes les alternatives de transport et d'hébergement, une checklist de départ adaptée à ta destination et des pages de notes.",
     emoji: "📘",
-    plan: "premium",
-    availability: "available",
+    plan: "medium",
   },
-  saved_trips_plus: {
-    label: "Plus de voyages enregistrés",
-    description: `Jusqu'à ${PLAN_LIMITS.premium.savedTrips} voyages enregistrés au lieu de ${PLAN_LIMITS.free.savedTrips}.`,
-    emoji: "🗂️",
+  share_expiring_links: {
+    label: "Liens de partage à durée limitée",
+    description:
+      "Choisis combien de temps ton lien de partage reste actif : 7 jours, 30 jours ou sans limite.",
+    emoji: "⏳",
     plan: "premium",
-    availability: "available",
-  },
-  detailed_trips: {
-    label: "Voyages plus détaillés",
-    description: "Plus d'étapes, de conseils et d'infos pratiques pour chaque journée.",
-    emoji: "🔍",
-    plan: "premium",
-    availability: "soon",
-  },
-  personalized_itinerary: {
-    label: "Itinéraires personnalisés",
-    description: "Réorganise ton programme, échange des activités, ajuste le rythme.",
-    emoji: "🎛️",
-    plan: "premium",
-    availability: "soon",
-  },
-  more_recommendations: {
-    label: "Plus de recommandations",
-    description: "Davantage d'activités et d'adresses sélectionnées pour ton profil.",
-    emoji: "🎯",
-    plan: "premium",
-    availability: "soon",
-  },
-  share_advanced: {
-    label: "Partage avancé",
-    description: "Choisis ce que tu partages (budget masqué, programme seul…).",
-    emoji: "🔗",
-    plan: "premium",
-    availability: "soon",
   },
 };
 
-/** Le plan donne-t-il accès à cette fonctionnalité ? */
+const rank = (plan: PlanId) => PLAN_ORDER.indexOf(plan);
+
+export const isPaidPlan = (plan: PlanId): plan is PaidPlanId => plan !== "free";
+
+/** L'offre donne-t-elle accès à cette fonctionnalité ? (Premium ⊃ Medium ⊃ Gratuit) */
 export function planIncludes(plan: PlanId, feature: FeatureId) {
-  return FEATURES[feature].plan === "free" || plan === "premium";
+  return rank(plan) >= rank(FEATURES[feature].plan);
 }
 
-/** Fonctionnalités d'un plan (pour les cartes comparatives). */
+/** Fonctionnalités apportées par une offre (en plus des offres inférieures). */
 export function featuresOf(plan: PlanId) {
   return (Object.entries(FEATURES) as [FeatureId, FeatureDefinition][])
     .filter(([, f]) => f.plan === plan)
     .map(([id, f]) => ({ id, ...f }));
+}
+
+/** « OVO Medium et OVO Premium » : offres donnant accès à une fonctionnalité. */
+export function plansIncluding(feature: FeatureId) {
+  return PLAN_ORDER.filter((p) => isPaidPlan(p) && planIncludes(p, feature)).map((p) => PLANS[p].name);
 }

@@ -10,7 +10,7 @@ import { FormMessage } from "@/features/auth/components/form-controls";
 import { param } from "@/features/auth/page-params";
 import { getCurrentUser } from "@/features/auth/server/session";
 import { PLANS } from "@/config/premium";
-import { PremiumBadge } from "@/features/premium/components/premium-badge";
+import { PlanBadge } from "@/features/premium/components/premium-badge";
 import { getEntitlements } from "@/features/premium/server/entitlements";
 import { MySpaceHeader } from "@/features/saved-trips/components/my-space-header";
 import { SavedTripsList } from "@/features/saved-trips/components/saved-trips-list";
@@ -36,10 +36,13 @@ export default async function MyTripsPage({ searchParams }: PageProps<"/mes-voya
     console.error("[mes-voyages] chargement impossible", error);
   }
   const deletedFlash = param((await searchParams).supprime) === "1";
-  const { isPremium, limits, plan } = await getEntitlements();
+  const { limits, plan } = await getEntitlements();
   // Mention discrète de Premium seulement à l'approche de la limite gratuite.
   const nearLimit =
-    !isPremium && trips !== null && limits.savedTrips !== null && trips.length >= limits.savedTrips * 0.8;
+    plan !== "premium" &&
+    trips !== null &&
+    limits.savedTrips !== null &&
+    trips.length >= limits.savedTrips * 0.8;
 
   return (
     <div className="flex-1 bg-night-950 text-white">
@@ -47,7 +50,7 @@ export default async function MyTripsPage({ searchParams }: PageProps<"/mes-voya
         eyebrow="Mon espace"
         title={
           <span className="inline-flex flex-wrap items-center gap-3">
-            Mes voyages {isPremium && <PremiumBadge />}
+            Mes voyages <PlanBadge plan={plan} />
           </span>
         }
         description={
@@ -69,7 +72,7 @@ export default async function MyTripsPage({ searchParams }: PageProps<"/mes-voya
               <>
                 {" · "}
                 <Link href={routes.premium} className="font-semibold text-gold-300 hover:underline">
-                  Besoin de plus de place ? Découvre Premium
+                  Besoin de plus de place ? Découvre les offres
                 </Link>
               </>
             )}

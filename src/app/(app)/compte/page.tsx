@@ -1,4 +1,4 @@
-import { KeyRound, LogOut, Map, Sparkles } from "lucide-react";
+import { KeyRound, LogOut, Map } from "lucide-react";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Button, ButtonLink } from "@/components/ui/button";
@@ -11,8 +11,8 @@ import { ProfileForm } from "@/features/auth/components/profile-form";
 import { param } from "@/features/auth/page-params";
 import { getCurrentUser } from "@/features/auth/server/session";
 import { PLANS } from "@/config/premium";
-import { PremiumBadge } from "@/features/premium/components/premium-badge";
-import { ManageSubscriptionButton } from "@/features/premium/components/premium-placeholders";
+import { SubscriptionCard } from "@/features/billing/components/subscription-card";
+import { PlanBadge } from "@/features/premium/components/premium-badge";
 import { getEntitlements } from "@/features/premium/server/entitlements";
 import { MySpaceHeader } from "@/features/saved-trips/components/my-space-header";
 import { countSavedTrips } from "@/features/saved-trips/server/repository";
@@ -23,7 +23,6 @@ import { createClient } from "@/lib/supabase/server";
 export const metadata: Metadata = { title: "Mon profil", robots: { index: false, follow: false } };
 
 const memberSince = new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric" });
-const fullDate = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
 export default async function AccountPage({ searchParams }: PageProps<"/compte">) {
   if (!isSupabaseConfigured()) return <AuthUnavailable />;
@@ -41,7 +40,7 @@ export default async function AccountPage({ searchParams }: PageProps<"/compte">
       .then(({ data }) => data),
     getEntitlements(),
   ]);
-  const { isPremium, limits, expiresAt } = entitlements;
+  const { limits } = entitlements;
   const plan = PLANS[entitlements.plan];
   const displayName = profile?.display_name ?? user.displayName;
   const passwordChanged = param((await searchParams).motdepasse) === "modifie";
@@ -53,7 +52,7 @@ export default async function AccountPage({ searchParams }: PageProps<"/compte">
         eyebrow="Mon espace"
         title={
           <span className="inline-flex flex-wrap items-center gap-3">
-            Mon profil {isPremium && <PremiumBadge />}
+            Mon profil <PlanBadge plan={entitlements.plan} />
           </span>
         }
         description={`Membre depuis ${memberSince.format(new Date(user.createdAt))}.`}
@@ -74,35 +73,7 @@ export default async function AccountPage({ searchParams }: PageProps<"/compte">
         </div>
 
         <div className="min-w-0 space-y-5">
-          <section
-            aria-labelledby="profil-offre"
-            className={
-              isPremium
-                ? "rounded-4xl bg-linear-to-br from-gold-400/15 via-night-900 to-night-900 p-5 ring-1 ring-gold-400/40 sm:p-7"
-                : card
-            }
-          >
-            <h2 id="profil-offre" className="font-display text-xl font-bold">
-              Mon offre
-            </h2>
-            <p className="mt-3 text-sm text-night-100/65">Plan actuel</p>
-            <p className="mt-1 text-2xl font-bold" data-testid="current-plan">
-              {plan.emoji} {plan.name}
-            </p>
-            <p className="mt-2 text-sm text-night-100/75">
-              {isPremium && expiresAt
-                ? `Actif jusqu'au ${fullDate.format(new Date(expiresAt))}. ${plan.tagline}`
-                : plan.tagline}
-            </p>
-            <div className="mt-5 flex flex-col gap-3">
-              <ManageSubscriptionButton className="w-full" />
-              {!isPremium && (
-                <ButtonLink href={routes.premium} variant="ghost-light" className="w-full">
-                  <Sparkles className="size-4 text-gold-300" /> Découvrir Premium
-                </ButtonLink>
-              )}
-            </div>
-          </section>
+          <SubscriptionCard entitlements={entitlements} />
           <section aria-labelledby="profil-voyages" className={card}>
             <h2 id="profil-voyages" className="font-display text-xl font-bold">
               Mes voyages

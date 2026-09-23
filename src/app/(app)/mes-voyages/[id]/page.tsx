@@ -4,6 +4,7 @@ import { routes } from "@/config/site";
 import { AuthUnavailable } from "@/features/auth/components/auth-unavailable";
 import { getCurrentUser } from "@/features/auth/server/session";
 import { loadSavedTrip } from "@/features/saved-trips/server/load-saved-trip";
+import { canUseFeature } from "@/features/premium/server/entitlements";
 import { sharedTripPath } from "@/features/sharing/paths";
 import { TravelPlanView } from "@/features/trip-results/components/travel-plan-view";
 import { authUrl } from "@/lib/auth/redirect";
@@ -39,7 +40,9 @@ export default async function SavedTripPage({ params }: Props) {
         sharing: {
           isPublic: trip.is_public,
           sharePath: trip.is_public && trip.share_token ? sharedTripPath(trip.share_token) : null,
+          expiresAt: trip.share_expires_at,
         },
+        canUseExpiringLinks: await canUseFeature("share_expiring_links"),
       }}
       savedTrip={{ id: trip.id, title: trip.title, savedAt: trip.created_at, regenerated }}
     />

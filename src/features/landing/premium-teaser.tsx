@@ -1,5 +1,6 @@
 import { Check, Crown, Sparkles } from "lucide-react";
-import { featuresOf, PLANS } from "@/config/premium";
+import { featuresOf, PLAN_LIMITS, PLAN_ORDER, PLANS } from "@/config/premium";
+import { formatPlanPrice } from "@/features/premium/format";
 import { routes } from "@/config/site";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
@@ -15,24 +16,18 @@ interface Plan {
   features: string[];
 }
 
-/** Généré depuis config/premium.ts : une seule source de vérité. */
-const plans: Plan[] = [
-  {
-    name: PLANS.free.name,
-    tagline: PLANS.free.tagline,
-    features: featuresOf("free")
+/** Généré depuis config/premium.ts : une seule source de vérité, aucune promesse « à venir ». */
+const plans: Plan[] = PLAN_ORDER.map((id) => ({
+  name: `${PLANS[id].name}${PLANS[id].monthlyPrice ? ` · ${formatPlanPrice(PLANS[id].monthlyPrice)}/mois` : ""}`,
+  tagline: PLANS[id].tagline,
+  highlighted: id === "premium",
+  features: [
+    ...featuresOf(id)
       .slice(0, 5)
       .map((f) => f.label),
-  },
-  {
-    name: PLANS.premium.name,
-    tagline: PLANS.premium.tagline,
-    highlighted: true,
-    features: featuresOf("premium").map((f) =>
-      f.availability === "soon" ? `${f.label} (bientôt)` : f.label,
-    ),
-  },
-];
+    ...(PLAN_LIMITS[id].savedTrips ? [`Jusqu'à ${PLAN_LIMITS[id].savedTrips} voyages enregistrés`] : []),
+  ],
+}));
 
 export function PremiumTeaser() {
   return (
@@ -45,7 +40,7 @@ export function PremiumTeaser() {
       <Container>
         <Reveal className="flex flex-col items-center text-center">
           <Badge tone="gold" className="mb-6">
-            <Crown className="size-3.5" /> OVO Premium ✨
+            <Crown className="size-3.5" /> Offres OVO
           </Badge>
           <SectionHeading
             align="center"
@@ -55,11 +50,11 @@ export function PremiumTeaser() {
                 Passe en mode <span className="text-gradient-sun">Premium.</span>
               </>
             }
-            description="OVO reste gratuit pour imaginer tes voyages. Premium ajoute un carnet de voyage complet, plus de place pour tes voyages, et bientôt encore plus de personnalisation."
+            description="OVO reste gratuit pour imaginer tes voyages. Medium et Premium ajoutent un carnet de voyage complet, plus de place pour tes voyages et des liens de partage à durée limitée."
           />
         </Reveal>
 
-        <div className="mx-auto mt-14 grid max-w-4xl gap-5 md:grid-cols-2">
+        <div className="mx-auto mt-14 grid max-w-6xl gap-5 lg:grid-cols-3">
           {plans.map((plan, index) => (
             <Reveal key={plan.name} delay={index * 120} className="h-full">
               <article
@@ -102,7 +97,7 @@ export function PremiumTeaser() {
             Commencer gratuitement
           </ButtonLink>
           <ButtonLink href={routes.premium} size="lg" variant="outline-light">
-            <Sparkles className="size-4 text-gold-300" /> Découvrir Premium
+            <Sparkles className="size-4 text-gold-300" /> Voir les offres
           </ButtonLink>
         </Reveal>
       </Container>

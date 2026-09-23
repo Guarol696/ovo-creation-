@@ -108,6 +108,7 @@ describe("voyages sauvegardés : affichage des cartes", () => {
         is_public: true,
         share_token: "7b1f0c9e-2d7a-4f55-9d8e-1a2b3c4d5e6f",
         shared_at: "2026-09-23T10:00:00Z",
+        share_expires_at: null,
         created_at: "2026-09-23T10:00:00Z",
         updated_at: "2026-09-23T10:00:00Z",
       },

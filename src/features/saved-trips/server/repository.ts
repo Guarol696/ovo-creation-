@@ -11,7 +11,7 @@ import type { SavedTripInsert, SavedTripRow } from "../mapping";
  */
 const TABLE = "saved_trips";
 const SUMMARY_COLUMNS =
-  "id, title, destination, country, country_code, start_date, end_date, duration, travelers, budget, request, is_public, share_token, shared_at, created_at, updated_at";
+  "id, title, destination, country, country_code, start_date, end_date, duration, travelers, budget, request, is_public, share_token, shared_at, share_expires_at, created_at, updated_at";
 
 /** Empreinte stable d'une demande validée : un même voyage n'est enregistré qu'une fois. */
 export function requestHash(request: TripRequest) {
@@ -73,28 +73,38 @@ export async function insertSavedTrip(supabase: SupabaseClient, userId: string, 
  * aléatoire ; désactiver l'efface (l'ancien lien ne fonctionne plus).
  * Renvoie `null` si le voyage n'existe pas (ou n'appartient pas à l'utilisateur).
  */
-export async function updateTripSharing(supabase: SupabaseClient, id: string, enabled: boolean) {
+export async function updateTripSharing(
+  supabase: SupabaseClient,
+  id: string,
+  enabled: boolean,
+  /** Fin de validité du lien (OVO Premium) ; `null` = sans limite. */
+  expiresAt: string | null = null,
+) {
   const current = await supabase
     .from(TABLE)
-    .select("share_token")
+    .select("share_token, share_expires_at")
     .eq("id", id)
-    .maybeSingle<{ share_token: string | null }>();
+    .maybeSingle<{ share_token: string | null; share_expires_at: string | null }>();
   if (current.error) throw current.error;
   if (!current.data) return null;
+  // Un lien expiré n'est jamais réactivé : réactiver le partage crée un nouveau lien.
+  const expired =
+    current.data.share_expires_at !== null && new Date(current.data.share_expires_at).getTime() <= Date.now();
 
   const changes = enabled
     ? {
         is_public: true,
-        share_token: current.data.share_token ?? randomUUID(),
+        share_token: (!expired && current.data.share_token) || randomUUID(),
         shared_at: new Date().toISOString(),
+        share_expires_at: expiresAt,
       }
-    : { is_public: false, share_token: null, shared_at: null };
+    : { is_public: false, share_token: null, shared_at: null, share_expires_at: null };
   const { data, error } = await supabase
     .from(TABLE)
     .update(changes)
     .eq("id", id)
-    .select("is_public, share_token")
-    .maybeSingle<{ is_public: boolean; share_token: string | null }>();
+    .select("is_public, share_token, share_expires_at")
+    .maybeSingle<{ is_public: boolean; share_token: string | null; share_expires_at: string | null }>();
   if (error) throw error;
   return data;
 }

@@ -1,6 +1,6 @@
 import { PDFDocument } from "pdf-lib";
 import { describe, expect, it } from "vitest";
-import { FEATURES, featuresOf, PLAN_LIMITS, planIncludes, type FeatureId } from "@/config/premium";
+import { FEATURES, PLAN_LIMITS, PLANS, planIncludes, plansIncluding, type FeatureId } from "@/config/premium";
 import { generateTravelPlan } from "@/features/trip-engine";
 import { buildTripPdf } from "@/features/trip-export/build-trip-pdf";
 import { buildChecklist } from "@/features/trip-export/checklist";
@@ -8,40 +8,66 @@ import { tripPdfFilename } from "@/features/trip-export/filename";
 import { tripPdfUrl } from "@/features/trip-export/pdf-url";
 import { addDays, todayIso } from "@/lib/dates";
 import type { TripRequest } from "@/types/trip";
-import { resolveEntitlements, type SubscriptionRow } from "../plan";
+import { resolveEntitlements, statusLabel, type SubscriptionRow } from "../plan";
 
 const now = new Date("2026-09-24T12:00:00Z");
 const row = (overrides: Partial<SubscriptionRow>): SubscriptionRow => ({
   plan: "premium",
-  status: "active",
-  started_at: "2026-09-01T00:00:00Z",
-  expires_at: null,
+  subscription_status: "active",
+  current_period_start: "2026-09-01T00:00:00Z",
+  current_period_end: "2026-10-01T00:00:00Z",
+  cancel_at_period_end: false,
   ...overrides,
 });
 
-describe("plan de l'utilisateur", () => {
+describe("offre de l'utilisateur (statuts Stripe)", () => {
   it("sans abonnement : gratuit", () => {
     expect(resolveEntitlements(null, now)).toMatchObject({
       plan: "free",
-      isPremium: false,
+      isPaid: false,
       limits: PLAN_LIMITS.free,
     });
   });
 
-  it("Premium actif, en essai, ou sans date de fin", () => {
-    expect(resolveEntitlements(row({}), now).isPremium).toBe(true);
-    expect(resolveEntitlements(row({ status: "trialing" }), now).isPremium).toBe(true);
-    expect(resolveEntitlements(row({ expires_at: "2026-12-01T00:00:00Z" }), now)).toMatchObject({
+  it("actif ou en essai : offre souscrite", () => {
+    expect(resolveEntitlements(row({}), now)).toMatchObject({
+      plan: "premium",
       isPremium: true,
       limits: PLAN_LIMITS.premium,
     });
+    expect(resolveEntitlements(row({ plan: "medium", subscription_status: "trialing" }), now)).toMatchObject({
+      plan: "medium",
+      isPaid: true,
+      isPremium: false,
+      limits: PLAN_LIMITS.medium,
+    });
   });
 
-  it("Premium expiré, annulé ou plan gratuit : retour au gratuit", () => {
-    expect(resolveEntitlements(row({ expires_at: "2026-09-20T00:00:00Z" }), now).isPremium).toBe(false);
-    expect(resolveEntitlements(row({ status: "canceled" }), now).isPremium).toBe(false);
-    expect(resolveEntitlements(row({ status: "expired" }), now).isPremium).toBe(false);
-    expect(resolveEntitlements(row({ plan: "free" }), now).plan).toBe("free");
+  it("paiement échoué (past_due) : accès maintenu, alerte", () => {
+    const e = resolveEntitlements(row({ subscription_status: "past_due" }), now);
+    expect(e).toMatchObject({ plan: "premium", paymentIssue: true });
+    expect(statusLabel(e)).toMatch(/Paiement échoué/);
+  });
+
+  it("annulé, impayé, incomplet, en pause : retour au gratuit", () => {
+    for (const status of ["canceled", "unpaid", "incomplete", "incomplete_expired", "paused"] as const) {
+      const e = resolveEntitlements(row({ subscription_status: status }), now);
+      expect(e.plan).toBe("free");
+      expect(e.subscribedPlan).toBe("premium");
+    }
+  });
+
+  it("période terminée depuis plus de 48 h : gratuit (webhook manquant)", () => {
+    expect(resolveEntitlements(row({ current_period_end: "2026-09-23T00:00:00Z" }), now).plan).toBe(
+      "premium",
+    );
+    expect(resolveEntitlements(row({ current_period_end: "2026-09-20T00:00:00Z" }), now).plan).toBe("free");
+  });
+
+  it("annulation programmée : actif jusqu'à la fin de période", () => {
+    const e = resolveEntitlements(row({ cancel_at_period_end: true }), now);
+    expect(e.plan).toBe("premium");
+    expect(statusLabel(e)).toBe("Actif, annulation programmée");
   });
 });
 
@@ -61,16 +87,21 @@ describe("déclaration des fonctionnalités", () => {
     }
   });
 
-  it("Premium inclut tout ; le gratuit n'inclut pas les fonctionnalités Premium", () => {
+  it("Premium ⊃ Medium ⊃ Gratuit", () => {
     for (const id of Object.keys(FEATURES) as FeatureId[]) expect(planIncludes("premium", id)).toBe(true);
-    for (const f of featuresOf("premium")) expect(planIncludes("free", f.id)).toBe(false);
-    expect(featuresOf("premium").some((f) => f.availability === "available")).toBe(true);
+    expect(planIncludes("medium", "pdf_travel_book")).toBe(true);
+    expect(planIncludes("free", "pdf_travel_book")).toBe(false);
+    expect(planIncludes("medium", "share_expiring_links")).toBe(false);
+    expect(plansIncluding("pdf_travel_book")).toEqual(["OVO Medium", "OVO Premium"]);
+    expect(plansIncluding("share_expiring_links")).toEqual(["OVO Premium"]);
   });
 
-  it("limites cohérentes", () => {
-    const free = PLAN_LIMITS.free.savedTrips ?? Infinity;
-    const premium = PLAN_LIMITS.premium.savedTrips ?? Infinity;
-    expect(premium).toBeGreaterThan(free);
+  it("prix et limites centralisés et cohérents", () => {
+    expect(PLANS.medium.monthlyPrice).toBe(5.99);
+    expect(PLANS.premium.monthlyPrice).toBe(9.99);
+    const limit = (p: keyof typeof PLAN_LIMITS) => PLAN_LIMITS[p].savedTrips ?? Infinity;
+    expect(limit("medium")).toBeGreaterThan(limit("free"));
+    expect(limit("premium")).toBeGreaterThan(limit("medium"));
   });
 });
 

@@ -7,6 +7,8 @@ export const publicEnv = {
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
   supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
+  /** Clé publiable Stripe (pk_…) : publique par conception, jamais la clé secrète. */
+  stripePublishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "",
   /** Fond de carte raster (gratuit par défaut : CARTO, données © OpenStreetMap). */
   mapTilesUrl:
     process.env.NEXT_PUBLIC_MAP_TILES_URL ?? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",

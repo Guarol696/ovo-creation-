@@ -1,4 +1,5 @@
 import "server-only";
+import { plansIncluding } from "@/config/premium";
 import type { TravelPlan } from "@/types/travel-plan";
 import { buildTripPdf, type PdfEdition } from "../build-trip-pdf";
 import { tripPdfFilename } from "../filename";
@@ -34,10 +35,10 @@ export function requestedEdition(searchParams: URLSearchParams): PdfEdition {
   return searchParams.get("edition") === "carnet" ? "carnet" : "standard";
 }
 
-/** Carnet de voyage demandé sans OVO Premium : refus explicite (vérification serveur). */
+/** Carnet de voyage demandé sans l'offre requise : refus explicite (vérification serveur). */
 export function premiumRequired() {
   return new Response(
-    "Le carnet de voyage PDF est réservé à OVO Premium. Découvre l'offre sur la page /premium.",
+    `Le carnet de voyage PDF est inclus dans ${plansIncluding("pdf_travel_book").join(" et ")}. Découvre les offres sur la page /premium.`,
     { status: 403, headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } },
   );
 }

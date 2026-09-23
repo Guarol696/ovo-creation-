@@ -1,7 +1,7 @@
 import { BookOpen, FileDown } from "lucide-react";
 import { buttonStyles } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import { PremiumBadge } from "@/features/premium/components/premium-badge";
+import { PLANS } from "@/config/premium";
 import { PremiumFeature } from "@/features/premium/components/premium-feature";
 import { tripPdfUrl, type PdfSource } from "@/features/trip-export/pdf-url";
 import { cn } from "@/lib/utils";
@@ -21,9 +21,8 @@ export function TravelBookSection({ source }: { source: PdfSource }) {
         <PremiumFeature feature="pdf_travel_book">
           <div className="relative overflow-hidden rounded-4xl bg-linear-to-br from-gold-400/15 via-night-900 to-night-900 p-5 ring-1 ring-gold-400/40 sm:p-8">
             <div className="flex flex-wrap items-center gap-3">
-              <PremiumBadge />
               <p className="text-xs font-bold tracking-[0.15em] text-gold-300 uppercase">
-                Inclus dans ton offre
+                Inclus dans ton offre · dès {PLANS.medium.name}
               </p>
             </div>
             <h2 className="mt-4 flex items-center gap-2 font-display text-2xl font-bold sm:text-3xl">

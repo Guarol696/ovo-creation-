@@ -19,7 +19,7 @@ export function SiteHeader() {
   const closeMenu = useCallback(() => setMenuOpen(false), []);
   const pathname = usePathname();
   const isCreatingTrip = pathname === routes.createTrip;
-  const { status, user, isPremium } = useAuth();
+  const { status, user, plan } = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -60,7 +60,7 @@ export function SiteHeader() {
           <div className="flex items-center gap-2">
             <div className="hidden items-center gap-2 sm:flex">
               {status === "loading" && <AccountSkeleton />}
-              {status === "authenticated" && user && <AccountMenu user={user} isPremium={isPremium} />}
+              {status === "authenticated" && user && <AccountMenu user={user} plan={plan} />}
               {(status === "anonymous" || status === "unavailable") && (
                 <>
                   <ButtonLink href={routes.login} variant="ghost-light">

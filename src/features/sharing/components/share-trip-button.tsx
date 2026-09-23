@@ -8,7 +8,11 @@ import { FormMessage } from "@/features/auth/components/form-controls";
 import { useTripPage } from "@/features/trip-results/components/save-trip-button";
 import { SAVE_INTENT_PARAM } from "@/lib/auth/redirect";
 import { cn } from "@/lib/utils";
+import { PLANS } from "@/config/premium";
+import { routes } from "@/config/site";
 import { setTripSharing } from "../actions";
+import { SHARE_DURATIONS, type ShareDuration } from "../durations";
+import { isExpired } from "./sharing-badge";
 
 /**
  * « Partager mon voyage »
@@ -56,6 +60,7 @@ export function ShareTripButton({ className, label = "long" }: ShareTripButtonPr
 function ShareDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { config, sharing, setSharing } = useTripPage();
   const [pending, startTransition] = useTransition();
+  const [duration, setDuration] = useState<ShareDuration>("unlimited");
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -68,26 +73,44 @@ function ShareDialog({ open, onClose }: { open: boolean; onClose: () => void }) 
   // Lien à partager selon le mode.
   let path: string | null = null;
   if (config.mode === "public") path = config.sharePath;
-  if (config.mode === "saved") path = sharing?.isPublic ? sharing.sharePath : null;
+  const expired = Boolean(sharing?.isPublic && isExpired(sharing.expiresAt));
+  const shared = Boolean(sharing?.isPublic && !expired);
+  if (config.mode === "saved") path = shared ? sharing!.sharePath : null;
 
-  function toggleSharing(enabled: boolean) {
+  function toggleSharing(enabled: boolean, nextDuration: ShareDuration = duration, update = false) {
     if (config.mode !== "saved") return;
     setError(null);
     setNotice(null);
     startTransition(async () => {
-      const result = await setTripSharing(config.savedTripId, enabled);
+      const result = await setTripSharing(config.savedTripId, enabled, nextDuration);
       if (result.status === "error") {
         setError(result.message);
         return;
       }
-      setSharing({ isPublic: result.isPublic, sharePath: result.sharePath });
+      setSharing({ isPublic: result.isPublic, sharePath: result.sharePath, expiresAt: result.expiresAt });
       setNotice(
-        result.isPublic
-          ? "Ton voyage est maintenant partageable ✓"
-          : "Partage désactivé ✓ L'ancien lien ne fonctionne plus.",
+        !result.isPublic
+          ? "Partage désactivé ✓ L'ancien lien ne fonctionne plus."
+          : update
+            ? "Durée du lien mise à jour ✓"
+            : "Ton voyage est maintenant partageable ✓",
       );
     });
   }
+
+  const durationPicker =
+    config.mode === "saved" ? (
+      <DurationPicker
+        value={duration}
+        allowed={config.canUseExpiringLinks}
+        disabled={pending}
+        expiresAt={shared ? (sharing?.expiresAt ?? null) : null}
+        onChange={(next) => {
+          setDuration(next);
+          if (shared) toggleSharing(true, next, true);
+        }}
+      />
+    ) : null;
 
   const title = `Mon voyage à ${config.destinationName}`;
 
@@ -97,13 +120,13 @@ function ShareDialog({ open, onClose }: { open: boolean; onClose: () => void }) 
         <p
           className={cn(
             "mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ring-1",
-            sharing?.isPublic
+            shared
               ? "bg-emerald-500/10 text-emerald-200 ring-emerald-400/30"
               : "bg-white/5 text-white/75 ring-white/15",
           )}
         >
-          {sharing?.isPublic ? <Globe className="size-3.5" /> : <Lock className="size-3.5" />}
-          {sharing?.isPublic ? "Partageable par lien" : "Privé"}
+          {shared ? <Globe className="size-3.5" /> : <Lock className="size-3.5" />}
+          {shared ? "Partageable par lien" : expired ? "Lien expiré" : "Privé"}
         </p>
       )}
 
@@ -118,13 +141,15 @@ function ShareDialog({ open, onClose }: { open: boolean; onClose: () => void }) 
         </div>
       )}
 
-      {config.mode === "saved" && !sharing?.isPublic ? (
+      {config.mode === "saved" && !shared ? (
         <>
           <p className="mt-4 leading-relaxed text-night-100/80">
-            Ton voyage est privé : toi seul·e peux le voir. Rends-le partageable pour obtenir un lien. Les
-            personnes qui ont ce lien verront le voyage (programme, carte, budget…), mais jamais ton nom, ton
-            email ni tes autres voyages.
+            {expired ? "Ton lien de partage a expiré : il ne fonctionne plus. " : ""}Ton voyage est privé :
+            toi seul·e peux le voir. Rends-le partageable pour obtenir un lien. Les personnes qui ont ce lien
+            verront le voyage (programme, carte, budget…), mais jamais ton nom, ton email ni tes autres
+            voyages.
           </p>
+          {durationPicker}
           <Button size="lg" className="mt-6 w-full" onClick={() => toggleSharing(true)} disabled={pending}>
             {pending ? <Loader2 className="size-5 animate-spin" /> : <Link2 className="size-5" />}
             {pending ? "Activation…" : "Rendre partageable"}
@@ -140,6 +165,7 @@ function ShareDialog({ open, onClose }: { open: boolean; onClose: () => void }) 
                 : "Toute personne qui a ce lien peut voir ton voyage, sans compte et sans voir tes informations personnelles."}
           </p>
           <ShareLinkActions path={path} title={title} destinationName={config.destinationName} />
+          {durationPicker}
           {config.mode === "saved" && (
             <Button
               variant="ghost-light"
@@ -246,5 +272,74 @@ function ShareLinkActions({
         </FormMessage>
       )}
     </div>
+  );
+}
+
+const expiryFormatter = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+
+/** Durée du lien : 7 / 30 jours réservés à OVO Premium (revérifié par le serveur). */
+function DurationPicker({
+  value,
+  allowed,
+  disabled,
+  expiresAt,
+  onChange,
+}: {
+  value: ShareDuration;
+  allowed: boolean;
+  disabled: boolean;
+  expiresAt: string | null;
+  onChange: (duration: ShareDuration) => void;
+}) {
+  const name = useId();
+  return (
+    <fieldset className="mt-5">
+      <legend className="text-sm font-semibold text-white/90">Durée du lien</legend>
+      <div className="mt-2 grid grid-cols-3 gap-2">
+        {(Object.entries(SHARE_DURATIONS) as [ShareDuration, (typeof SHARE_DURATIONS)[ShareDuration]][]).map(
+          ([id, option]) => {
+            const locked = option.days !== null && !allowed;
+            return (
+              <label
+                key={id}
+                className={cn(
+                  "flex min-h-11 cursor-pointer items-center justify-center gap-1 rounded-2xl px-2 text-center text-sm font-semibold ring-1 transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-sun-400",
+                  value === id
+                    ? "bg-white text-night-950 ring-white"
+                    : "text-white/85 ring-white/15 hover:bg-white/10",
+                  (locked || disabled) && "cursor-not-allowed opacity-45 hover:bg-transparent",
+                )}
+              >
+                <input
+                  type="radio"
+                  name={name}
+                  value={id}
+                  checked={value === id}
+                  disabled={locked || disabled}
+                  onChange={() => onChange(id)}
+                  className="sr-only"
+                />
+                {locked && <Lock className="size-3.5" aria-hidden="true" />}
+                {option.label}
+                {locked && <span className="sr-only"> (réservé à {PLANS.premium.name})</span>}
+              </label>
+            );
+          },
+        )}
+      </div>
+      {expiresAt && (
+        <p className="mt-2 text-xs text-night-100/70">
+          Ce lien expire le {expiryFormatter.format(new Date(expiresAt))}.
+        </p>
+      )}
+      {!allowed && (
+        <p className="mt-2 text-xs text-night-100/65">
+          ⏳ Les liens à durée limitée sont inclus dans {PLANS.premium.name}.{" "}
+          <a href={routes.premium} className="font-semibold text-gold-300 underline-offset-2 hover:underline">
+            Découvrir les offres
+          </a>
+        </p>
+      )}
+    </fieldset>
   );
 }

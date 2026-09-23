@@ -4,7 +4,8 @@ import type { Session } from "@supabase/supabase-js";
 import { usePathname } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { isSupabaseConfigured } from "@/lib/env";
-import { resolveEntitlements, type SubscriptionRow } from "@/features/premium/plan";
+import type { PlanId } from "@/config/premium";
+import { resolveEntitlements, SUBSCRIPTION_COLUMNS, type SubscriptionRow } from "@/features/premium/plan";
 import { createClient } from "@/lib/supabase/client";
 
 /**
@@ -28,11 +29,11 @@ interface AuthContextValue {
   status: AuthStatus;
   user: SessionUser | null;
   /**
-   * Plan affiché (badge « ✨ Premium »). Lu depuis la table `subscriptions`
-   * (lecture seule pour l'utilisateur). Affichage uniquement : les droits réels
-   * sont vérifiés par le serveur (`getEntitlements`).
+   * Offre affichée (badge « ⭐ Medium » / « ✨ Premium »), lue depuis la table
+   * `subscriptions` synchronisée avec Stripe (lecture seule pour l'utilisateur).
+   * Affichage uniquement : les droits réels sont vérifiés par le serveur (`getEntitlements`).
    */
-  isPremium: boolean;
+  plan: PlanId;
   /** Relit la session (après une action serveur qui l'a modifiée). */
   refresh: () => Promise<void>;
 }
@@ -40,7 +41,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue>({
   status: "loading",
   user: null,
-  isPremium: false,
+  plan: "free",
   refresh: async () => {},
 });
 
@@ -59,7 +60,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user: null,
   }));
   const pathname = usePathname();
-  const [premiumOf, setPremiumOf] = useState<{ userId: string; isPremium: boolean } | null>(null);
+  const [planOf, setPlanOf] = useState<{ userId: string; plan: PlanId } | null>(null);
+  const [planVersion, setPlanVersion] = useState(0);
 
   const apply = useCallback((session: Session | null) => {
     const user = toSessionUser(session);
@@ -74,6 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     if (!configured) return;
+    setPlanVersion((v) => v + 1);
     try {
       const { data } = await createClient().auth.getSession();
       apply(data.session);
@@ -113,20 +116,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let active = true;
     createClient()
       .from("subscriptions")
-      .select("plan, status, started_at, expires_at")
+      .select(SUBSCRIPTION_COLUMNS)
       .eq("user_id", userId)
       .maybeSingle<SubscriptionRow>()
       .then(
-        ({ data }) => active && setPremiumOf({ userId, isPremium: resolveEntitlements(data).isPremium }),
-        () => active && setPremiumOf({ userId, isPremium: false }),
+        ({ data }) => active && setPlanOf({ userId, plan: resolveEntitlements(data).plan }),
+        () => active && setPlanOf({ userId, plan: "free" }),
       );
     return () => {
       active = false;
     };
-  }, [configured, userId, pathname]);
+  }, [configured, userId, pathname, planVersion]);
 
-  const isPremium = Boolean(userId && premiumOf?.userId === userId && premiumOf.isPremium);
-  const value = useMemo(() => ({ ...state, isPremium, refresh }), [state, isPremium, refresh]);
+  const plan: PlanId = userId && planOf?.userId === userId ? planOf.plan : "free";
+  const value = useMemo(() => ({ ...state, plan, refresh }), [state, plan, refresh]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

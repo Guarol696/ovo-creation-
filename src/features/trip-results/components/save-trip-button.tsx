@@ -27,13 +27,22 @@ export interface TripSharingState {
   isPublic: boolean;
   /** Chemin public (/voyage/partage/<jeton>) quand le partage est actif. */
   sharePath: string | null;
+  /** Fin de validité du lien (OVO Premium), `null` = sans limite. */
+  expiresAt: string | null;
 }
 
 export type TripSaveConfig =
   /** Voyage tout juste généré (page de résultat). */
   | { mode: "result"; encodedRequest: string; savedTripId: string | null; destinationName: string }
   /** Voyage ouvert depuis « Mes voyages » par son propriétaire. */
-  | { mode: "saved"; savedTripId: string; destinationName: string; sharing: TripSharingState }
+  | {
+      mode: "saved";
+      savedTripId: string;
+      destinationName: string;
+      sharing: TripSharingState;
+      /** Droit aux liens à durée limitée, décidé par le serveur (revérifié par l'action). */
+      canUseExpiringLinks: boolean;
+    }
   /** Voyage partagé, ouvert par un visiteur (lecture seule). */
   | { mode: "public"; destinationName: string; sharePath: string };
 

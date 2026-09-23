@@ -194,33 +194,68 @@ pagination « Page n / N » et date de génération. Nom du fichier :
 `ovo-voyage-<destination>-<date de départ ou mois>.pdf`. Routes : `/voyage/resultat/pdf?v=…`,
 `/mes-voyages/<id>/pdf` (propriétaire) et `/voyage/partage/<jeton>/pdf` (lien public actif).
 
-## OVO Premium (sans paiement pour l'instant)
+## Offres & abonnements (Stripe)
 
-- **Configuration unique** : `src/config/premium.ts`. On y règle le prix indicatif (`PREMIUM_PRICING`),
-  les fonctionnalités et le plan minimum de chacune (`FEATURES`), ainsi que les limites par plan
-  (`PLAN_LIMITS`, ex. 20 voyages enregistrés en gratuit, 200 en Premium). La page `/premium`,
-  l'accroche de l'accueil et les protections se mettent à jour automatiquement.
-- **Gratuit** : tout ce qui existait reste gratuit (création, programme, carte, budget, sauvegarde,
-  partage, export PDF). **Premium** ajoute le carnet de voyage PDF (alternatives, checklist de départ
-  adaptée, pages de notes) et davantage de voyages enregistrés ; d'autres fonctionnalités sont
-  annoncées « bientôt ».
-- **Base** : table `subscriptions` (migration `20260925090000_subscriptions.sql`), une ligne par
-  utilisateur, lisible uniquement par son propriétaire et **jamais modifiable par lui** (RLS). Sans
-  ligne, l'utilisateur est en gratuit. Premium n'est actif que si `plan = 'premium'`, `status` actif
-  (ou essai) et `expires_at` non dépassée.
-- **Droits** : décidés côté serveur par `getEntitlements()` / `canUseFeature()`
-  (`src/features/premium/server`). `<PremiumFeature feature="…">` affiche la fonctionnalité ou la carte
-  « 🔒 Fonctionnalité Premium » ; les routes concernées revérifient (ex. `?edition=carnet` → 403 sans
-  Premium). Côté navigateur, `useAuth().isPremium` ne sert qu'à afficher le badge « ✨ Premium ».
-- **Aucun paiement** : « Passer à Premium » et « Gérer mon abonnement » affichent un message
-  d'attente. Pour tester Premium (ou l'offrir manuellement), dans l'éditeur SQL Supabase :
+Trois offres : **OVO Gratuit**, **OVO Medium** (5,99 €/mois) et **OVO Premium** (9,99 €/mois).
+Premium inclut tout Medium, et Medium inclut tout le gratuit. Aucune fonctionnalité gratuite n'a été retirée.
 
-  ```sql
-  insert into subscriptions (user_id, plan, status, provider, expires_at)
-  values ('<uuid de l''utilisateur>', 'premium', 'active', 'manual', now() + interval '30 days')
-  on conflict (user_id) do update set plan = excluded.plan, status = excluded.status,
-    expires_at = excluded.expires_at;
-  ```
+| Offre   | Ajoute                                                                                   |
+| ------- | ---------------------------------------------------------------------------------------- |
+| Gratuit | Création, programme, carte, budget, 20 voyages enregistrés, partage par lien, export PDF |
+| Medium  | Carnet de voyage PDF (alternatives, checklist de départ, notes), 60 voyages enregistrés  |
+| Premium | Liens de partage à durée limitée (7 j / 30 j / sans limite), 200 voyages enregistrés     |
+
+- **Configuration unique** : `src/config/premium.ts` règle les noms, les prix affichés (`PLANS`), les fonctionnalités et l'offre minimum de chacune (`FEATURES`), ainsi que les limites (`PLAN_LIMITS`).
+  - Les montants réellement facturés sont ceux des Prices Stripe. Leurs identifiants sont lus dans `STRIPE_MEDIUM_PRICE_ID` et `STRIPE_PREMIUM_PRICE_ID`.
+  - Garder les deux sources identiques.
+- **Base** : la table `subscriptions` compte une ligne par utilisateur. La migration `20260926090000_stripe_billing.sql` ajoute les colonnes suivantes :
+  - `stripe_customer_id`, `stripe_subscription_id`, `stripe_price_id` ;
+  - `plan`, `subscription_status` ;
+  - `current_period_start`, `current_period_end`, `cancel_at_period_end`.
+
+  La RLS n'autorise que la lecture de sa propre ligne. Aucune écriture n'est possible depuis le navigateur. Seul le serveur écrit, avec la clé `service_role`, dans `src/lib/supabase/admin.ts`.
+
+- **Paiement** (`src/features/billing`) :
+  1. La Server Action `startCheckout` vérifie la session et choisit le Price ID côté serveur.
+  2. Elle crée ou réutilise le Customer Stripe lié au compte (`metadata.ovo_user_id`).
+  3. Elle redirige vers Stripe Checkout en mode abonnement.
+
+  Un visiteur est envoyé vers la connexion. Les changements d'offre, l'annulation, la carte et les factures passent par le Customer Portal (`openBillingPortal`).
+
+- **Synchronisation** : `POST /api/stripe/webhook` vérifie la signature, puis relit l'abonnement chez Stripe avant d'écrire.
+  - Événements traités : `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, `invoice.payment_failed`.
+  - La page `/payment/success` n'active rien. Elle attend que le webhook ait synchronisé l'abonnement.
+- **Droits** : ils sont décidés côté serveur par `getEntitlements()` et `canUseFeature()` (`src/features/premium/server`).
+  - Les statuts `active`, `trialing` et `past_due` donnent accès à l'offre. `past_due` correspond à la période de relance, et l'utilisateur est prévenu.
+  - Les autres statuts renvoient au gratuit.
+  - `<PremiumFeature feature="…">` affiche la fonctionnalité ou une carte verrouillée. Les routes et les actions revérifient les droits.
+  - `useAuth().plan` ne sert qu'à l'affichage.
+
+### Configurer Stripe (mode test)
+
+1. Dans le Dashboard, en **mode test**, créer deux produits avec un prix récurrent mensuel en EUR : « OVO Medium » à 5,99 € et « OVO Premium » à 9,99 €. Copier les deux `price_…`.
+2. Dans **Developers → API keys**, copier `pk_test_…` et `sk_test_…`.
+3. Dans **Developers → Webhooks**, ajouter l'endpoint `https://<domaine>/api/stripe/webhook` avec les six événements ci-dessus, puis copier le `whsec_…`.
+4. Dans **Settings → Billing → Customer portal**, activer le portail :
+   - changement d'offre entre les deux prix ;
+   - annulation ;
+   - moyen de paiement et factures.
+5. Renseigner `.env.local`, ou les variables Vercel :
+   - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` ;
+   - `STRIPE_SECRET_KEY` ;
+   - `STRIPE_WEBHOOK_SECRET` ;
+   - `STRIPE_MEDIUM_PRICE_ID` ;
+   - `STRIPE_PREMIUM_PRICE_ID` ;
+   - `SUPABASE_SERVICE_ROLE_KEY` ;
+   - facultatif : `STRIPE_PORTAL_CONFIGURATION_ID`.
+6. Appliquer la migration : `supabase db push`, ou exécuter le fichier SQL.
+7. En local : `stripe listen --forward-to localhost:3000/api/stripe/webhook`. Utiliser le `whsec_` affiché par la commande.
+8. Cartes de test :
+   - `4242 4242 4242 4242` : paiement accepté ;
+   - `4000 0000 0000 0002` : paiement refusé ;
+   - pour simuler un renouvellement ou un échec de renouvellement, utiliser les **Test clocks** de Stripe.
+
+Sans ces variables, le site fonctionne. Les boutons de paiement indiquent alors que le paiement n'est pas encore activé, et le webhook répond 503.
 
 ## Feuille de route
 
@@ -233,4 +268,4 @@ pagination « Page n / N » et date de génération. Nom du fichier :
 - [x] Étape 7 — Comptes (Supabase Auth), sauvegarde des voyages, « Mes voyages », suppression, RLS
 - [x] Étape 8 — Partage d'un voyage (lien public contrôlé) et export PDF
 - [x] Étape 9 — OVO Premium : offre, page `/premium`, droits côté serveur, badge, carnet de voyage PDF (sans paiement)
-- [ ] Paiements (Stripe) et gestion de l'abonnement
+- [x] Étape 10 — Abonnements Stripe (OVO Medium, OVO Premium) : Checkout, webhooks, Customer Portal, droits synchronisés
