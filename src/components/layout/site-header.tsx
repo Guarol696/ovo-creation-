@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Menu } from "lucide-react";
 import { mainNav, routes } from "@/config/site";
@@ -13,6 +14,7 @@ export function SiteHeader() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const closeMenu = useCallback(() => setMenuOpen(false), []);
+  const isCreatingTrip = usePathname() === routes.createTrip;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -53,9 +55,11 @@ export function SiteHeader() {
             <ButtonLink href={routes.login} variant="ghost-light" className="hidden sm:inline-flex">
               Connexion
             </ButtonLink>
-            <ButtonLink href={routes.createTrip} className="hidden sm:inline-flex">
-              Créer mon voyage
-            </ButtonLink>
+            {!isCreatingTrip && (
+              <ButtonLink href={routes.createTrip} className="hidden sm:inline-flex">
+                Créer mon voyage
+              </ButtonLink>
+            )}
             <button
               type="button"
               onClick={() => setMenuOpen(true)}

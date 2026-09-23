@@ -44,10 +44,20 @@ src/
 │   ├── sections/             # Blocs de page réutilisables (PageIntro, ComingSoon)
 │   └── icons/                # Icônes de marques (Instagram, TikTok)
 ├── features/
-│   └── landing/              # Sections de la landing page
+│   ├── landing/              # Sections de la landing page
+│   └── trip-builder/         # Questionnaire « Créer mon voyage »
+│       ├── steps.ts          # Définition et ordre des étapes
+│       ├── validation.ts     # Validation de chaque étape (messages FR)
+│       ├── schema.ts         # Schéma zod de la demande finale (côté serveur)
+│       ├── to-trip-request.ts# Brouillon → TripRequest structuré
+│       ├── draft-storage.ts  # Sauvegarde locale du questionnaire en cours
+│       ├── actions.ts        # Server Action : validation + sauvegarde optionnelle
+│       └── components/       # Orchestrateur, étapes, récap, écran de transition
 ├── config/                   # Config du site (nav, routes, images, réseaux sociaux)
 ├── data/                     # Données statiques de démonstration
 ├── lib/
+│   ├── trip/                 # Domaine voyage : options, budget, mise en forme
+│   ├── dates.ts              # Dates calendaires ISO (sans fuseau horaire)
 │   ├── env.ts                # Accès typé aux variables d'environnement
 │   ├── supabase/             # Clients Supabase (navigateur / serveur)
 │   └── utils.ts
@@ -66,10 +76,16 @@ src/
 - **Images** : centralisées dans `src/config/images.ts` ; les domaines distants sont autorisés dans
   `next.config.ts`. Chaque image a un dégradé de secours si elle ne charge pas.
 
+## Supabase
+
+Les migrations SQL sont dans `supabase/migrations/`. La table `trip_requests` (protégée par RLS)
+enregistre les demandes de voyage des utilisateurs **connectés** uniquement ; le questionnaire
+fonctionne sans compte ni configuration Supabase.
+
 ## Feuille de route
 
 - [x] Étape 1 — Fondations + landing page
-- [ ] Questionnaire de création de voyage
+- [x] Étape 2 — Questionnaire « Créer mon voyage » (`/voyage/nouveau`)
 - [ ] Génération de voyage & page de résultats
 - [ ] Authentification Supabase, profil, voyages sauvegardés
 - [ ] Partage, carte interactive, export PDF

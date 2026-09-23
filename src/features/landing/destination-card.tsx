@@ -12,11 +12,12 @@ interface DestinationCardProps {
 }
 
 export function DestinationCard({ destination, className }: DestinationCardProps) {
-  const { city, country, tagline, image, fallbackGradient, styles, budgetFrom, idealDays } = destination;
+  const { slug, city, country, tagline, image, fallbackGradient, styles, budgetFrom, idealDays } =
+    destination;
 
   return (
     <Link
-      href={routes.createTrip}
+      href={`${routes.createTrip}?destination=${slug}`}
       aria-label={`${city}, ${country} — créer un voyage`}
       className={cn(
         "group relative isolate flex aspect-[4/5] flex-col justify-end overflow-hidden rounded-4xl p-6 text-white shadow-lg shadow-night-950/10 transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:shadow-night-950/25",

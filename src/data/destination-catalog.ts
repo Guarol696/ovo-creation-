@@ -1,0 +1,68 @@
+import type { DestinationPlace } from "@/types/trip";
+
+type CatalogEntry = DestinationPlace & { aliases?: string[] };
+
+/**
+ * Catalogue local des destinations proposées par la recherche du questionnaire.
+ * Sera remplacé par une API de géocodage / la base Supabase plus tard.
+ */
+export const destinationCatalog: CatalogEntry[] = [
+  { id: "paris", name: "Paris", country: "France", countryCode: "FR" },
+  { id: "nice", name: "Nice", country: "France", countryCode: "FR", aliases: ["cote d'azur"] },
+  { id: "marseille", name: "Marseille", country: "France", countryCode: "FR" },
+  { id: "bordeaux", name: "Bordeaux", country: "France", countryCode: "FR" },
+  { id: "londres", name: "Londres", country: "Royaume-Uni", countryCode: "GB", aliases: ["london"] },
+  { id: "edimbourg", name: "Édimbourg", country: "Royaume-Uni", countryCode: "GB", aliases: ["edinburgh"] },
+  { id: "dublin", name: "Dublin", country: "Irlande", countryCode: "IE" },
+  { id: "lisbonne", name: "Lisbonne", country: "Portugal", countryCode: "PT", aliases: ["lisboa", "lisbon"] },
+  { id: "porto", name: "Porto", country: "Portugal", countryCode: "PT" },
+  { id: "barcelone", name: "Barcelone", country: "Espagne", countryCode: "ES", aliases: ["barcelona"] },
+  { id: "madrid", name: "Madrid", country: "Espagne", countryCode: "ES" },
+  { id: "seville", name: "Séville", country: "Espagne", countryCode: "ES", aliases: ["sevilla"] },
+  { id: "ibiza", name: "Ibiza", country: "Espagne", countryCode: "ES" },
+  { id: "rome", name: "Rome", country: "Italie", countryCode: "IT", aliases: ["roma"] },
+  { id: "florence", name: "Florence", country: "Italie", countryCode: "IT", aliases: ["firenze"] },
+  { id: "venise", name: "Venise", country: "Italie", countryCode: "IT", aliases: ["venezia", "venice"] },
+  { id: "naples", name: "Naples", country: "Italie", countryCode: "IT", aliases: ["napoli"] },
+  { id: "milan", name: "Milan", country: "Italie", countryCode: "IT", aliases: ["milano"] },
+  { id: "amsterdam", name: "Amsterdam", country: "Pays-Bas", countryCode: "NL" },
+  { id: "bruxelles", name: "Bruxelles", country: "Belgique", countryCode: "BE", aliases: ["brussels"] },
+  { id: "berlin", name: "Berlin", country: "Allemagne", countryCode: "DE" },
+  { id: "prague", name: "Prague", country: "Tchéquie", countryCode: "CZ", aliases: ["praha"] },
+  { id: "budapest", name: "Budapest", country: "Hongrie", countryCode: "HU" },
+  { id: "vienne", name: "Vienne", country: "Autriche", countryCode: "AT", aliases: ["wien", "vienna"] },
+  { id: "copenhague", name: "Copenhague", country: "Danemark", countryCode: "DK", aliases: ["copenhagen"] },
+  { id: "athenes", name: "Athènes", country: "Grèce", countryCode: "GR", aliases: ["athens"] },
+  { id: "santorin", name: "Santorin", country: "Grèce", countryCode: "GR", aliases: ["santorini"] },
+  { id: "split", name: "Split", country: "Croatie", countryCode: "HR" },
+  { id: "istanbul", name: "Istanbul", country: "Turquie", countryCode: "TR" },
+  { id: "marrakech", name: "Marrakech", country: "Maroc", countryCode: "MA", aliases: ["marrakesh"] },
+  { id: "agadir", name: "Agadir", country: "Maroc", countryCode: "MA" },
+  { id: "tunis", name: "Tunis", country: "Tunisie", countryCode: "TN" },
+  { id: "le-caire", name: "Le Caire", country: "Égypte", countryCode: "EG", aliases: ["cairo"] },
+  { id: "dubai", name: "Dubaï", country: "Émirats arabes unis", countryCode: "AE" },
+  {
+    id: "new-york",
+    name: "New York",
+    country: "États-Unis",
+    countryCode: "US",
+    aliases: ["nyc", "manhattan"],
+  },
+  { id: "los-angeles", name: "Los Angeles", country: "États-Unis", countryCode: "US", aliases: ["la"] },
+  { id: "miami", name: "Miami", country: "États-Unis", countryCode: "US" },
+  { id: "montreal", name: "Montréal", country: "Canada", countryCode: "CA" },
+  { id: "mexico", name: "Mexico", country: "Mexique", countryCode: "MX" },
+  { id: "cancun", name: "Cancún", country: "Mexique", countryCode: "MX" },
+  { id: "rio", name: "Rio de Janeiro", country: "Brésil", countryCode: "BR", aliases: ["rio"] },
+  { id: "tokyo", name: "Tokyo", country: "Japon", countryCode: "JP" },
+  { id: "seoul", name: "Séoul", country: "Corée du Sud", countryCode: "KR" },
+  { id: "bangkok", name: "Bangkok", country: "Thaïlande", countryCode: "TH" },
+  { id: "bali", name: "Bali", country: "Indonésie", countryCode: "ID" },
+  {
+    id: "reykjavik",
+    name: "Reykjavik",
+    country: "Islande",
+    countryCode: "IS",
+    aliases: ["islande", "iceland"],
+  },
+];

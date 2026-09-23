@@ -46,7 +46,7 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
       aria-hidden={!open}
       inert={!open}
       className={cn(
-        "fixed inset-0 z-50 flex h-dvh flex-col bg-night-950 transition-all duration-500 lg:hidden",
+        "fixed inset-0 z-50 flex h-dvh flex-col overflow-hidden bg-night-950 transition-all duration-500 lg:hidden",
         open ? "visible opacity-100" : "invisible opacity-0",
       )}
     >
