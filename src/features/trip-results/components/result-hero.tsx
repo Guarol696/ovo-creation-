@@ -1,9 +1,12 @@
-import { CalendarDays, Clock, Pencil, Sparkles, Users, Wallet } from "lucide-react";
+import { ArrowLeft, CalendarDays, Clock, Pencil, Sparkles, Users, Wallet } from "lucide-react";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { SmartImage } from "@/components/ui/smart-image";
 import { formatDates, formatTravelers } from "@/lib/trip/format";
+import { routes } from "@/config/site";
+import { DeleteTripButton } from "@/features/saved-trips/components/delete-trip-button";
 import { editTripUrl } from "@/lib/trip/links";
 import { cn, formatPrice } from "@/lib/utils";
 import type { TravelPlan } from "@/types/travel-plan";
@@ -20,7 +23,18 @@ const sections = [
   { href: "#budget", label: "Budget" },
 ];
 
-export function ResultHero({ plan }: { plan: TravelPlan }) {
+/** Voyage ouvert depuis « Mes voyages ». */
+export interface SavedTripInfo {
+  id: string;
+  title: string;
+  savedAt: string;
+  /** Plan recalculé car l'ancien format n'était plus lisible. */
+  regenerated: boolean;
+}
+
+const savedAtFormatter = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+
+export function ResultHero({ plan, savedTrip }: { plan: TravelPlan; savedTrip?: SavedTripInfo }) {
   const { destination, duration, estimatedBudget, request } = plan;
   const facts = [
     { icon: CalendarDays, label: "Dates", value: formatDates(request) },
@@ -59,10 +73,25 @@ export function ResultHero({ plan }: { plan: TravelPlan }) {
       </div>
 
       <Container>
-        <Badge tone="light" className="animate-fade-up">
-          <Sparkles className="size-3.5 text-gold-300" />
-          {destination.recommended ? "Destination recommandée par OVO" : "Ta destination"}
-        </Badge>
+        {savedTrip && (
+          <Link
+            href={routes.myTrips}
+            className="mb-5 inline-flex min-h-11 animate-fade-up items-center gap-2 text-sm font-semibold text-white/80 hover:text-white"
+          >
+            <ArrowLeft className="size-4" /> Mes voyages
+          </Link>
+        )}
+        <div className="flex flex-wrap gap-2">
+          <Badge tone="light" className="animate-fade-up">
+            <Sparkles className="size-3.5 text-gold-300" />
+            {destination.recommended ? "Destination recommandée par OVO" : "Ta destination"}
+          </Badge>
+          {savedTrip && (
+            <Badge tone="gold" className="animate-fade-up">
+              💾 Enregistré le {savedAtFormatter.format(new Date(savedTrip.savedAt))}
+            </Badge>
+          )}
+        </div>
         <h1 className="mt-5 animate-fade-up font-display text-[clamp(2.6rem,10vw,6rem)] leading-[0.95] font-extrabold tracking-tight text-balance [animation-delay:80ms]">
           Ton voyage à <span className="text-gradient-sun">{destination.name}</span>
         </h1>
@@ -84,11 +113,18 @@ export function ResultHero({ plan }: { plan: TravelPlan }) {
         </dl>
 
         <div className="mt-6 flex animate-fade-up flex-col gap-3 [animation-delay:320ms] sm:flex-row">
-          <SaveTripButton destinationName={destination.name} />
+          <SaveTripButton />
           <ButtonLink href={editTripUrl(request)} size="lg" variant="outline-light">
             <Pencil className="size-4" /> Modifier mon voyage
           </ButtonLink>
+          {savedTrip && <DeleteTripButton tripId={savedTrip.id} title={savedTrip.title} size="lg" />}
         </div>
+        {savedTrip?.regenerated && (
+          <p className="mt-4 max-w-2xl text-sm text-night-100/70">
+            Ce voyage a été enregistré avec une ancienne version d&apos;OVO : il a été recalculé à partir de
+            tes réponses.
+          </p>
+        )}
 
         <nav
           aria-label="Sections du voyage"

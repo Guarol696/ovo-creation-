@@ -15,6 +15,12 @@ export const routes = {
   createTrip: "/voyage/nouveau",
   tripResult: "/voyage/resultat",
   login: "/connexion",
+  signUp: "/inscription",
+  forgotPassword: "/mot-de-passe-oublie",
+  resetPassword: "/nouveau-mot-de-passe",
+  authConfirm: "/auth/confirm",
+  myTrips: "/mes-voyages",
+  account: "/compte",
   about: "/a-propos",
   contact: "/contact",
   terms: "/conditions",
@@ -30,10 +36,14 @@ export interface NavLink {
 }
 
 export const mainNav: NavLink[] = [
-  { label: "Découvrir", href: routes.discover },
+  { label: "Accueil", href: routes.home },
+  { label: "Créer un voyage", href: routes.createTrip },
+  { label: "Mes voyages", href: routes.myTrips },
   { label: "Comment ça marche", href: routes.howItWorks },
-  { label: "Premium", href: routes.premium },
 ];
+
+/** Pages réservées aux utilisateurs connectés (vérifiées aussi côté serveur dans chaque page). */
+export const protectedRoutes = [routes.myTrips, routes.account] as const;
 
 export const footerNav: { title: string; links: NavLink[] }[] = [
   {

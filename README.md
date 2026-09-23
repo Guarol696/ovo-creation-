@@ -125,11 +125,47 @@ Questionnaire → validation (zod, serveur) → analyse des préférences
   (`generateTravelPlan(request, { dataSource })`). Chaque bloc du `TravelPlan` porte sa `source`
   (`demo`, `generic`, `api`) pour brancher progressivement vols, hôtels, activités ou une IA.
 
-## Supabase
+## Comptes & voyages enregistrés (Supabase)
 
-Les migrations SQL sont dans `supabase/migrations/`. La table `trip_requests` (protégée par RLS)
-enregistre les demandes de voyage des utilisateurs **connectés** uniquement ; le questionnaire
-fonctionne sans compte ni configuration Supabase.
+OVO fonctionne **sans compte** : accueil → questionnaire → génération → résultat. Le compte ne sert
+qu'à enregistrer ses voyages (« 💾 Enregistrer mon voyage »), à les retrouver dans « Mes voyages » et
+à les supprimer. Sans variables Supabase, le site marche comme avant et les pages de compte
+affichent « Les comptes arrivent très bientôt ».
+
+```
+src/proxy.ts                      # Rafraîchit la session, protège /mes-voyages et /compte
+src/app/auth/confirm/route.ts     # Retour des liens email (confirmation, mot de passe oublié)
+src/features/auth/                # Actions serveur (inscription, connexion…), formulaires, état de session
+src/features/saved-trips/         # Enregistrer / lister / ouvrir / supprimer un voyage
+supabase/migrations/              # Tables, triggers et règles RLS
+```
+
+**Base de données** (`supabase/migrations/`)
+
+- `profiles` : prénom / pseudo, créé automatiquement à l'inscription (trigger sur `auth.users`).
+- `saved_trips` : voyages enregistrés (reprend la table `trip_requests` de l'étape 2, renommée).
+  Colonnes d'affichage (`title`, `destination`, `country`, `start_date`, `end_date`, `duration`,
+  `travelers`, `budget`), la demande (`request`, JSONB), son empreinte (`request_hash`, un voyage
+  n'est enregistré qu'une fois) et le `travel_plan` complet (JSONB), réaffiché tel quel sans
+  nouvelle génération.
+- **RLS** : chaque utilisateur ne peut lire, créer, modifier et supprimer que ses propres lignes ;
+  les visiteurs non connectés n'ont aucun accès. Le serveur recalcule lui-même le plan à enregistrer
+  (il ne fait jamais confiance à un plan envoyé par le navigateur) et revérifie l'utilisateur dans
+  chaque page et chaque action.
+
+**Mise en service**
+
+1. Créer un projet Supabase, puis renseigner dans `.env.local` (et sur Vercel) :
+   `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` et `NEXT_PUBLIC_SITE_URL` (URL publique
+   du site, utilisée dans les liens des emails). Aucune clé secrète n'est nécessaire.
+2. Appliquer les migrations : `supabase db push` (CLI) ou copier les fichiers SQL, dans l'ordre, dans
+   l'éditeur SQL du tableau de bord.
+3. Authentication → URL Configuration : **Site URL** = l'URL du site ; **Redirect URLs** =
+   `https://<domaine>/auth/confirm` (et `http://localhost:3000/auth/confirm` en développement).
+4. Authentication → Providers → Email : garder « Confirm email » activé (recommandé) ; longueur
+   minimale du mot de passe : 8. Les modèles d'email par défaut conviennent (flux PKCE).
+5. En production : configurer un SMTP (Authentication → SMTP Settings). Le service d'email intégré
+   de Supabase est limité à quelques emails par heure, réservé aux tests.
 
 ## Feuille de route
 
@@ -139,6 +175,6 @@ fonctionne sans compte ni configuration Supabase.
 - [x] Étape 4 — Transport (« Comment y aller ? ») & hébergement (« Où dormir ? ») intégrés au budget
 - [x] Étape 5 — Activités (« Que faire ? ») & restaurants (« Où manger ? ») avec filtres, intégrés au programme et au budget
 - [x] Étape 6 — Carte interactive (« Ton voyage sur la carte ») & itinéraire jour par jour synchronisé
-- [ ] Authentification Supabase, profil, voyages sauvegardés
+- [x] Étape 7 — Comptes (Supabase Auth), sauvegarde des voyages, « Mes voyages », suppression, RLS
 - [ ] Partage, export PDF
 - [ ] OVO Premium & paiements

@@ -21,7 +21,7 @@ export function ResultCta({ plan }: { plan: TravelPlan }) {
             Garde ce voyage sous le coude, ou ajuste tes critères pour une nouvelle proposition.
           </p>
           <div className="mt-8 flex flex-col flex-wrap justify-center gap-3 sm:flex-row">
-            <SaveTripButton destinationName={plan.destination.name} />
+            <SaveTripButton />
             <ButtonLink href={editTripUrl(plan.request)} size="lg" variant="outline-light">
               <Pencil className="size-4" /> Modifier mon voyage
             </ButtonLink>

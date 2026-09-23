@@ -8,3 +8,4 @@
 - Avant de pousser : `npm run lint && npm run typecheck && npm test && npm run build`.
 - Le moteur (`src/features/trip-engine`) ne lit les données que via `TravelDataSource` ; les prix affichés sont toujours présentés comme des estimations.
 - Ne pas nommer `useXxx` une fonction qui n'est pas un hook : les règles React du linter deviennent extrêmement lentes.
+- Comptes : l'autorisation se vérifie côté serveur (`getCurrentUser`, Server Actions) + RLS ; `useAuth()` ne sert qu'à l'affichage. Toute nouvelle table utilisateur a ses politiques RLS dans `supabase/migrations/`.

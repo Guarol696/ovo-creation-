@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { InvalidPlan } from "@/features/trip-results/components/invalid-plan";
 import { TravelPlanView } from "@/features/trip-results/components/travel-plan-view";
 import { loadTravelPlan } from "@/features/trip-results/load-plan";
+import { savedTripIdFor } from "@/features/saved-trips/server/saved-state";
 
 type Props = PageProps<"/voyage/resultat">;
 
@@ -17,8 +18,21 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 }
 
 export default async function TripResultPage({ searchParams }: Props) {
-  const result = await loadTravelPlan(param((await searchParams).v));
+  const encoded = param((await searchParams).v);
+  const result = await loadTravelPlan(encoded);
 
-  if (result.status === "ok") return <TravelPlanView plan={result.plan} />;
+  if (result.status === "ok" && encoded) {
+    return (
+      <TravelPlanView
+        plan={result.plan}
+        save={{
+          mode: "result",
+          encodedRequest: encoded,
+          savedTripId: await savedTripIdFor(result.plan.request),
+          destinationName: result.plan.destination.name,
+        }}
+      />
+    );
+  }
   return <InvalidPlan request={result.status === "outdated" ? result.request : undefined} />;
 }

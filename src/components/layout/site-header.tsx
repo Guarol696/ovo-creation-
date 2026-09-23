@@ -6,6 +6,9 @@ import { useCallback, useEffect, useState } from "react";
 import { Menu } from "lucide-react";
 import { mainNav, routes } from "@/config/site";
 import { ButtonLink } from "@/components/ui/button";
+import { useAuth } from "@/features/auth/auth-provider";
+import { AccountMenu, AccountSkeleton } from "@/features/auth/components/account-menu";
+import { LogoutFlash } from "@/features/auth/components/logout-flash";
 import { cn } from "@/lib/utils";
 import { Logo } from "./logo";
 import { MobileMenu } from "./mobile-menu";
@@ -14,7 +17,9 @@ export function SiteHeader() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const closeMenu = useCallback(() => setMenuOpen(false), []);
-  const isCreatingTrip = usePathname() === routes.createTrip;
+  const pathname = usePathname();
+  const isCreatingTrip = pathname === routes.createTrip;
+  const { status, user } = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -42,7 +47,8 @@ export function SiteHeader() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="rounded-full px-4 py-2 text-sm font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+                    aria-current={pathname === link.href ? "page" : undefined}
+                    className="rounded-full px-4 py-2 text-sm font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white aria-[current=page]:bg-white/10 aria-[current=page]:text-white"
                   >
                     {link.label}
                   </Link>
@@ -52,11 +58,24 @@ export function SiteHeader() {
           </nav>
 
           <div className="flex items-center gap-2">
-            <ButtonLink href={routes.login} variant="ghost-light" className="hidden sm:inline-flex">
-              Connexion
-            </ButtonLink>
+            <div className="hidden items-center gap-2 sm:flex">
+              {status === "loading" && <AccountSkeleton />}
+              {status === "authenticated" && user && <AccountMenu user={user} />}
+              {(status === "anonymous" || status === "unavailable") && (
+                <>
+                  <ButtonLink href={routes.login} variant="ghost-light">
+                    Connexion
+                  </ButtonLink>
+                  {status === "anonymous" && (
+                    <ButtonLink href={routes.signUp} variant="outline-light">
+                      Inscription
+                    </ButtonLink>
+                  )}
+                </>
+              )}
+            </div>
             {!isCreatingTrip && (
-              <ButtonLink href={routes.createTrip} className="hidden sm:inline-flex">
+              <ButtonLink href={routes.createTrip} className="hidden sm:inline-flex lg:hidden">
                 Créer mon voyage
               </ButtonLink>
             )}
@@ -76,6 +95,7 @@ export function SiteHeader() {
 
       {/* Hors du <header> : son backdrop-filter piégerait un enfant en position fixed. */}
       <MobileMenu open={menuOpen} onClose={closeMenu} />
+      <LogoutFlash />
     </>
   );
 }
