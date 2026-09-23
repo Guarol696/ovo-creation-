@@ -14,14 +14,21 @@ le nombre de voyageurs et son style, et OVO lui propose un voyage personnalisé.
 
 ## Démarrer
 
+> Guide pas à pas (installation, Supabase, Stripe, dépannage) : **[DEMARRAGE.md](DEMARRAGE.md)**.
+
 ```bash
 npm install
-cp .env.example .env.local   # puis renseigner les valeurs
-npm run dev                  # http://localhost:3000
+npm run setup    # crée .env.local à partir de .env.example
+npm run dev      # http://localhost:3000 — fonctionne sans aucune clé
+npm run doctor   # vérifie la configuration Supabase / Stripe
 ```
 
 | Script              | Rôle                                  |
 | ------------------- | ------------------------------------- |
+| `npm run setup`     | Crée `.env.local`, vérifie Node.js    |
+| `npm run doctor`    | Diagnostic Supabase / Stripe          |
+| `npm run check`     | Lint + types + tests + build          |
+| `npm run db:bundle` | Régénère `supabase/setup.sql`         |
 | `npm run dev`       | Serveur de développement              |
 | `npm run build`     | Build de production                   |
 | `npm run start`     | Sert le build de production           |
@@ -158,9 +165,10 @@ supabase/migrations/              # Tables, triggers et règles RLS
 
 1. Créer un projet Supabase, puis renseigner dans `.env.local` (et sur Vercel) :
    `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` et `NEXT_PUBLIC_SITE_URL` (URL publique
-   du site, utilisée dans les liens des emails). Aucune clé secrète n'est nécessaire.
-2. Appliquer les migrations : `supabase db push` (CLI) ou copier les fichiers SQL, dans l'ordre, dans
-   l'éditeur SQL du tableau de bord.
+   du site, utilisée dans les liens des emails). Pour les abonnements, ajouter aussi la clé secrète
+   `SUPABASE_SERVICE_ROLE_KEY` (serveur uniquement).
+2. Créer les tables : coller `supabase/setup.sql` (toutes les migrations regroupées) dans l'éditeur SQL
+   du tableau de bord, ou `supabase db push` avec la CLI.
 3. Authentication → URL Configuration : **Site URL** = l'URL du site ; **Redirect URLs** =
    `https://<domaine>/auth/confirm` (et `http://localhost:3000/auth/confirm` en développement).
 4. Authentication → Providers → Email : garder « Confirm email » activé (recommandé) ; longueur
