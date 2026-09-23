@@ -54,13 +54,21 @@ interface BudgetSectionProps {
   budget: TravelBudget;
   request: TripRequest;
   travelers: number;
+  childTravelers: number;
   nights: number;
 }
 
-export function BudgetSection({ budget, request, travelers, nights }: BudgetSectionProps) {
+export function BudgetSection({ budget, request, travelers, childTravelers, nights }: BudgetSectionProps) {
+  const { mealsCount, mealsPerPerson, snacksPerPerson, paidActivitiesCount, activitiesPerPerson } =
+    budget.details;
+  // « ≈ 25 € / pers. × 2 » : le calcul est visible (enfants à tarif réduit).
+  const times = (perPerson: number) =>
+    `≈ ${formatPrice(perPerson)} / pers.${travelers > 1 ? ` × ${travelers}` : ""}${childTravelers > 0 ? " (tarif enfant réduit)" : ""}`;
   const details: Partial<Record<BudgetCategory, string>> = {
     transport: "Aller-retour + déplacements sur place",
     accommodation: `${nights} nuit${nights > 1 ? "s" : ""}`,
+    food: `${mealsCount} repas + petits-déj. & en-cas · ${times(mealsPerPerson + snacksPerPerson)}`,
+    activities: `${paidActivitiesCount} activité${paidActivitiesCount > 1 ? "s" : ""} payante${paidActivitiesCount > 1 ? "s" : ""} · ${times(activitiesPerPerson)}`,
     other: "Assurance, souvenirs, imprévus",
   };
   const [active, setActive] = useState<BudgetCategory | null>(null);

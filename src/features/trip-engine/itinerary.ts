@@ -1,10 +1,12 @@
 import { addDays } from "@/lib/dates";
 import type {
   ActivityCategory,
+  ActivityMoment,
   ComfortTier,
   DayPeriod,
   ItineraryDay,
   ItinerarySlot,
+  Meal,
   PlanActivity,
   PlanRestaurant,
   TransportMode,
@@ -12,29 +14,31 @@ import type {
 } from "@/types/travel-plan";
 import type { TripRequest } from "@/types/trip";
 import { effectiveEaters } from "./budget";
-import type {
-  ActivityTemplate,
-  DestinationProfile,
-  Moment,
-  Neighborhood,
-  RestaurantTemplate,
-} from "./data-source/types";
+import type { DestinationProfile, Neighborhood } from "./data-source/types";
 import type { Preferences } from "./preferences";
 
 /**
  * Construction du programme jour par jour.
- * Chaque créneau (matin, midi, après-midi, soir) reçoit l'activité ou le
- * restaurant le plus compatible avec les préférences, sans répétition.
+ *
+ * Le programme pioche UNIQUEMENT dans les activités et restaurants fournis
+ * par les services (et donc présents dans le TravelPlan) : chaque élément
+ * reçoit en retour la liste des moments où il est programmé (`schedule`).
+ *
+ * Journée type : matin · midi · après-midi · soir (dîner) · nuit (sortie).
  */
 
 export interface ItineraryResult {
   days: ItineraryDay[];
+  /** Toutes les activités proposées, avec leur place dans le programme. */
   activities: PlanActivity[];
+  /** Tous les restaurants proposés, avec leur place dans le programme. */
   restaurants: PlanRestaurant[];
-  /** Somme des activités du programme, par personne. */
+  /** Somme des activités programmées, par personne. */
   activitiesCostPerPerson: number;
-  /** Score de chaque activité retenue (pour choisir les moments forts). */
-  activityScores: Map<string, number>;
+  paidActivitiesCount: number;
+  /** Somme des repas programmés (restaurants, pique-niques), par personne. */
+  mealsCostPerPerson: number;
+  mealsCount: number;
 }
 
 interface BuildInput {
@@ -45,6 +49,10 @@ interface BuildInput {
   neighborhood: Neighborhood;
   /** Trajet retenu, pour décrire l'arrivée et le départ. */
   transport: TransportOption;
+  /** Activités classées par le service activités. */
+  activities: PlanActivity[];
+  /** Restaurants classés par le service restaurants. */
+  restaurants: PlanRestaurant[];
 }
 
 const DAY_TITLES: Record<ActivityCategory, string> = {
@@ -63,27 +71,15 @@ const DAY_TITLES: Record<ActivityCategory, string> = {
   excursion: "Escapade hors de la ville",
 };
 
-const toPlanActivity = (a: ActivityTemplate, source: PlanActivity["source"]): PlanActivity => ({
-  id: a.id,
-  name: a.name,
-  description: a.description,
-  category: a.category,
-  emoji: a.emoji,
-  estimatedCostPerPerson: a.cost,
-  durationHours: a.hours,
-  area: a.area,
-  source,
-});
+const ARRIVAL_LABELS: Record<TransportMode, { trip: string; back: string }> = {
+  avion: { trip: "Vol", back: "puis direction l'aéroport pour le retour" },
+  train: { trip: "Train", back: "puis direction la gare pour le retour" },
+  bus: { trip: "Bus", back: "puis direction la gare routière pour le retour" },
+  voiture: { trip: "Route", back: "puis on reprend la route" },
+};
 
-const toPlanRestaurant = (r: RestaurantTemplate, source: PlanRestaurant["source"]): PlanRestaurant => ({
-  id: r.id,
-  name: r.name,
-  description: r.description,
-  priceLevel: r.priceLevel,
-  estimatedCostPerPerson: r.cost,
-  area: r.area,
-  source,
-});
+/** Déjeuner sans restaurant (pique-nique, excursion), par personne. */
+const PICNIC_COST: Record<ComfortTier, number> = { eco: 10, standard: 14, confort: 20 };
 
 /** Nombre de journées d'excursion selon la durée du séjour. */
 function excursionCount(days: number) {
@@ -93,68 +89,41 @@ function excursionCount(days: number) {
   return 0;
 }
 
-export function buildItinerary({
-  profile,
-  prefs,
-  tier,
-  request,
-  neighborhood,
-  transport,
-}: BuildInput): ItineraryResult {
-  const source = profile.source;
+interface PickOptions {
+  maxHours?: number;
+  bonus?: Partial<Record<ActivityCategory, number>>;
+  minScore?: number;
+  avoid?: ActivityCategory[];
+  only?: ActivityCategory[];
+  exclude?: ActivityCategory[];
+}
+
+export function buildItinerary(input: BuildInput): ItineraryResult {
+  const { profile, prefs, tier, request, neighborhood, transport } = input;
+
+  // Copies locales : on y inscrit la place de chaque élément dans le programme.
+  const activities = input.activities.map((a) => ({ ...a, schedule: [...a.schedule] }));
+  const restaurants = input.restaurants.map((r) => ({ ...r, schedule: [...r.schedule] }));
   const usage = new Map<string, number>();
   const restaurantUsage = new Map<string, number>();
-  const activityScores = new Map<string, number>();
-  const usedActivities = new Map<string, PlanActivity>();
-  const usedRestaurants = new Map<string, PlanRestaurant>();
-
-  // --- Scores ---------------------------------------------------------------
-  function activityScore(a: ActivityTemplate) {
-    let score = prefs.categoryWeights[a.category];
-    score += a.tags.reduce((sum, tag) => sum + prefs.styleWeights[tag], 0) * 0.8;
-    // Les incontournables de la destination passent en priorité.
-    if (a.highlight) score += 1.2;
-    if (tier === "eco" && a.cost > 35) score -= 1.5;
-    if (prefs.prefersEconomy && a.cost === 0) score += 0.5;
-    if (prefs.children > 0 && a.category === "nightlife") score -= 4;
-    return score;
-  }
-
-  function restaurantScore(r: RestaurantTemplate, meal: "lunch" | "dinner") {
-    const tierMatch: Record<ComfortTier, Record<1 | 2 | 3, number>> = {
-      eco: { 1: 2, 2: 0.5, 3: -3 },
-      standard: { 1: 1, 2: 2, 3: -0.5 },
-      confort: { 1: 0.3, 2: 1.5, 3: 2 },
-    };
-    let score = tierMatch[tier][r.priceLevel];
-    score += r.tags.reduce((sum, tag) => sum + prefs.styleWeights[tag], 0) * 0.7;
-    if (meal === "dinner" && r.priceLevel === 3 && prefs.styles.includes("gastronomie") && tier !== "eco")
-      score += 1;
-    score -= (restaurantUsage.get(r.id) ?? 0) * 1.5;
-    return score;
-  }
 
   // --- Sélection ------------------------------------------------------------
-  interface PickOptions {
-    maxHours?: number;
-    bonus?: Partial<Record<ActivityCategory, number>>;
-    minScore?: number;
-    avoid?: ActivityCategory[];
-  }
+  function pickActivity(moment: ActivityMoment, options: PickOptions = {}): PlanActivity | null {
+    const { maxHours, bonus = {}, minScore = 0.4, avoid = [], only, exclude = [] } = options;
+    // On ne refait une activité (plage, parc, bar…) que sur un séjour assez long.
+    const maxRepeats = prefs.days >= 8 ? 3 : prefs.days >= 5 ? 2 : 1;
+    let best: { activity: PlanActivity; score: number } | null = null;
 
-  function pickActivity(moment: Moment, options: PickOptions = {}): ActivityTemplate | null {
-    const { maxHours, bonus = {}, minScore = 0.4, avoid = [] } = options;
-    let best: { activity: ActivityTemplate; score: number } | null = null;
-
-    for (const activity of profile.activities) {
+    for (const activity of activities) {
       if (activity.fullDay || !activity.moments.includes(moment)) continue;
-      if (maxHours !== undefined && activity.hours > maxHours) continue;
+      if (only && !only.includes(activity.category)) continue;
+      if (exclude.includes(activity.category)) continue;
+      if (maxHours !== undefined && activity.durationHours > maxHours) continue;
       const times = usage.get(activity.id) ?? 0;
       if (times > 0 && !activity.repeatable) continue;
-      // Sur un long séjour, on peut retourner une fois de plus à la plage ou au parc.
-      if (times >= (prefs.days >= 8 ? 3 : 2)) continue;
+      if (times >= maxRepeats) continue;
 
-      let score = activityScore(activity) + (bonus[activity.category] ?? 0) - times * 1.5;
+      let score = activity.relevance + (bonus[activity.category] ?? 0) - times * 1.5;
       if (avoid.includes(activity.category)) score -= 1.2;
       if (!best || score > best.score) best = { activity, score };
     }
@@ -162,25 +131,32 @@ export function buildItinerary({
     return best.activity;
   }
 
-  function takeActivity(activity: ActivityTemplate) {
-    usage.set(activity.id, (usage.get(activity.id) ?? 0) + 1);
-    activityScores.set(activity.id, activityScore(activity));
-    const plan = toPlanActivity(activity, source);
-    usedActivities.set(activity.id, plan);
-    return plan;
+  function pickRestaurant(meal: Meal): PlanRestaurant | null {
+    let best: { restaurant: PlanRestaurant; score: number } | null = null;
+    for (const restaurant of restaurants) {
+      if (!restaurant.meals.includes(meal)) continue;
+      let score = restaurant.relevance - (restaurantUsage.get(restaurant.id) ?? 0) * 1.5;
+      // Le midi, on reste simple ; le soir, on se fait plaisir.
+      if (meal === "lunch" && restaurant.priceLevel === 3) score -= 1;
+      if (
+        meal === "dinner" &&
+        prefs.styles.includes("romantique") &&
+        restaurant.tags.includes("romantique")
+      ) {
+        score += 0.5;
+      }
+      if (!best || score > best.score) best = { restaurant, score };
+    }
+    return best?.restaurant ?? null;
   }
 
-  function pickRestaurant(meal: "lunch" | "dinner"): PlanRestaurant | undefined {
-    const candidates = profile.restaurants.filter((r) => r.meals.includes(meal));
-    if (candidates.length === 0) return undefined;
-    const best = candidates.reduce((a, b) => (restaurantScore(b, meal) > restaurantScore(a, meal) ? b : a));
-    restaurantUsage.set(best.id, (restaurantUsage.get(best.id) ?? 0) + 1);
-    const plan = toPlanRestaurant(best, source);
-    usedRestaurants.set(best.id, plan);
-    return plan;
+  function schedule(item: PlanActivity | PlanRestaurant, dayNumber: number, period: DayPeriod) {
+    item.schedule.push({ dayNumber, period });
+    if ("theme" in item) usage.set(item.id, (usage.get(item.id) ?? 0) + 1);
+    else restaurantUsage.set(item.id, (restaurantUsage.get(item.id) ?? 0) + 1);
   }
 
-  // --- Slots ----------------------------------------------------------------
+  // --- Créneaux -------------------------------------------------------------
   const activitySlot = (period: DayPeriod, activity: PlanActivity): ItinerarySlot => ({
     period,
     title: activity.name,
@@ -189,47 +165,35 @@ export function buildItinerary({
     estimatedCostPerPerson: activity.estimatedCostPerPerson,
   });
 
-  const freeSlot = (period: DayPeriod, title: string, description: string): ItinerarySlot => ({
+  const freeSlot = (period: DayPeriod, title: string, description: string, cost = 0): ItinerarySlot => ({
     period,
     title,
     description,
-    estimatedCostPerPerson: 0,
+    estimatedCostPerPerson: cost,
   });
 
-  const mealSlot = (period: DayPeriod, restaurant?: PlanRestaurant): ItinerarySlot =>
-    restaurant
-      ? {
-          period,
-          title: restaurant.name,
-          description: restaurant.description,
-          restaurant,
-          estimatedCostPerPerson: restaurant.estimatedCostPerPerson,
-        }
-      : freeSlot(period, "Déjeuner sur le pouce", "Une pause rapide pour recharger les batteries.");
+  const restaurantSlot = (period: DayPeriod, restaurant: PlanRestaurant): ItinerarySlot => ({
+    period,
+    title: restaurant.name,
+    description: `${restaurant.cuisine} — ${restaurant.description}`,
+    restaurant,
+    estimatedCostPerPerson: restaurant.estimatedCostPerPerson,
+  });
 
   // --- Excursions -----------------------------------------------------------
-  const excursions = profile.activities
-    .filter((a) => a.fullDay)
-    .map((a) => ({ activity: a, score: activityScore(a) }))
-    .filter((e) => e.score >= (prefs.days >= 7 ? 2 : 2.5))
-    .sort((a, b) => b.score - a.score)
+  const excursions = activities
+    .filter((a) => a.fullDay && a.relevance >= (prefs.days >= 7 ? 2 : 2.5))
     .slice(0, excursionCount(prefs.days));
   // Réparties au milieu du séjour, jamais le jour d'arrivée ou de départ.
-  const excursionDays = new Map<number, ActivityTemplate>();
+  const excursionDays = new Map<number, PlanActivity>();
   excursions.forEach((excursion, index) => {
     const day = Math.round(((index + 1) * prefs.days) / (excursions.length + 1)) + 1;
-    if (day > 1 && day < prefs.days && !excursionDays.has(day)) excursionDays.set(day, excursion.activity);
+    if (day > 1 && day < prefs.days && !excursionDays.has(day)) excursionDays.set(day, excursion);
   });
 
-  // --- Construction jour par jour ------------------------------------------
+  // --- Jour par jour --------------------------------------------------------
   const days: ItineraryDay[] = [];
   const wantsNightlife = prefs.nightlife >= 2.5 && prefs.children === 0;
-  const ARRIVAL_LABELS: Record<TransportMode, { trip: string; back: string }> = {
-    avion: { trip: "Vol", back: "puis direction l'aéroport pour le retour" },
-    train: { trip: "Train", back: "puis direction la gare pour le retour" },
-    bus: { trip: "Bus", back: "puis direction la gare routière pour le retour" },
-    voiture: { trip: "Route", back: "puis on reprend la route" },
-  };
   const arrival = ARRIVAL_LABELS[transport.mode];
   const startDate = request.dates.mode === "fixed" ? request.dates.departureDate : null;
   let previousNightOut = false;
@@ -240,12 +204,14 @@ export function buildItinerary({
     const excursion = excursionDays.get(day);
     const slots: ItinerarySlot[] = [];
     const dayCategories: ActivityCategory[] = [];
-    const track = (a: ActivityTemplate | null) => {
-      if (a) dayCategories.push(a.category);
-      return a;
+
+    const addActivity = (period: DayPeriod, activity: PlanActivity) => {
+      schedule(activity, day, period);
+      dayCategories.push(activity.category);
+      slots.push(activitySlot(period, activity));
     };
 
-    // Matin
+    // 🌅 Matin
     if (isArrival) {
       slots.push(
         freeSlot(
@@ -255,8 +221,7 @@ export function buildItinerary({
         ),
       );
     } else if (excursion) {
-      slots.push(activitySlot("morning", takeActivity(excursion)));
-      dayCategories.push("excursion");
+      addActivity("morning", excursion);
     } else if (previousNightOut && prefs.pace !== "intense") {
       slots.push(
         freeSlot(
@@ -274,26 +239,28 @@ export function buildItinerary({
         ),
       );
     } else {
-      const morning = track(pickActivity("morning", { maxHours: isDeparture ? 2.5 : undefined }));
+      const morning = pickActivity("morning", { maxHours: isDeparture ? 2.5 : undefined });
+      if (morning) addActivity("morning", morning);
+      else slots.push(freeSlot("morning", "Matinée libre", "Temps libre pour flâner à ton rythme."));
+    }
+
+    // 🍽️ Midi
+    const lunch = excursion ? null : pickRestaurant("lunch");
+    if (lunch) {
+      schedule(lunch, day, "lunch");
+      slots.push(restaurantSlot("lunch", lunch));
+    } else {
       slots.push(
-        morning
-          ? activitySlot("morning", takeActivity(morning))
-          : freeSlot("morning", "Matinée libre", "Temps libre pour flâner à ton rythme."),
+        freeSlot(
+          "lunch",
+          excursion ? "Déjeuner pendant l'excursion" : "Déjeuner sur le pouce",
+          "Pique-nique ou petite adresse sur la route.",
+          PICNIC_COST[tier],
+        ),
       );
     }
 
-    // Midi
-    slots.push(
-      excursion
-        ? freeSlot(
-            "lunch",
-            "Déjeuner pendant l'excursion",
-            "Pique-nique ou petite adresse locale sur la route.",
-          )
-        : mealSlot("lunch", pickRestaurant("lunch")),
-    );
-
-    // Après-midi
+    // 🌆 Après-midi
     if (isDeparture) {
       slots.push(freeSlot("afternoon", "Retour", `Dernier café, ${arrival.back}.`));
     } else if (excursion) {
@@ -306,54 +273,62 @@ export function buildItinerary({
         : prefs.pace === "relaxed"
           ? { detente: 2, plage: 1.5 }
           : {};
-      const afternoon = track(
-        pickActivity("afternoon", {
-          bonus,
-          maxHours: isArrival ? 3 : undefined,
-          avoid: dayCategories,
-          minScore: prefs.pace === "relaxed" ? 1 : 0.4,
-        }),
-      );
-      slots.push(
-        afternoon
-          ? activitySlot("afternoon", takeActivity(afternoon))
-          : freeSlot("afternoon", "Temps libre", "Repos, shopping ou sieste : c'est toi qui décides."),
-      );
+      const afternoon = pickActivity("afternoon", {
+        bonus,
+        maxHours: isArrival ? 3 : undefined,
+        avoid: dayCategories,
+        minScore: prefs.pace === "relaxed" ? 1 : 0.4,
+      });
+      if (afternoon) addActivity("afternoon", afternoon);
+      else
+        slots.push(
+          freeSlot("afternoon", "Temps libre", "Repos, shopping ou sieste : c'est toi qui décides."),
+        );
     }
 
-    // Soir
+    // 🍴 Soir (dîner, éventuellement précédé d'un coucher de soleil ou d'un spectacle)
     previousNightOut = false;
     if (!isDeparture) {
       const dinner = pickRestaurant("dinner");
-      const evening = track(
-        pickActivity("evening", {
-          bonus: wantsNightlife ? { nightlife: 2 } : {},
-          minScore: wantsNightlife ? 1 : 1.8,
-        }),
-      );
-      const eveningActivity = evening ? takeActivity(evening) : undefined;
-      if (eveningActivity?.category === "nightlife") previousNightOut = true;
+      const eveningActivity = pickActivity("evening", {
+        exclude: ["nightlife"],
+        minScore: wantsNightlife ? 2.4 : 1.8,
+      });
+      if (eveningActivity) schedule(eveningActivity, day, "evening");
+      if (dinner) schedule(dinner, day, "evening");
+      if (eveningActivity) dayCategories.push(eveningActivity.category);
 
-      const parts = [
-        dinner ? `Dîner : ${dinner.name.toLowerCase()}.` : "",
-        eveningActivity?.description ?? "",
-      ];
       slots.push({
         period: "evening",
-        title: eveningActivity?.name ?? (dinner ? `Dîner — ${dinner.name}` : "Soirée libre"),
-        description: parts.filter(Boolean).join(" ") || "Soirée libre.",
-        activity: eveningActivity,
-        restaurant: dinner,
+        title: eveningActivity?.name ?? dinner?.name ?? "Dîner libre",
+        description: eveningActivity
+          ? `${eveningActivity.description}${dinner ? ` Puis dîner chez ${dinner.name} (${dinner.cuisine.toLowerCase()}).` : ""}`
+          : dinner
+            ? `${dinner.cuisine} — ${dinner.description}`
+            : "Soirée libre.",
+        activity: eveningActivity ?? undefined,
+        restaurant: dinner ?? undefined,
         estimatedCostPerPerson:
           (eveningActivity?.estimatedCostPerPerson ?? 0) + (dinner?.estimatedCostPerPerson ?? 0),
       });
+
+      // 🌙 Nuit (sortie) — seulement si la fête fait partie du voyage.
+      if (wantsNightlife) {
+        const night = pickActivity("evening", {
+          only: ["nightlife", "evenement"],
+          bonus: { nightlife: 2 },
+          minScore: 1,
+        });
+        if (night) {
+          addActivity("night", night);
+          previousNightOut = night.category === "nightlife";
+        }
+      }
     }
 
     // Titre, description et coûts de la journée
-    const mainActivities = slots.filter((s) => s.activity).map((s) => s.activity!);
-    const main =
-      excursion ??
-      profile.activities.find((a) => a.id === mainActivities.find((m) => m.category !== "nightlife")?.id);
+    const dayActivities = slots.filter((s) => s.activity).map((s) => s.activity!);
+    const main = excursion ?? dayActivities.find((a) => a.category !== "nightlife");
     const title = isArrival
       ? "Arrivée & premiers pas"
       : isDeparture
@@ -364,7 +339,7 @@ export function buildItinerary({
             ? `${DAY_TITLES[main.category]}${main.area ? ` · ${main.area}` : ""}`
             : "Journée libre";
 
-    const names = mainActivities.map((a) => a.name);
+    const names = dayActivities.map((a) => a.name);
     const description =
       names.length === 0
         ? "Pas de programme imposé : retourne à ton spot préféré ou laisse-toi porter."
@@ -384,16 +359,26 @@ export function buildItinerary({
     });
   }
 
-  const activitiesCostPerPerson = [...usage.entries()].reduce((sum, [id, times]) => {
-    const activity = profile.activities.find((a) => a.id === id);
-    return sum + (activity?.cost ?? 0) * times;
-  }, 0);
+  // --- Totaux pour le budget ------------------------------------------------
+  const allSlots = days.flatMap((d) => d.slots);
+  const activitiesCostPerPerson = allSlots.reduce(
+    (sum, s) => sum + (s.activity?.estimatedCostPerPerson ?? 0),
+    0,
+  );
+  const paidActivitiesCount = allSlots.filter((s) => (s.activity?.estimatedCostPerPerson ?? 0) > 0).length;
+  const mealSlots = allSlots.filter((s) => s.period === "lunch" || (s.period === "evening" && s.restaurant));
+  const mealsCostPerPerson = mealSlots.reduce(
+    (sum, s) => sum + (s.restaurant?.estimatedCostPerPerson ?? s.estimatedCostPerPerson),
+    0,
+  );
 
   return {
     days,
-    activities: [...usedActivities.values()],
-    restaurants: [...usedRestaurants.values()],
+    activities,
+    restaurants,
     activitiesCostPerPerson,
-    activityScores,
+    paidActivitiesCount,
+    mealsCostPerPerson,
+    mealsCount: mealSlots.length,
   };
 }

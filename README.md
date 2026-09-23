@@ -61,7 +61,7 @@ src/
 │   │   ├── budget.ts         # Estimation par catégorie + niveau de confort
 │   │   ├── itinerary.ts      # Programme jour par jour
 │   │   ├── logistics.ts      # Choix du quartier où loger
-│   │   ├── services/         # Services transport & hébergement (fournisseurs démo → API)
+│   │   ├── services/         # Transport, hébergement, activités, restaurants (démo → API)
 │   │   ├── explain.ts        # « Pourquoi OVO… », alertes, moments forts
 │   │   └── generate-travel-plan.ts  # Orchestrateur du pipeline
 │   └── trip-results/         # Page de résultats (sections, budget, sauvegarde)
@@ -104,7 +104,11 @@ Questionnaire → validation (zod, serveur) → analyse des préférences
   interface de fournisseur (`TransportProvider`, `AccommodationProvider`) et une implémentation de
   démonstration. Pour brancher une vraie API, il suffit d'implémenter l'interface et de la passer à
   `generateTravelPlan(request, { transportProvider, accommodationProvider })`.
-- **Budget** : les postes transport et hébergement reprennent exactement les options affichées
+- **Activités & restaurants** : les services `activities` et `restaurants` classent le catalogue selon
+  le profil (règles simples). Le programme pioche uniquement dans ces listes, et chaque élément sait
+  où il est programmé (`schedule`). Restaurants et notes sont fictifs (noms « OVO »).
+- **Budget** : nourriture = repas réellement programmés + petits-déjeuners/en-cas ; activités =
+  activités programmées. Les postes transport et hébergement reprennent exactement les options affichées
   (mêmes montants que les cartes). Établissements, notes et prix sont fictifs et signalés comme tels.
 - **Remplaçable** : le moteur ne dépend que de l'interface `TravelDataSource`
   (`generateTravelPlan(request, { dataSource })`). Chaque bloc du `TravelPlan` porte sa `source`
@@ -122,6 +126,7 @@ fonctionne sans compte ni configuration Supabase.
 - [x] Étape 2 — Questionnaire « Créer mon voyage » (`/voyage/nouveau`)
 - [x] Étape 3 — Moteur de génération (démo) & page de résultats (`/voyage/resultat`)
 - [x] Étape 4 — Transport (« Comment y aller ? ») & hébergement (« Où dormir ? ») intégrés au budget
+- [x] Étape 5 — Activités (« Que faire ? ») & restaurants (« Où manger ? ») avec filtres, intégrés au programme et au budget
 - [ ] Authentification Supabase, profil, voyages sauvegardés
 - [ ] Partage, carte interactive, export PDF
 - [ ] OVO Premium & paiements

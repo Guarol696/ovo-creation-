@@ -11,7 +11,8 @@ import type { Ambiance, TravelStyle, TripRequest } from "./trip";
 /** Origine d'une donnée : démonstration interne aujourd'hui, API demain. */
 export type DataSource = "demo" | "generic" | "api";
 
-export type DayPeriod = "morning" | "lunch" | "afternoon" | "evening";
+/** Moments de la journée (« night » = sortie après le dîner). */
+export type DayPeriod = "morning" | "lunch" | "afternoon" | "evening" | "night";
 
 export type ActivityCategory =
   | "monument"
@@ -28,30 +29,91 @@ export type ActivityCategory =
   | "evenement"
   | "excursion";
 
+/** Catégories affichées à l'utilisateur (filtres « Que faire ? »). */
+export type ActivityTheme =
+  "culture" | "nature" | "sorties" | "aventure" | "shopping" | "gastronomie" | "evenements" | "detente";
+
+/** Moments où une activité peut être programmée. */
+export type ActivityMoment = "morning" | "afternoon" | "evening";
+
+/** 0 = gratuit, 1 = petit prix, 2 = intermédiaire, 3 = plaisir. */
+export type PriceLevel = 0 | 1 | 2 | 3;
+
+/** Moment conseillé pour une activité. */
+export type RecommendedMoment = "morning" | "afternoon" | "evening" | "night" | "day";
+
+/** Place d'une activité ou d'un restaurant dans le programme. */
+export interface ScheduleRef {
+  dayNumber: number;
+  period: DayPeriod;
+}
+
+/** Activité proposée (catalogue de démo aujourd'hui, API demain). */
 export interface PlanActivity {
   id: string;
   name: string;
   description: string;
   category: ActivityCategory;
+  theme: ActivityTheme;
   emoji: string;
+  /** Incontournable de la destination. */
+  mustSee: boolean;
+  /** Texte « moment fort » si l'activité en est un. */
+  highlight?: string;
   /** Coût estimé par personne, en euros (0 = gratuit). */
   estimatedCostPerPerson: number;
+  priceLevel: PriceLevel;
   durationHours: number;
+  durationLabel: string;
+  moments: ActivityMoment[];
+  bestMoment: RecommendedMoment;
   area?: string;
+  tags: TravelStyle[];
+  fullDay: boolean;
+  repeatable: boolean;
+  /** Pertinence pour ce voyage (interne, jamais affichée). */
+  relevance: number;
+  /** Mise en avant pour ce profil. */
+  recommended: boolean;
+  /** Jours du programme où l'activité apparaît. */
+  schedule: ScheduleRef[];
   source: DataSource;
 }
 
+export type RestaurantKind = "street-food" | "local" | "bistrot" | "gastronomique" | "bar";
+
+export type Meal = "lunch" | "dinner";
+
+/** Restaurant proposé (fictif tant que la source est « demo »). */
 export interface PlanRestaurant {
   id: string;
   name: string;
   description: string;
+  cuisine: string;
+  emoji: string;
+  kind: RestaurantKind;
+  /** Spécialités locales. */
+  isLocal: boolean;
   /** 1 = petit prix, 2 = intermédiaire, 3 = plaisir. */
   priceLevel: 1 | 2 | 3;
   estimatedCostPerPerson: number;
+  /** Fourchette indicative par personne. */
+  priceRange: { min: number; max: number };
+  /** Note sur 5 — fictive tant que la source n'est pas une API. */
+  rating: number;
+  meals: Meal[];
   area?: string;
+  tags: TravelStyle[];
+  relevance: number;
+  recommended: boolean;
+  schedule: ScheduleRef[];
   source: DataSource;
 }
 
+/**
+ * Élément du programme (« ItineraryItem ») : un moment de la journée avec
+ * une activité et/ou un restaurant du TravelPlan, ou un temps libre.
+ */
 export interface ItinerarySlot {
   period: DayPeriod;
   title: string;
@@ -100,6 +162,16 @@ export interface TravelBudget {
   /** Budget indiqué par l'utilisateur, pour tout le groupe. */
   userBudget: { min: number; max: number | null };
   status: BudgetStatus;
+  /** Détail des postes calculés à partir du programme. */
+  details: {
+    /** Repas au restaurant prévus dans le programme. */
+    mealsCount: number;
+    mealsPerPerson: number;
+    /** Petits-déjeuners et en-cas (0 si inclus dans l'hébergement). */
+    snacksPerPerson: number;
+    paidActivitiesCount: number;
+    activitiesPerPerson: number;
+  };
   source: DataSource;
 }
 

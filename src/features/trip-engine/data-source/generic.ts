@@ -103,16 +103,12 @@ const COST_LEVEL_BY_COUNTRY: Record<string, 1 | 2 | 3 | 4> = {
   BR: 2,
 };
 
-const COSTS_BY_LEVEL: Record<
-  1 | 2 | 3 | 4,
-  { acc: Record<ComfortTier, number>; food: Record<ComfortTier, number>; local: number }
-> = {
-  1: { acc: { eco: 18, standard: 40, confort: 90 }, food: { eco: 15, standard: 28, confort: 55 }, local: 5 },
-  2: { acc: { eco: 25, standard: 55, confort: 110 }, food: { eco: 22, standard: 38, confort: 65 }, local: 6 },
-  3: { acc: { eco: 35, standard: 70, confort: 140 }, food: { eco: 30, standard: 48, confort: 85 }, local: 8 },
+const COSTS_BY_LEVEL: Record<1 | 2 | 3 | 4, { acc: Record<ComfortTier, number>; local: number }> = {
+  1: { acc: { eco: 18, standard: 40, confort: 90 }, local: 5 },
+  2: { acc: { eco: 25, standard: 55, confort: 110 }, local: 6 },
+  3: { acc: { eco: 35, standard: 70, confort: 140 }, local: 8 },
   4: {
     acc: { eco: 50, standard: 95, confort: 180 },
-    food: { eco: 38, standard: 60, confort: 100 },
     local: 11,
   },
 };
@@ -293,8 +289,12 @@ function genericActivities(city: string): ActivityTemplate[] {
 const genericRestaurants: RestaurantTemplate[] = [
   {
     id: "generic-cantine",
-    name: "Cantine de quartier",
+    name: "Cantine OVO",
     description: "Plats du jour simples et locaux.",
+    cuisine: "Cuisine locale",
+    emoji: "🍲",
+    kind: "local",
+    isLocal: true,
     priceLevel: 1,
     cost: 12,
     meals: ["lunch"],
@@ -302,8 +302,12 @@ const genericRestaurants: RestaurantTemplate[] = [
   },
   {
     id: "generic-street",
-    name: "Street food locale",
+    name: "OVO Street Food",
     description: "Les spécialités à emporter.",
+    cuisine: "Street food",
+    emoji: "🌮",
+    kind: "street-food",
+    isLocal: true,
     priceLevel: 1,
     cost: 9,
     meals: ["lunch", "dinner"],
@@ -311,8 +315,12 @@ const genericRestaurants: RestaurantTemplate[] = [
   },
   {
     id: "generic-typique",
-    name: "Restaurant typique",
+    name: "Restaurant OVO",
     description: "La cuisine traditionnelle de la région.",
+    cuisine: "Cuisine traditionnelle",
+    emoji: "🍽️",
+    kind: "local",
+    isLocal: true,
     priceLevel: 2,
     cost: 28,
     meals: ["lunch", "dinner"],
@@ -320,8 +328,12 @@ const genericRestaurants: RestaurantTemplate[] = [
   },
   {
     id: "generic-bar",
-    name: "Bar à tapas ou petites assiettes",
+    name: "OVO Tapas Bar",
     description: "À partager dans une ambiance animée.",
+    cuisine: "Petites assiettes",
+    emoji: "🍢",
+    kind: "bar",
+    isLocal: false,
     priceLevel: 2,
     cost: 25,
     meals: ["dinner"],
@@ -329,8 +341,12 @@ const genericRestaurants: RestaurantTemplate[] = [
   },
   {
     id: "generic-gastro",
-    name: "Table gastronomique",
+    name: "Table OVO",
     description: "Pour un dîner d'exception.",
+    cuisine: "Cuisine gastronomique",
+    emoji: "🍽️",
+    kind: "gastronomique",
+    isLocal: true,
     priceLevel: 3,
     cost: 70,
     meals: ["dinner"],
@@ -411,7 +427,6 @@ export function buildGenericProfile(place: DestinationPlace): DestinationProfile
     costLevel,
     costs: {
       accommodationPerNight: costs.acc,
-      foodPerDay: costs.food,
       localTransportPerDay: costs.local,
     },
     access: { from: "Paris", routes: genericRoutes(place, region, access) },

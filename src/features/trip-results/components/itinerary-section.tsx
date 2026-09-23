@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Container } from "@/components/ui/container";
 import { formatDateFr } from "@/lib/dates";
 import { cn, formatPrice } from "@/lib/utils";
@@ -9,16 +9,27 @@ import type { DayPeriod, ItineraryDay } from "@/types/travel-plan";
 import { SectionTitle } from "./section-title";
 
 const PERIODS: Record<DayPeriod, { label: string; emoji: string }> = {
-  morning: { label: "Matin", emoji: "☀️" },
+  morning: { label: "Matin", emoji: "🌅" },
   lunch: { label: "Midi", emoji: "🍽️" },
-  afternoon: { label: "Après-midi", emoji: "🌤️" },
-  evening: { label: "Soir", emoji: "🌙" },
+  afternoon: { label: "Après-midi", emoji: "🌆" },
+  evening: { label: "Soir", emoji: "🍴" },
+  night: { label: "Nuit", emoji: "🌙" },
 };
 
 export function ItinerarySection({ days }: { days: ItineraryDay[] }) {
   // La première journée est ouverte par défaut.
   const [open, setOpen] = useState<Set<number>>(() => new Set([1]));
   const allOpen = open.size === days.length;
+
+  // Liens « Voir le jour N » (#jour-N) : on déplie la journée visée.
+  useEffect(() => {
+    const onHashChange = () => {
+      const match = /^#jour-(\d+)$/.exec(window.location.hash);
+      if (match) setOpen((current) => new Set(current).add(Number(match[1])));
+    };
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
 
   const toggle = (dayNumber: number) =>
     setOpen((current) => {
@@ -52,7 +63,7 @@ export function ItinerarySection({ days }: { days: ItineraryDay[] }) {
             className="absolute top-6 bottom-6 left-7 hidden w-px bg-white/10 sm:block"
           />
           {days.map((day) => (
-            <li key={day.dayNumber} className="relative sm:pl-18">
+            <li key={day.dayNumber} id={`jour-${day.dayNumber}`} className="relative scroll-mt-24 sm:pl-18">
               <span
                 aria-hidden="true"
                 className={cn(
@@ -74,7 +85,7 @@ export function ItinerarySection({ days }: { days: ItineraryDay[] }) {
 }
 
 function DayCard({ day, isOpen, onToggle }: { day: ItineraryDay; isOpen: boolean; onToggle: () => void }) {
-  const panelId = `jour-${day.dayNumber}`;
+  const panelId = `jour-${day.dayNumber}-details`;
 
   return (
     <article className="overflow-hidden rounded-3xl bg-white/[0.04] ring-1 ring-white/10">
@@ -123,11 +134,11 @@ function DayCard({ day, isOpen, onToggle }: { day: ItineraryDay; isOpen: boolean
               {day.slots.map((slot) => (
                 <li key={slot.period} className="flex gap-3 rounded-2xl bg-night-950/40 p-3 sm:p-4">
                   <span aria-hidden="true" className="text-xl leading-none">
-                    {slot.activity?.emoji ?? PERIODS[slot.period].emoji}
+                    {slot.activity?.emoji ?? slot.restaurant?.emoji ?? PERIODS[slot.period].emoji}
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="text-[0.7rem] font-bold tracking-wider text-night-100/55 uppercase">
-                      {PERIODS[slot.period].label}
+                      {PERIODS[slot.period].emoji} {PERIODS[slot.period].label}
                     </p>
                     <p className="mt-0.5 font-semibold break-words">{slot.title}</p>
                     <p className="mt-0.5 text-sm leading-relaxed text-night-100/70">{slot.description}</p>

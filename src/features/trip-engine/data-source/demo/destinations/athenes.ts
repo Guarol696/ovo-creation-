@@ -15,7 +15,6 @@ export const athenes: DestinationProfile = {
   costLevel: 2,
   costs: {
     accommodationPerNight: { eco: 25, standard: 55, confort: 110 },
-    foodPerDay: { eco: 22, standard: 35, confort: 65 },
     localTransportPerDay: 5,
   },
   access: {
@@ -198,8 +197,12 @@ export const athenes: DestinationProfile = {
   restaurants: [
     {
       id: "souvlaki",
-      name: "Souvlaki de quartier",
+      name: "OVO Souvlaki",
       description: "Pita, tzatziki et frites dedans, évidemment.",
+      cuisine: "Street food grecque",
+      emoji: "🥙",
+      kind: "street-food",
+      isLocal: true,
       priceLevel: 1,
       cost: 7,
       meals: ["lunch", "dinner"],
@@ -207,8 +210,12 @@ export const athenes: DestinationProfile = {
     },
     {
       id: "taverne",
-      name: "Taverne traditionnelle",
+      name: "Taverna OVO",
       description: "Moussaka, feta rôtie et vin maison.",
+      cuisine: "Cuisine grecque",
+      emoji: "🫒",
+      kind: "local",
+      isLocal: true,
       priceLevel: 1,
       cost: 18,
       meals: ["lunch", "dinner"],
@@ -216,8 +223,12 @@ export const athenes: DestinationProfile = {
     },
     {
       id: "meze",
-      name: "Mezedopoleio",
+      name: "OVO Meze",
       description: "Petits plats à partager et ouzo.",
+      cuisine: "Mezze & ouzo",
+      emoji: "🍢",
+      kind: "bar",
+      isLocal: true,
       priceLevel: 2,
       cost: 25,
       meals: ["dinner"],
@@ -225,8 +236,12 @@ export const athenes: DestinationProfile = {
     },
     {
       id: "gastro-gr",
-      name: "Restaurant de chef avec vue sur l'Acropole",
+      name: "Table OVO Athina",
       description: "Cuisine grecque contemporaine.",
+      cuisine: "Cuisine grecque contemporaine",
+      emoji: "🍽️",
+      kind: "gastronomique",
+      isLocal: true,
       priceLevel: 3,
       cost: 70,
       meals: ["dinner"],

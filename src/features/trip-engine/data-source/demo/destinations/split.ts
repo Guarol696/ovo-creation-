@@ -13,7 +13,6 @@ export const split: DestinationProfile = {
   costLevel: 2,
   costs: {
     accommodationPerNight: { eco: 30, standard: 60, confort: 120 },
-    foodPerDay: { eco: 25, standard: 40, confort: 70 },
     localTransportPerDay: 6,
   },
   access: {
@@ -197,8 +196,12 @@ export const split: DestinationProfile = {
   restaurants: [
     {
       id: "burek",
-      name: "Pekara (boulangerie)",
+      name: "Pekara OVO",
       description: "Burek au fromage, le snack des Dalmates.",
+      cuisine: "Boulangerie croate",
+      emoji: "🥐",
+      kind: "street-food",
+      isLocal: true,
       priceLevel: 1,
       cost: 5,
       meals: ["lunch"],
@@ -206,8 +209,12 @@ export const split: DestinationProfile = {
     },
     {
       id: "konoba",
-      name: "Konoba familiale",
+      name: "Konoba OVO",
       description: "Poisson grillé, blettes et vin de l'île.",
+      cuisine: "Cuisine dalmate",
+      emoji: "🐟",
+      kind: "local",
+      isLocal: true,
       priceLevel: 2,
       cost: 28,
       meals: ["lunch", "dinner"],
@@ -215,8 +222,12 @@ export const split: DestinationProfile = {
     },
     {
       id: "beach-bar",
-      name: "Bar de plage",
+      name: "OVO Beach Bar",
       description: "Salades, grillades et cocktails les pieds dans l'eau.",
+      cuisine: "Grillades & salades",
+      emoji: "🍹",
+      kind: "bar",
+      isLocal: false,
       priceLevel: 1,
       cost: 15,
       meals: ["lunch", "dinner"],
@@ -224,8 +235,12 @@ export const split: DestinationProfile = {
     },
     {
       id: "gastro-hr",
-      name: "Restaurant de fruits de mer en terrasse",
+      name: "Table OVO Split",
       description: "Plateaux de l'Adriatique face au port.",
+      cuisine: "Fruits de mer",
+      emoji: "🦞",
+      kind: "gastronomique",
+      isLocal: true,
       priceLevel: 3,
       cost: 60,
       meals: ["dinner"],

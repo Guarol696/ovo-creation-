@@ -114,25 +114,27 @@ export function buildWarnings(
   return warnings;
 }
 
-export function buildHighlights(itinerary: ItineraryResult, profile: DestinationProfile): PlanHighlight[] {
-  const highlights: PlanHighlight[] = [];
-  const templates = new Map(profile.activities.map((a) => [a.id, a]));
+/** Moments forts : incontournables et meilleure table effectivement programmés. */
+export function buildHighlights(itinerary: ItineraryResult): PlanHighlight[] {
+  const scheduledActivities = itinerary.activities
+    .filter((a) => a.schedule.length > 0 && a.highlight)
+    .sort((a, b) => b.relevance - a.relevance);
 
-  const ranked = itinerary.activities
-    .filter((a) => templates.get(a.id)?.highlight)
-    .sort((a, b) => (itinerary.activityScores.get(b.id) ?? 0) - (itinerary.activityScores.get(a.id) ?? 0));
+  const highlights: PlanHighlight[] = scheduledActivities.slice(0, 4).map((activity) => ({
+    emoji: activity.emoji,
+    title: activity.highlight!,
+    description: activity.description,
+  }));
 
-  for (const activity of ranked.slice(0, 4)) {
-    highlights.push({
-      emoji: activity.emoji,
-      title: templates.get(activity.id)!.highlight!,
-      description: activity.description,
-    });
-  }
-
-  const bestRestaurant = [...itinerary.restaurants].sort((a, b) => b.priceLevel - a.priceLevel)[0];
+  const bestRestaurant = itinerary.restaurants
+    .filter((r) => r.schedule.length > 0)
+    .sort((a, b) => b.priceLevel - a.priceLevel || b.relevance - a.relevance)[0];
   if (bestRestaurant) {
-    highlights.push({ emoji: "🍽️", title: bestRestaurant.name, description: bestRestaurant.description });
+    highlights.push({
+      emoji: "🍽️",
+      title: `Dîner chez ${bestRestaurant.name}`,
+      description: `${bestRestaurant.cuisine} — ${bestRestaurant.description}`,
+    });
   }
   return highlights.slice(0, 5);
 }

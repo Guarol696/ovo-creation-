@@ -1,8 +1,11 @@
 import type {
   ActivityCategory,
+  ActivityMoment,
   ComfortTier,
   DataSource,
   LocalMobilityMode,
+  Meal,
+  RestaurantKind,
   TransportMode,
 } from "@/types/travel-plan";
 import type { Ambiance, DestinationPlace, Priority, TravelStyle } from "@/types/trip";
@@ -16,7 +19,7 @@ import type { Ambiance, DestinationPlace, Priority, TravelStyle } from "@/types/
  */
 
 export type Affinity = 1 | 2 | 3;
-export type Moment = "morning" | "afternoon" | "evening";
+export type Moment = ActivityMoment;
 
 export interface ActivityTemplate {
   id: string;
@@ -41,13 +44,18 @@ export interface ActivityTemplate {
 
 export interface RestaurantTemplate {
   id: string;
+  /** Nom FICTIF (préfixé « OVO ») : aucun établissement réel. */
   name: string;
   description: string;
+  cuisine: string;
+  emoji: string;
+  kind: RestaurantKind;
+  isLocal: boolean;
   priceLevel: 1 | 2 | 3;
   /** Prix moyen par personne, en euros. */
   cost: number;
   area?: string;
-  meals: ("lunch" | "dinner")[];
+  meals: Meal[];
   tags: TravelStyle[];
 }
 
@@ -90,8 +98,6 @@ export interface DestinationProfile {
   costs: {
     /** Par personne et par nuit, base chambre partagée à deux. */
     accommodationPerNight: Record<ComfortTier, number>;
-    /** Repas par personne et par jour. */
-    foodPerDay: Record<ComfortTier, number>;
     localTransportPerDay: number;
   };
   /** Trajets aller-retour depuis la ville de départ (prix moyens indicatifs). */

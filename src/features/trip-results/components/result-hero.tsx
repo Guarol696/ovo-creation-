@@ -14,6 +14,8 @@ const sections = [
   { href: "#transport", label: "Transport" },
   { href: "#hebergement", label: "Hébergement" },
   { href: "#programme", label: "Programme" },
+  { href: "#activites", label: "Que faire" },
+  { href: "#restaurants", label: "Où manger" },
   { href: "#budget", label: "Budget" },
 ];
 

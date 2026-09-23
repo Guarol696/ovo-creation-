@@ -10,6 +10,8 @@ import { chooseNeighborhood } from "./logistics";
 import { analyzePreferences } from "./preferences";
 import { rankDestinations } from "./scoring";
 import { demoAccommodationProvider, type AccommodationProvider } from "./services/accommodation";
+import { demoActivityProvider, type ActivityProvider } from "./services/activities";
+import { demoRestaurantProvider, type RestaurantProvider } from "./services/restaurants";
 import { demoTransportProvider, type TransportProvider } from "./services/transport";
 
 /**
@@ -19,19 +21,22 @@ import { demoTransportProvider, type TransportProvider } from "./services/transp
  *     → analyse des préférences
  *     → sélection de la destination (choisie ou recommandée par score)
  *     → niveau de confort adapté au budget
- *     → transport (service transport) et hébergement (service hébergement)
- *     → programme jour par jour
+ *     → transport, hébergement, activités et restaurants (un service chacun)
+ *     → programme jour par jour, construit à partir de ces activités et restaurants
  *     → budget détaillé, explications et moments forts
  *
  * Déterministe : les mêmes réponses donnent toujours le même voyage.
- * Chaque source est injectable (démo par défaut) : destinations, transport et
- * hébergement pourront être branchés sur de vraies API indépendamment.
+ * Chaque source est injectable (démo par défaut) : destinations, transport,
+ * hébergement, activités et restaurants pourront être branchés sur de vraies
+ * API indépendamment.
  */
 
 export interface GenerateOptions {
   dataSource?: TravelDataSource;
   transportProvider?: TransportProvider;
   accommodationProvider?: AccommodationProvider;
+  activityProvider?: ActivityProvider;
+  restaurantProvider?: RestaurantProvider;
 }
 
 export async function generateTravelPlan(
@@ -40,6 +45,8 @@ export async function generateTravelPlan(
     dataSource = demoDataSource,
     transportProvider = demoTransportProvider,
     accommodationProvider = demoAccommodationProvider,
+    activityProvider = demoActivityProvider,
+    restaurantProvider = demoRestaurantProvider,
   }: GenerateOptions = {},
 ): Promise<TravelPlan> {
   const prefs = analyzePreferences(request);
@@ -65,9 +72,11 @@ export async function generateTravelPlan(
   // 2. Niveau de confort, transport et hébergement
   const tier = selectTier(profile, prefs);
   const neighborhood = chooseNeighborhood(profile, prefs, tier);
-  const [transport, accommodation] = await Promise.all([
+  const [transport, accommodation, activityCandidates, restaurantCandidates] = await Promise.all([
     transportProvider.getTransport({ profile, prefs }),
     accommodationProvider.getAccommodation({ profile, prefs, tier, neighborhood }),
+    activityProvider.getActivities({ profile, prefs, tier }),
+    restaurantProvider.getRestaurants({ profile, prefs, tier }),
   ]);
 
   // 3. Programme jour par jour
@@ -78,6 +87,8 @@ export async function generateTravelPlan(
     request,
     neighborhood,
     transport: transport.main,
+    activities: activityCandidates,
+    restaurants: restaurantCandidates,
   });
 
   // 4. Budget : reprend exactement les options retenues
@@ -87,7 +98,7 @@ export async function generateTravelPlan(
     tier,
     transport,
     accommodation,
-    activitiesPerPerson: itinerary.activitiesCostPerPerson,
+    itinerary,
   });
 
   // Destination choisie mais hors budget : suggérer des options plus abordables.
@@ -133,7 +144,7 @@ export async function generateTravelPlan(
     summary: buildSummary(profile, prefs),
     reasons: buildReasons(profile, prefs, estimatedBudget, recommended, transport.main),
     warnings: buildWarnings(profile, prefs, estimatedBudget),
-    highlights: buildHighlights(itinerary, profile),
+    highlights: buildHighlights(itinerary),
     itinerary: itinerary.days,
     accommodation,
     transport,

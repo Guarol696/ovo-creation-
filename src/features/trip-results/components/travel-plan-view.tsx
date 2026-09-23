@@ -39,6 +39,7 @@ export function TravelPlanView({ plan }: { plan: TravelPlan }) {
         budget={plan.estimatedBudget}
         request={plan.request}
         travelers={plan.travelers.total}
+        childTravelers={plan.travelers.children}
         nights={plan.accommodation.main.nights}
       />
       <ResultCta plan={plan} />
