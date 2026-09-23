@@ -1,11 +1,12 @@
 "use client";
 
-import { ChevronDown, LogOut, Map, UserRound } from "lucide-react";
+import { ChevronDown, LogOut, Map, Sparkles, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { routes } from "@/config/site";
 import { cn } from "@/lib/utils";
+import { PremiumBadge } from "@/features/premium/components/premium-badge";
 import { signOut } from "../actions";
 import type { SessionUser } from "../auth-provider";
 
@@ -24,7 +25,7 @@ export function Avatar({ user, className }: { user: SessionUser; className?: str
 }
 
 /** Menu du compte (desktop) : Mon profil, Mes voyages, Déconnexion. */
-export function AccountMenu({ user }: { user: SessionUser }) {
+export function AccountMenu({ user, isPremium }: { user: SessionUser; isPremium: boolean }) {
   const [open, setOpen] = useState(false);
   const [openedAt, setOpenedAt] = useState<string | null>(null);
   const pathname = usePathname();
@@ -60,11 +61,12 @@ export function AccountMenu({ user }: { user: SessionUser }) {
         }}
         aria-expanded={isOpen}
         aria-controls={menuId}
-        aria-label={`Mon compte (${user.displayName})`}
+        aria-label={`Mon compte (${user.displayName}${isPremium ? ", OVO Premium" : ""})`}
         className="flex min-h-11 items-center gap-2 rounded-full border border-white/15 bg-white/5 py-1 pr-3 pl-1 text-sm font-semibold text-white backdrop-blur-md transition hover:bg-white/15"
       >
         <Avatar user={user} />
         <span className="max-w-32 truncate">{user.displayName}</span>
+        {isPremium && <PremiumBadge size="xs" />}
         <ChevronDown className={cn("size-4 transition-transform", isOpen && "rotate-180")} />
       </button>
 
@@ -81,6 +83,10 @@ export function AccountMenu({ user }: { user: SessionUser }) {
         </Link>
         <Link href={routes.myTrips} className={itemClass}>
           <Map className="size-4 text-gold-300" /> Mes voyages
+        </Link>
+        <Link href={routes.premium} className={itemClass}>
+          <Sparkles className="size-4 text-gold-300" />
+          {isPremium ? "Mon offre Premium" : "Découvrir Premium"}
         </Link>
         <form action={signOut} className="mt-1 border-t border-white/10 pt-1">
           <button type="submit" className={itemClass}>

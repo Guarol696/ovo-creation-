@@ -8,6 +8,7 @@ import { Toast } from "@/components/ui/toast";
 import { routes } from "@/config/site";
 import { useAuth } from "@/features/auth/auth-provider";
 import { saveTrip } from "@/features/saved-trips/actions";
+import { tripPdfUrl } from "@/features/trip-export/pdf-url";
 import { authUrl, SAVE_INTENT_PARAM, withSaveIntent } from "@/lib/auth/redirect";
 
 /**
@@ -48,13 +49,6 @@ interface TripSaveContextValue {
   setSharing: (sharing: TripSharingState) => void;
   /** Lien du PDF à télécharger. */
   pdfUrl: string;
-}
-
-/** Lien du PDF selon l'origine du voyage (mêmes règles d'accès que la page). */
-export function tripPdfUrl(config: TripSaveConfig) {
-  if (config.mode === "result") return `${routes.tripResult}/pdf?v=${config.encodedRequest}`;
-  if (config.mode === "saved") return `${routes.myTrips}/${config.savedTripId}/pdf`;
-  return `${config.sharePath}/pdf`;
 }
 
 const TripSaveContext = createContext<TripSaveContextValue | null>(null);

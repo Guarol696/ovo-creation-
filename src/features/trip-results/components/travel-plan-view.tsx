@@ -11,6 +11,7 @@ import { ResultCta } from "./result-cta";
 import { ResultHero, type SavedTripInfo } from "./result-hero";
 import { TripSaveProvider, type TripSaveConfig } from "./save-trip-button";
 import { TransportSection } from "./transport-section";
+import { TravelBookSection } from "./travel-book-section";
 import { WhySection } from "./why-section";
 
 /**
@@ -52,6 +53,7 @@ export function TravelPlanView({ plan, save, savedTrip }: TravelPlanViewProps) {
           childTravelers={plan.travelers.children}
           nights={plan.accommodation.main.nights}
         />
+        {save.mode !== "public" && <TravelBookSection source={save} />}
         <ResultCta plan={plan} mode={save.mode} />
       </div>
     </TripSaveProvider>

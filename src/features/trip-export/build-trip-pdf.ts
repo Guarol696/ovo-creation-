@@ -16,6 +16,7 @@ import type {
   TravelLeg,
   TravelPlan,
 } from "@/types/travel-plan";
+import { buildChecklist } from "./checklist";
 import { NBSP, pdfSafe } from "./pdf-text";
 import { COLORS, PAGE, PdfWriter, type TextStyle } from "./pdf-writer";
 
@@ -25,8 +26,12 @@ import { COLORS, PAGE, PdfWriter, type TextStyle } from "./pdf-writer";
  * → activités → restaurants → budget. Pied de page paginé sur chaque page.
  */
 
+/** « standard » (gratuit) ou « carnet » : carnet de voyage Premium, plus complet. */
+export type PdfEdition = "standard" | "carnet";
+
 export interface TripPdfOptions {
   generatedAt?: Date;
+  edition?: PdfEdition;
 }
 
 const PERIOD_LABELS: Record<DayPeriod, string> = {
@@ -61,10 +66,11 @@ const plural = (n: number, word: string) => `${n}${NBSP}${word}${n > 1 ? "s" : "
 
 export async function buildTripPdf(plan: TravelPlan, options: TripPdfOptions = {}): Promise<Uint8Array> {
   const generatedAt = options.generatedAt ?? new Date();
+  const carnet = options.edition === "carnet";
   const w = await PdfWriter.create();
   const title = `Mon voyage à ${plan.destination.name}`;
 
-  w.doc.setTitle(`${title} — OVO`);
+  w.doc.setTitle(carnet ? `${title} — Carnet de voyage OVO Premium` : `${title} — OVO`);
   w.doc.setAuthor("OVO — Où On Va ?");
   w.doc.setSubject("Voyage imaginé avec OVO (données de démonstration, prix indicatifs)");
   w.doc.setCreator("OVO");
@@ -73,16 +79,21 @@ export async function buildTripPdf(plan: TravelPlan, options: TripPdfOptions = {
   w.doc.setCreationDate(generatedAt);
   w.doc.setModificationDate(generatedAt);
 
-  drawCover(w, plan, generatedAt);
+  drawCover(w, plan, generatedAt, carnet);
 
   w.addPage();
   drawSummary(w, plan);
   drawTransport(w, plan);
   drawAccommodation(w, plan);
+  if (carnet) drawAlternatives(w, plan);
   drawProgramme(w, plan);
   drawActivities(w, plan);
   drawRestaurants(w, plan);
   drawBudget(w, plan);
+  if (carnet) {
+    drawChecklist(w, plan);
+    drawNotes(w);
+  }
 
   drawHeadersAndFooters(w, plan, generatedAt);
   return w.doc.save();
@@ -90,7 +101,7 @@ export async function buildTripPdf(plan: TravelPlan, options: TripPdfOptions = {
 
 // --- Couverture ------------------------------------------------------------------
 
-function drawCover(w: PdfWriter, plan: TravelPlan, generatedAt: Date) {
+function drawCover(w: PdfWriter, plan: TravelPlan, generatedAt: Date, carnet: boolean) {
   const page = w.addPage();
   const { width, height, margin } = PAGE;
   page.drawRectangle({ x: 0, y: 0, width, height, color: COLORS.night950 });
@@ -101,7 +112,14 @@ function drawCover(w: PdfWriter, plan: TravelPlan, generatedAt: Date) {
   w.textAt("Où On Va ?", width - margin, height - 76, { size: 10, color: COLORS.night100, align: "right" });
 
   let y = height * 0.62;
-  w.textAt("TON VOYAGE OVO", margin, y, { size: 10, font: "bold", color: COLORS.gold300 });
+  if (carnet) {
+    const label = "CARNET DE VOYAGE · OVO PREMIUM";
+    const labelW = w.width(label, 9, "bold") + 24;
+    w.roundedRect(margin, y + 16, labelW, 24, 12, COLORS.gold300);
+    w.textAt(label, margin + 12, y, { size: 9, font: "bold", color: COLORS.night950 });
+  } else {
+    w.textAt("TON VOYAGE OVO", margin, y, { size: 10, font: "bold", color: COLORS.gold300 });
+  }
   y -= 44;
   w.textAt("Mon voyage à", margin, y, { size: 30, font: "bold", color: COLORS.white });
   for (const line of w.wrap(plan.destination.name, 48, "bold", w.contentWidth)) {
@@ -614,6 +632,66 @@ function drawBudget(w: PdfWriter, plan: TravelPlan) {
     "Estimation indicative calculée à partir de données de démonstration : les prix réels varient selon les dates et les disponibilités.",
     { size: 8.5, font: "italic", color: COLORS.muted },
   );
+}
+
+// --- Carnet de voyage (Premium) -----------------------------------------------------------
+
+function drawAlternatives(w: PdfWriter, plan: TravelPlan) {
+  const { transport, accommodation } = plan;
+  if (transport.alternatives.length === 0 && accommodation.alternatives.length === 0) return;
+  sectionTitle(w, "Autres options", "Les alternatives étudiées par OVO, pour comparer ou changer d'avis.");
+  for (const t of transport.alternatives) {
+    listItem(
+      w,
+      `${TRANSPORT_LABELS[t.mode].label} : ${t.from} – ${t.to}`,
+      `${approx(t.estimatedRoundTripPerPerson)} A/R`,
+      [t.durationLabel, plan.travelers.total > 1 ? `${approx(t.estimatedRoundTripTotal)} au total` : ""]
+        .filter(Boolean)
+        .join(" · "),
+      sentences(t.highlight, t.details),
+    );
+  }
+  for (const a of accommodation.alternatives) {
+    listItem(
+      w,
+      a.name,
+      `${approx(a.estimatedPricePerNight)} / nuit`,
+      [ACCOMMODATION_LABELS[a.type].label, a.area, `${approx(a.estimatedTotal)} au total`].join(" · "),
+      sentences(a.highlight, a.areaDescription),
+    );
+  }
+}
+
+function drawChecklist(w: PdfWriter, plan: TravelPlan) {
+  w.addPage();
+  sectionTitle(
+    w,
+    "Checklist avant le départ",
+    "Coche au fur et à mesure. Vérifie toujours les conditions officielles d'entrée.",
+  );
+  for (const group of buildChecklist(plan)) {
+    w.ensure(40);
+    w.space(6);
+    w.text(group.title, { size: 11.5, font: "bold", color: COLORS.night950 });
+    w.space(2);
+    for (const item of group.items) {
+      const height = Math.max(18, w.measure(item, { size: 10, indent: 22, lineHeight: 1.4 }) + 6);
+      w.ensure(height);
+      w.roundedRect(PAGE.margin + 2, w.y - 1, 11, 11, 2.5, COLORS.white, COLORS.night300);
+      w.text(item, { size: 10, indent: 22, lineHeight: 1.4 });
+      w.space(4);
+    }
+  }
+}
+
+function drawNotes(w: PdfWriter) {
+  w.addPage();
+  sectionTitle(w, "Mes notes", "Adresses, idées, souvenirs : cet espace est pour toi.", 400);
+  const lineGap = 26;
+  while (w.y - lineGap > PAGE.bottom + 10) {
+    w.y -= lineGap;
+    w.line(PAGE.margin, w.y, PAGE.margin + w.contentWidth, w.y, COLORS.line, 0.6);
+  }
 }
 
 // --- En-têtes et pieds de page ---------------------------------------------------------

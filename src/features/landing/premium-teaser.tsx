@@ -1,4 +1,5 @@
 import { Check, Crown, Sparkles } from "lucide-react";
+import { featuresOf, PLANS } from "@/config/premium";
 import { routes } from "@/config/site";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
@@ -14,27 +15,22 @@ interface Plan {
   features: string[];
 }
 
+/** Généré depuis config/premium.ts : une seule source de vérité. */
 const plans: Plan[] = [
   {
-    name: "OVO",
-    tagline: "Pour trouver l'inspiration et partir malin.",
-    features: [
-      "Création de voyages personnalisés",
-      "Destination, budget et programme",
-      "Sauvegarde de tes voyages",
-      "Partage avec tes amis",
-    ],
+    name: PLANS.free.name,
+    tagline: PLANS.free.tagline,
+    features: featuresOf("free")
+      .slice(0, 5)
+      .map((f) => f.label),
   },
   {
-    name: "OVO Premium",
-    tagline: "Pour les voyageurs qui veulent aller plus loin.",
+    name: PLANS.premium.name,
+    tagline: PLANS.premium.tagline,
     highlighted: true,
-    features: [
-      "Voyages illimités et plus détaillés",
-      "Alternatives et ajustements en un clic",
-      "Export PDF & mode hors-ligne",
-      "Bons plans et alertes prix en avant-première",
-    ],
+    features: featuresOf("premium").map((f) =>
+      f.availability === "soon" ? `${f.label} (bientôt)` : f.label,
+    ),
   },
 ];
 
@@ -49,7 +45,7 @@ export function PremiumTeaser() {
       <Container>
         <Reveal className="flex flex-col items-center text-center">
           <Badge tone="gold" className="mb-6">
-            <Crown className="size-3.5" /> Bientôt disponible
+            <Crown className="size-3.5" /> OVO Premium ✨
           </Badge>
           <SectionHeading
             align="center"
@@ -59,7 +55,7 @@ export function PremiumTeaser() {
                 Passe en mode <span className="text-gradient-sun">Premium.</span>
               </>
             }
-            description="OVO reste gratuit pour imaginer tes voyages. Premium arrive bientôt pour celles et ceux qui veulent encore plus de liberté."
+            description="OVO reste gratuit pour imaginer tes voyages. Premium ajoute un carnet de voyage complet, plus de place pour tes voyages, et bientôt encore plus de personnalisation."
           />
         </Reveal>
 
@@ -76,7 +72,7 @@ export function PremiumTeaser() {
               >
                 {plan.highlighted && (
                   <span className="absolute -top-3 right-7 flex items-center gap-1 rounded-full bg-linear-to-r from-gold-300 to-sun-500 px-3 py-1 text-xs font-bold text-night-950">
-                    <Sparkles className="size-3" /> Bientôt
+                    <Sparkles className="size-3" /> Premium
                   </span>
                 )}
                 <h3 className="font-display text-2xl font-bold">{plan.name}</h3>
@@ -101,9 +97,12 @@ export function PremiumTeaser() {
           ))}
         </div>
 
-        <Reveal className="mt-12 flex justify-center">
+        <Reveal className="mt-12 flex flex-col justify-center gap-3 sm:flex-row">
           <ButtonLink href={routes.createTrip} size="lg">
             Commencer gratuitement
+          </ButtonLink>
+          <ButtonLink href={routes.premium} size="lg" variant="outline-light">
+            <Sparkles className="size-4 text-gold-300" /> Découvrir Premium
           </ButtonLink>
         </Reveal>
       </Container>

@@ -4,6 +4,7 @@ import type { Session } from "@supabase/supabase-js";
 import { usePathname } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { isSupabaseConfigured } from "@/lib/env";
+import { resolveEntitlements, type SubscriptionRow } from "@/features/premium/plan";
 import { createClient } from "@/lib/supabase/client";
 
 /**
@@ -26,6 +27,12 @@ export interface SessionUser {
 interface AuthContextValue {
   status: AuthStatus;
   user: SessionUser | null;
+  /**
+   * Plan affiché (badge « ✨ Premium »). Lu depuis la table `subscriptions`
+   * (lecture seule pour l'utilisateur). Affichage uniquement : les droits réels
+   * sont vérifiés par le serveur (`getEntitlements`).
+   */
+  isPremium: boolean;
   /** Relit la session (après une action serveur qui l'a modifiée). */
   refresh: () => Promise<void>;
 }
@@ -33,6 +40,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue>({
   status: "loading",
   user: null,
+  isPremium: false,
   refresh: async () => {},
 });
 
@@ -51,6 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user: null,
   }));
   const pathname = usePathname();
+  const [premiumOf, setPremiumOf] = useState<{ userId: string; isPremium: boolean } | null>(null);
 
   const apply = useCallback((session: Session | null) => {
     const user = toSessionUser(session);
@@ -97,7 +106,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [pathname, configured, apply]);
 
-  const value = useMemo(() => ({ ...state, refresh }), [state, refresh]);
+  // Plan de l'utilisateur connecté (relu à chaque changement de compte ou de page).
+  const userId = state.user?.id ?? null;
+  useEffect(() => {
+    if (!configured || !userId) return;
+    let active = true;
+    createClient()
+      .from("subscriptions")
+      .select("plan, status, started_at, expires_at")
+      .eq("user_id", userId)
+      .maybeSingle<SubscriptionRow>()
+      .then(
+        ({ data }) => active && setPremiumOf({ userId, isPremium: resolveEntitlements(data).isPremium }),
+        () => active && setPremiumOf({ userId, isPremium: false }),
+      );
+    return () => {
+      active = false;
+    };
+  }, [configured, userId, pathname]);
+
+  const isPremium = Boolean(userId && premiumOf?.userId === userId && premiumOf.isPremium);
+  const value = useMemo(() => ({ ...state, isPremium, refresh }), [state, isPremium, refresh]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

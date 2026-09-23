@@ -194,6 +194,34 @@ pagination « Page n / N » et date de génération. Nom du fichier :
 `ovo-voyage-<destination>-<date de départ ou mois>.pdf`. Routes : `/voyage/resultat/pdf?v=…`,
 `/mes-voyages/<id>/pdf` (propriétaire) et `/voyage/partage/<jeton>/pdf` (lien public actif).
 
+## OVO Premium (sans paiement pour l'instant)
+
+- **Configuration unique** : `src/config/premium.ts`. On y règle le prix indicatif (`PREMIUM_PRICING`),
+  les fonctionnalités et le plan minimum de chacune (`FEATURES`), ainsi que les limites par plan
+  (`PLAN_LIMITS`, ex. 20 voyages enregistrés en gratuit, 200 en Premium). La page `/premium`,
+  l'accroche de l'accueil et les protections se mettent à jour automatiquement.
+- **Gratuit** : tout ce qui existait reste gratuit (création, programme, carte, budget, sauvegarde,
+  partage, export PDF). **Premium** ajoute le carnet de voyage PDF (alternatives, checklist de départ
+  adaptée, pages de notes) et davantage de voyages enregistrés ; d'autres fonctionnalités sont
+  annoncées « bientôt ».
+- **Base** : table `subscriptions` (migration `20260925090000_subscriptions.sql`), une ligne par
+  utilisateur, lisible uniquement par son propriétaire et **jamais modifiable par lui** (RLS). Sans
+  ligne, l'utilisateur est en gratuit. Premium n'est actif que si `plan = 'premium'`, `status` actif
+  (ou essai) et `expires_at` non dépassée.
+- **Droits** : décidés côté serveur par `getEntitlements()` / `canUseFeature()`
+  (`src/features/premium/server`). `<PremiumFeature feature="…">` affiche la fonctionnalité ou la carte
+  « 🔒 Fonctionnalité Premium » ; les routes concernées revérifient (ex. `?edition=carnet` → 403 sans
+  Premium). Côté navigateur, `useAuth().isPremium` ne sert qu'à afficher le badge « ✨ Premium ».
+- **Aucun paiement** : « Passer à Premium » et « Gérer mon abonnement » affichent un message
+  d'attente. Pour tester Premium (ou l'offrir manuellement), dans l'éditeur SQL Supabase :
+
+  ```sql
+  insert into subscriptions (user_id, plan, status, provider, expires_at)
+  values ('<uuid de l''utilisateur>', 'premium', 'active', 'manual', now() + interval '30 days')
+  on conflict (user_id) do update set plan = excluded.plan, status = excluded.status,
+    expires_at = excluded.expires_at;
+  ```
+
 ## Feuille de route
 
 - [x] Étape 1 — Fondations + landing page
@@ -204,4 +232,5 @@ pagination « Page n / N » et date de génération. Nom du fichier :
 - [x] Étape 6 — Carte interactive (« Ton voyage sur la carte ») & itinéraire jour par jour synchronisé
 - [x] Étape 7 — Comptes (Supabase Auth), sauvegarde des voyages, « Mes voyages », suppression, RLS
 - [x] Étape 8 — Partage d'un voyage (lien public contrôlé) et export PDF
-- [ ] OVO Premium & paiements
+- [x] Étape 9 — OVO Premium : offre, page `/premium`, droits côté serveur, badge, carnet de voyage PDF (sans paiement)
+- [ ] Paiements (Stripe) et gestion de l'abonnement

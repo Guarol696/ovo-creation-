@@ -6,7 +6,8 @@ import { generateTravelPlan } from "@/features/trip-engine";
 import { isSupabaseConfigured } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 import { decodeTripRequestParam } from "@/lib/trip/request-codec";
-import { MAX_SAVED_TRIPS, planToRow } from "./mapping";
+import { getEntitlements } from "@/features/premium/server/entitlements";
+import { planToRow } from "./mapping";
 import {
   countSavedTrips,
   deleteSavedTrip,
@@ -51,10 +52,14 @@ export async function saveTrip(encodedRequest: string): Promise<SaveTripResult> 
     const existing = await findSavedTripId(supabase, hash);
     if (existing) return { status: "saved", id: existing, alreadySaved: true };
 
-    if ((await countSavedTrips(supabase)) >= MAX_SAVED_TRIPS) {
+    // Limite du plan (config/premium.ts), décidée côté serveur.
+    const { isPremium, limits } = await getEntitlements();
+    if (limits.savedTrips !== null && (await countSavedTrips(supabase)) >= limits.savedTrips) {
       return {
         status: "error",
-        message: `Tu as atteint la limite de ${MAX_SAVED_TRIPS} voyages enregistrés. Supprimes-en un pour en ajouter un nouveau.`,
+        message: isPremium
+          ? `Tu as atteint la limite de ${limits.savedTrips} voyages enregistrés. Supprimes-en un pour en ajouter un nouveau.`
+          : `Tu as atteint la limite de ${limits.savedTrips} voyages enregistrés avec OVO Gratuit. Supprimes-en un, ou découvre OVO Premium pour en garder davantage.`,
       };
     }
 

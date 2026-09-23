@@ -28,7 +28,7 @@ export const routes = {
   privacy: "/confidentialite",
   discover: "/#decouvrir",
   howItWorks: "/#comment-ca-marche",
-  premium: "/#premium",
+  premium: "/premium",
 } as const;
 
 export interface NavLink {
@@ -40,7 +40,7 @@ export const mainNav: NavLink[] = [
   { label: "Accueil", href: routes.home },
   { label: "Créer un voyage", href: routes.createTrip },
   { label: "Mes voyages", href: routes.myTrips },
-  { label: "Comment ça marche", href: routes.howItWorks },
+  { label: "Premium", href: routes.premium },
 ];
 
 /** Pages réservées aux utilisateurs connectés (vérifiées aussi côté serveur dans chaque page). */

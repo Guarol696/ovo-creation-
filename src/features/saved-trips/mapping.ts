@@ -8,8 +8,6 @@ import type { TripRequest } from "@/types/trip";
  * serveur : la liste « Mes voyages » s'affiche sans charger les plans complets.
  */
 
-export const MAX_SAVED_TRIPS = 50;
-
 export interface SavedTripRow {
   id: string;
   title: string;

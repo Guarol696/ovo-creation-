@@ -1,12 +1,12 @@
 import "server-only";
 import type { TravelPlan } from "@/types/travel-plan";
-import { buildTripPdf } from "../build-trip-pdf";
+import { buildTripPdf, type PdfEdition } from "../build-trip-pdf";
 import { tripPdfFilename } from "../filename";
 
 /** Réponse HTTP « fichier PDF à télécharger » pour un voyage. */
-export async function tripPdfResponse(plan: TravelPlan) {
-  const bytes = await buildTripPdf(plan);
-  const filename = tripPdfFilename(plan);
+export async function tripPdfResponse(plan: TravelPlan, edition: PdfEdition = "standard") {
+  const bytes = await buildTripPdf(plan, { edition });
+  const filename = tripPdfFilename(plan, edition);
   return new Response(bytes as BodyInit, {
     headers: {
       "Content-Type": "application/pdf",
@@ -26,5 +26,18 @@ export function pdfUnavailable(status: 404 | 400 = 404) {
       ? "Ce voyage est introuvable ou n'est plus partagé."
       : "Ce voyage n'est plus valide : ouvre-le à nouveau depuis OVO.",
     { status, headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } },
+  );
+}
+
+/** Édition demandée (`?edition=carnet`) ; tout le reste = standard. */
+export function requestedEdition(searchParams: URLSearchParams): PdfEdition {
+  return searchParams.get("edition") === "carnet" ? "carnet" : "standard";
+}
+
+/** Carnet de voyage demandé sans OVO Premium : refus explicite (vérification serveur). */
+export function premiumRequired() {
+  return new Response(
+    "Le carnet de voyage PDF est réservé à OVO Premium. Découvre l'offre sur la page /premium.",
+    { status: 403, headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } },
   );
 }

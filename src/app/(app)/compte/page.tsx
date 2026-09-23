@@ -1,4 +1,4 @@
-import { KeyRound, LogOut, Map } from "lucide-react";
+import { KeyRound, LogOut, Map, Sparkles } from "lucide-react";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Button, ButtonLink } from "@/components/ui/button";
@@ -10,6 +10,10 @@ import { FormMessage } from "@/features/auth/components/form-controls";
 import { ProfileForm } from "@/features/auth/components/profile-form";
 import { param } from "@/features/auth/page-params";
 import { getCurrentUser } from "@/features/auth/server/session";
+import { PLANS } from "@/config/premium";
+import { PremiumBadge } from "@/features/premium/components/premium-badge";
+import { ManageSubscriptionButton } from "@/features/premium/components/premium-placeholders";
+import { getEntitlements } from "@/features/premium/server/entitlements";
 import { MySpaceHeader } from "@/features/saved-trips/components/my-space-header";
 import { countSavedTrips } from "@/features/saved-trips/server/repository";
 import { authUrl } from "@/lib/auth/redirect";
@@ -19,6 +23,7 @@ import { createClient } from "@/lib/supabase/server";
 export const metadata: Metadata = { title: "Mon profil", robots: { index: false, follow: false } };
 
 const memberSince = new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric" });
+const fullDate = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
 export default async function AccountPage({ searchParams }: PageProps<"/compte">) {
   if (!isSupabaseConfigured()) return <AuthUnavailable />;
@@ -26,7 +31,7 @@ export default async function AccountPage({ searchParams }: PageProps<"/compte">
   if (!user) redirect(authUrl(routes.login, routes.account));
 
   const supabase = await createClient();
-  const [tripsCount, profile] = await Promise.all([
+  const [tripsCount, profile, entitlements] = await Promise.all([
     countSavedTrips(supabase).catch(() => null),
     supabase
       .from("profiles")
@@ -34,7 +39,10 @@ export default async function AccountPage({ searchParams }: PageProps<"/compte">
       .eq("id", user.id)
       .maybeSingle<{ display_name: string }>()
       .then(({ data }) => data),
+    getEntitlements(),
   ]);
+  const { isPremium, limits, expiresAt } = entitlements;
+  const plan = PLANS[entitlements.plan];
   const displayName = profile?.display_name ?? user.displayName;
   const passwordChanged = param((await searchParams).motdepasse) === "modifie";
 
@@ -43,7 +51,11 @@ export default async function AccountPage({ searchParams }: PageProps<"/compte">
     <div className="flex-1 bg-night-950 text-white">
       <MySpaceHeader
         eyebrow="Mon espace"
-        title="Mon profil"
+        title={
+          <span className="inline-flex flex-wrap items-center gap-3">
+            Mon profil {isPremium && <PremiumBadge />}
+          </span>
+        }
         description={`Membre depuis ${memberSince.format(new Date(user.createdAt))}.`}
       />
       <Container className="grid max-w-5xl grid-cols-1 gap-5 pb-20 sm:pb-28 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
@@ -62,6 +74,35 @@ export default async function AccountPage({ searchParams }: PageProps<"/compte">
         </div>
 
         <div className="min-w-0 space-y-5">
+          <section
+            aria-labelledby="profil-offre"
+            className={
+              isPremium
+                ? "rounded-4xl bg-linear-to-br from-gold-400/15 via-night-900 to-night-900 p-5 ring-1 ring-gold-400/40 sm:p-7"
+                : card
+            }
+          >
+            <h2 id="profil-offre" className="font-display text-xl font-bold">
+              Mon offre
+            </h2>
+            <p className="mt-3 text-sm text-night-100/65">Plan actuel</p>
+            <p className="mt-1 text-2xl font-bold" data-testid="current-plan">
+              {plan.emoji} {plan.name}
+            </p>
+            <p className="mt-2 text-sm text-night-100/75">
+              {isPremium && expiresAt
+                ? `Actif jusqu'au ${fullDate.format(new Date(expiresAt))}. ${plan.tagline}`
+                : plan.tagline}
+            </p>
+            <div className="mt-5 flex flex-col gap-3">
+              <ManageSubscriptionButton className="w-full" />
+              {!isPremium && (
+                <ButtonLink href={routes.premium} variant="ghost-light" className="w-full">
+                  <Sparkles className="size-4 text-gold-300" /> Découvrir Premium
+                </ButtonLink>
+              )}
+            </div>
+          </section>
           <section aria-labelledby="profil-voyages" className={card}>
             <h2 id="profil-voyages" className="font-display text-xl font-bold">
               Mes voyages
@@ -73,6 +114,11 @@ export default async function AccountPage({ searchParams }: PageProps<"/compte">
                   ? "Aucun voyage enregistré pour l'instant."
                   : `${tripsCount} voyage${tripsCount > 1 ? "s" : ""} enregistré${tripsCount > 1 ? "s" : ""}.`}
             </p>
+            {tripsCount !== null && limits.savedTrips !== null && (
+              <p className="mt-1 text-xs text-night-100/55">
+                {tripsCount} / {limits.savedTrips} avec {plan.name}
+              </p>
+            )}
             <ButtonLink href={routes.myTrips} className="mt-5 w-full">
               <Map className="size-4" /> Voir mes voyages
             </ButtonLink>

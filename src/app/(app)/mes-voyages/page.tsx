@@ -1,5 +1,6 @@
 import { Plus } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect, unstable_rethrow } from "next/navigation";
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
@@ -8,6 +9,9 @@ import { AuthUnavailable } from "@/features/auth/components/auth-unavailable";
 import { FormMessage } from "@/features/auth/components/form-controls";
 import { param } from "@/features/auth/page-params";
 import { getCurrentUser } from "@/features/auth/server/session";
+import { PLANS } from "@/config/premium";
+import { PremiumBadge } from "@/features/premium/components/premium-badge";
+import { getEntitlements } from "@/features/premium/server/entitlements";
 import { MySpaceHeader } from "@/features/saved-trips/components/my-space-header";
 import { SavedTripsList } from "@/features/saved-trips/components/saved-trips-list";
 import { rowToSummary, type SavedTripSummary } from "@/features/saved-trips/mapping";
@@ -32,12 +36,20 @@ export default async function MyTripsPage({ searchParams }: PageProps<"/mes-voya
     console.error("[mes-voyages] chargement impossible", error);
   }
   const deletedFlash = param((await searchParams).supprime) === "1";
+  const { isPremium, limits, plan } = await getEntitlements();
+  // Mention discrète de Premium seulement à l'approche de la limite gratuite.
+  const nearLimit =
+    !isPremium && trips !== null && limits.savedTrips !== null && trips.length >= limits.savedTrips * 0.8;
 
   return (
     <div className="flex-1 bg-night-950 text-white">
       <MySpaceHeader
         eyebrow="Mon espace"
-        title="Mes voyages"
+        title={
+          <span className="inline-flex flex-wrap items-center gap-3">
+            Mes voyages {isPremium && <PremiumBadge />}
+          </span>
+        }
         description={
           trips && trips.length > 0
             ? `Salut ${user.displayName} 👋 Tu as ${trips.length} voyage${trips.length > 1 ? "s" : ""} enregistré${trips.length > 1 ? "s" : ""}.`
@@ -50,6 +62,19 @@ export default async function MyTripsPage({ searchParams }: PageProps<"/mes-voya
         }
       />
       <Container className="pb-20 sm:pb-28">
+        {trips && limits.savedTrips !== null && (
+          <p className="mb-5 text-sm text-night-100/60">
+            {trips.length} / {limits.savedTrips} voyages enregistrés avec {PLANS[plan].name}
+            {nearLimit && (
+              <>
+                {" · "}
+                <Link href={routes.premium} className="font-semibold text-gold-300 hover:underline">
+                  Besoin de plus de place ? Découvre Premium
+                </Link>
+              </>
+            )}
+          </p>
+        )}
         {trips ? (
           <SavedTripsList trips={trips} deletedFlash={deletedFlash} />
         ) : (

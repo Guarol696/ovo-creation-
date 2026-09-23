@@ -8,6 +8,7 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { signOut } from "@/features/auth/actions";
 import { useAuth } from "@/features/auth/auth-provider";
 import { AccountSkeleton, Avatar } from "@/features/auth/components/account-menu";
+import { PremiumBadge } from "@/features/premium/components/premium-badge";
 import { cn } from "@/lib/utils";
 import { Logo } from "./logo";
 
@@ -17,7 +18,7 @@ interface MobileMenuProps {
 }
 
 export function MobileMenu({ open, onClose }: MobileMenuProps) {
-  const { status, user } = useAuth();
+  const { status, user, isPremium } = useAuth();
   // Bloque le scroll de la page et ferme avec Échap.
   useEffect(() => {
     if (!open) return;
@@ -103,7 +104,10 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
               <Avatar user={user} className="size-10 text-base" />
               <span className="min-w-0">
                 Connecté·e en tant que{" "}
-                <span className="block truncate font-semibold text-white">{user.displayName}</span>
+                <span className="flex items-center gap-2">
+                  <span className="truncate font-semibold text-white">{user.displayName}</span>
+                  {isPremium && <PremiumBadge size="xs" />}
+                </span>
               </span>
             </p>
             <div className="grid grid-cols-2 gap-3">

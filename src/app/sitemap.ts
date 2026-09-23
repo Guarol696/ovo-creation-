@@ -4,6 +4,7 @@ import { routes, siteConfig } from "@/config/site";
 const publicPaths = [
   routes.home,
   routes.createTrip,
+  routes.premium,
   routes.about,
   routes.contact,
   routes.terms,
