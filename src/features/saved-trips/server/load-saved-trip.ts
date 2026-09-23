@@ -26,7 +26,12 @@ export const loadSavedTrip = cache(async (id: string): Promise<SavedTripView | n
   const trip = await getSavedTrip(supabase, id);
   if (!trip) return null;
 
-  if (isUsablePlan(trip.travel_plan)) return { trip, plan: trip.travel_plan, regenerated: false };
+  // Pour son propriétaire, le plan retrouve la demande complète (colonne privée `request`).
+  if (isUsablePlan(trip.travel_plan)) {
+    const request = tripRequestBaseSchema.safeParse(trip.request);
+    const plan = request.success ? { ...trip.travel_plan, request: request.data } : trip.travel_plan;
+    return { trip, plan, regenerated: false };
+  }
   const request = tripRequestBaseSchema.safeParse(trip.request);
   if (!request.success) return null;
   return { trip, plan: await generateTravelPlan(request.data), regenerated: true };

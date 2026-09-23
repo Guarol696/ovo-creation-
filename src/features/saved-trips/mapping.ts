@@ -23,6 +23,9 @@ export interface SavedTripRow {
   budget: number | null;
   request: TripRequest;
   travel_plan: unknown;
+  is_public: boolean;
+  share_token: string | null;
+  shared_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -52,6 +55,7 @@ export interface SavedTripSummary {
   travelers: number | null;
   budget: number | null;
   createdAt: string;
+  isPublic: boolean;
 }
 
 export function planToRow(plan: TravelPlan, requestHash: string): SavedTripInsert {
@@ -68,8 +72,17 @@ export function planToRow(plan: TravelPlan, requestHash: string): SavedTripInser
     budget: Math.round(plan.estimatedBudget.total),
     request: plan.request,
     request_hash: requestHash,
-    travel_plan: plan,
+    travel_plan: withoutPrivateNotes(plan),
   };
+}
+
+/**
+ * Le texte libre « envie particulière » peut être personnel : il n'est jamais
+ * enregistré dans le TravelPlan (seulement dans la colonne privée `request`),
+ * ni affiché sur une page partagée.
+ */
+export function withoutPrivateNotes(plan: TravelPlan): TravelPlan {
+  return plan.request.wishes === null ? plan : { ...plan, request: { ...plan.request, wishes: null } };
 }
 
 /** Drapeau emoji à partir du code pays ISO (« PT » → 🇵🇹). */
@@ -115,6 +128,7 @@ export function rowToSummary(row: SavedTripRow, now = new Date()): SavedTripSumm
     travelers: row.travelers,
     budget: row.budget,
     createdAt: row.created_at,
+    isPublic: row.is_public,
   };
 }
 

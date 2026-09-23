@@ -9,6 +9,7 @@ le nombre de voyageurs et son style, et OVO lui propose un voyage personnalisé.
 - Tailwind CSS v4 (design tokens dans `src/app/globals.css`)
 - Supabase (base de données + authentification, via `@supabase/ssr`)
 - Leaflet (carte interactive, chargé uniquement côté navigateur ; fond de carte OpenStreetMap/CARTO)
+- pdf-lib (export PDF généré côté serveur, sans navigateur headless)
 - Déploiement prévu sur Vercel
 
 ## Démarrer
@@ -167,6 +168,32 @@ supabase/migrations/              # Tables, triggers et règles RLS
 5. En production : configurer un SMTP (Authentication → SMTP Settings). Le service d'email intégré
    de Supabase est limité à quelques emails par heure, réservé aux tests.
 
+## Partage & export PDF
+
+**Partager** (« Partager mon voyage ») : partage natif du téléphone (Web Share API) quand il existe,
+sinon « Copier le lien » → « Lien copié ✓ ».
+
+- Voyage tout juste généré : on partage le lien de la page de résultat.
+- Voyage enregistré : **privé par défaut**. Son propriétaire le rend partageable ; un jeton secret
+  aléatoire est créé et le lien public est `/voyage/partage/<jeton>` (l'identifiant du voyage n'est
+  jamais exposé). « Désactiver le partage » efface le jeton : l'ancien lien affiche « Ce voyage n'est
+  plus partagé » (404). Réactiver crée un nouveau lien.
+- Vue publique : le voyage seul (destination, dates, voyageurs, budget, transport, hébergement,
+  programme, carte, activités, restaurants), sans aucune information du compte ni action du
+  propriétaire, non indexée. Le texte libre « envie particulière » n'est jamais stocké dans le plan
+  ni affiché publiquement.
+- Sécurité (migration `20260924090000_share_saved_trips.sql`, sans contourner la RLS) : le rôle `anon`
+  ne peut lire que les colonnes publiques, et une politique RLS n'autorise la lecture que d'un voyage
+  partagé dont le jeton est présenté dans l'en-tête `x-ovo-share-token` : impossible de lister les
+  voyages partagés ou de deviner un lien.
+
+**Télécharger** (« Télécharger mon voyage ») : PDF A4 généré côté serveur (`src/features/trip-export/`,
+pdf-lib, polices standard) : couverture, résumé et points forts, transport, hébergement, programme
+jour par jour (matin, midi, après-midi, soir), activités, restaurants, budget détaillé ; en-tête,
+pagination « Page n / N » et date de génération. Nom du fichier :
+`ovo-voyage-<destination>-<date de départ ou mois>.pdf`. Routes : `/voyage/resultat/pdf?v=…`,
+`/mes-voyages/<id>/pdf` (propriétaire) et `/voyage/partage/<jeton>/pdf` (lien public actif).
+
 ## Feuille de route
 
 - [x] Étape 1 — Fondations + landing page
@@ -176,5 +203,5 @@ supabase/migrations/              # Tables, triggers et règles RLS
 - [x] Étape 5 — Activités (« Que faire ? ») & restaurants (« Où manger ? ») avec filtres, intégrés au programme et au budget
 - [x] Étape 6 — Carte interactive (« Ton voyage sur la carte ») & itinéraire jour par jour synchronisé
 - [x] Étape 7 — Comptes (Supabase Auth), sauvegarde des voyages, « Mes voyages », suppression, RLS
-- [ ] Partage, export PDF
+- [x] Étape 8 — Partage d'un voyage (lien public contrôlé) et export PDF
 - [ ] OVO Premium & paiements

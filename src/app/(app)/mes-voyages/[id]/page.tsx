@@ -4,6 +4,7 @@ import { routes } from "@/config/site";
 import { AuthUnavailable } from "@/features/auth/components/auth-unavailable";
 import { getCurrentUser } from "@/features/auth/server/session";
 import { loadSavedTrip } from "@/features/saved-trips/server/load-saved-trip";
+import { sharedTripPath } from "@/features/sharing/paths";
 import { TravelPlanView } from "@/features/trip-results/components/travel-plan-view";
 import { authUrl } from "@/lib/auth/redirect";
 import { isSupabaseConfigured } from "@/lib/env";
@@ -31,7 +32,15 @@ export default async function SavedTripPage({ params }: Props) {
   return (
     <TravelPlanView
       plan={plan}
-      save={{ mode: "saved", savedTripId: trip.id, destinationName: plan.destination.name }}
+      save={{
+        mode: "saved",
+        savedTripId: trip.id,
+        destinationName: plan.destination.name,
+        sharing: {
+          isPublic: trip.is_public,
+          sharePath: trip.is_public && trip.share_token ? sharedTripPath(trip.share_token) : null,
+        },
+      }}
       savedTrip={{ id: trip.id, title: trip.title, savedAt: trip.created_at, regenerated }}
     />
   );

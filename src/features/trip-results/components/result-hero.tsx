@@ -7,6 +7,9 @@ import { SmartImage } from "@/components/ui/smart-image";
 import { formatDates, formatTravelers } from "@/lib/trip/format";
 import { routes } from "@/config/site";
 import { DeleteTripButton } from "@/features/saved-trips/components/delete-trip-button";
+import { SharingBadge } from "@/features/sharing/components/sharing-badge";
+import { ShareTripButton } from "@/features/sharing/components/share-trip-button";
+import { DownloadTripButton } from "@/features/trip-export/components/download-trip-button";
 import { editTripUrl } from "@/lib/trip/links";
 import { cn, formatPrice } from "@/lib/utils";
 import type { TravelPlan } from "@/types/travel-plan";
@@ -34,7 +37,16 @@ export interface SavedTripInfo {
 
 const savedAtFormatter = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
-export function ResultHero({ plan, savedTrip }: { plan: TravelPlan; savedTrip?: SavedTripInfo }) {
+interface ResultHeroProps {
+  plan: TravelPlan;
+  mode: "result" | "saved" | "public";
+  savedTrip?: SavedTripInfo;
+}
+
+/** Boutons d'action compacts sur mobile (2 par ligne), normaux ensuite. */
+const compact = "px-3 text-sm sm:px-7 sm:text-base";
+
+export function ResultHero({ plan, mode, savedTrip }: ResultHeroProps) {
   const { destination, duration, estimatedBudget, request } = plan;
   const facts = [
     { icon: CalendarDays, label: "Dates", value: formatDates(request) },
@@ -84,8 +96,13 @@ export function ResultHero({ plan, savedTrip }: { plan: TravelPlan; savedTrip?: 
         <div className="flex flex-wrap gap-2">
           <Badge tone="light" className="animate-fade-up">
             <Sparkles className="size-3.5 text-gold-300" />
-            {destination.recommended ? "Destination recommandée par OVO" : "Ta destination"}
+            {mode === "public"
+              ? "Voyage partagé · imaginé avec OVO"
+              : destination.recommended
+                ? "Destination recommandée par OVO"
+                : "Ta destination"}
           </Badge>
+          <SharingBadge />
           {savedTrip && (
             <Badge tone="gold" className="animate-fade-up">
               💾 Enregistré le {savedAtFormatter.format(new Date(savedTrip.savedAt))}
@@ -93,7 +110,8 @@ export function ResultHero({ plan, savedTrip }: { plan: TravelPlan; savedTrip?: 
           )}
         </div>
         <h1 className="mt-5 animate-fade-up font-display text-[clamp(2.6rem,10vw,6rem)] leading-[0.95] font-extrabold tracking-tight text-balance [animation-delay:80ms]">
-          Ton voyage à <span className="text-gradient-sun">{destination.name}</span>
+          {mode === "public" ? "Voyage à" : "Ton voyage à"}{" "}
+          <span className="text-gradient-sun">{destination.name}</span>
         </h1>
         <p className="mt-4 max-w-2xl animate-fade-up text-lg text-night-50/85 [animation-delay:160ms] sm:text-xl">
           {destination.country && <span className="font-semibold text-white">{destination.country} · </span>}
@@ -112,12 +130,22 @@ export function ResultHero({ plan, savedTrip }: { plan: TravelPlan; savedTrip?: 
           ))}
         </dl>
 
-        <div className="mt-6 flex animate-fade-up flex-col gap-3 [animation-delay:320ms] sm:flex-row">
-          <SaveTripButton />
-          <ButtonLink href={editTripUrl(request)} size="lg" variant="outline-light">
-            <Pencil className="size-4" /> Modifier mon voyage
+        <div className="mt-6 grid animate-fade-up grid-cols-2 gap-3 [animation-delay:320ms] sm:flex sm:flex-wrap">
+          {mode !== "public" && <SaveTripButton className="col-span-2" />}
+          <ShareTripButton label="short" className={compact} />
+          <DownloadTripButton label="short" className={compact} />
+          <ButtonLink href={editTripUrl(request)} size="lg" variant="outline-light" className="col-span-2">
+            <Pencil className="size-4" />{" "}
+            {mode === "public" ? "Créer un voyage similaire" : "Modifier mon voyage"}
           </ButtonLink>
-          {savedTrip && <DeleteTripButton tripId={savedTrip.id} title={savedTrip.title} size="lg" />}
+          {savedTrip && (
+            <DeleteTripButton
+              tripId={savedTrip.id}
+              title={savedTrip.title}
+              size="lg"
+              className="col-span-2"
+            />
+          )}
         </div>
         {savedTrip?.regenerated && (
           <p className="mt-4 max-w-2xl text-sm text-night-100/70">

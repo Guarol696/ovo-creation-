@@ -34,7 +34,7 @@ export function TravelPlanView({ plan, save, savedTrip }: TravelPlanViewProps) {
           <div className="absolute top-[30rem] right-[-20%] size-[36rem] rounded-full bg-sun-500/10 blur-[140px]" />
           <div className="absolute top-[70rem] left-[-20%] size-[32rem] rounded-full bg-night-500/25 blur-[140px]" />
         </div>
-        <ResultHero plan={plan} savedTrip={savedTrip} />
+        <ResultHero plan={plan} mode={save.mode} savedTrip={savedTrip} />
         <Container className="pt-6">
           <DemoNotice />
         </Container>
@@ -52,7 +52,7 @@ export function TravelPlanView({ plan, save, savedTrip }: TravelPlanViewProps) {
           childTravelers={plan.travelers.children}
           nights={plan.accommodation.main.nights}
         />
-        <ResultCta plan={plan} />
+        <ResultCta plan={plan} mode={save.mode} />
       </div>
     </TripSaveProvider>
   );

@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Globe } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
 import { routes } from "@/config/site";
 import { formatPrice } from "@/lib/utils";
@@ -32,6 +32,11 @@ export function SavedTripCard({ trip, onDeleted }: SavedTripCardProps) {
           <h2 className="truncate font-display text-2xl font-bold">{trip.destination}</h2>
           {trip.country && <p className="text-sm text-night-100/65">{trip.country}</p>}
         </div>
+        {trip.isPublic && (
+          <span className="ml-auto inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-200 ring-1 ring-emerald-400/30">
+            <Globe className="size-3.5" /> Partagé
+          </span>
+        )}
       </div>
 
       <ul className="mt-5 space-y-2 text-sm">

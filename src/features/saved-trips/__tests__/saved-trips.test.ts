@@ -48,6 +48,14 @@ describe("voyages sauvegardés : conversion", () => {
     expect(isUsablePlan(JSON.parse(JSON.stringify(plan)))).toBe(true);
   });
 
+  it("l'« envie particulière » (texte libre) n'est jamais stockée dans le plan", async () => {
+    const plan = await generateTravelPlan({ ...request, wishes: "Anniversaire surprise de Léa" });
+    const row = planToRow(plan, "hash");
+    expect(row.request.wishes).toBe("Anniversaire surprise de Léa"); // colonne privée
+    expect(row.travel_plan.request.wishes).toBeNull();
+    expect(JSON.stringify(row.travel_plan)).not.toContain("Léa");
+  });
+
   it("empreinte stable : même demande = même empreinte", () => {
     expect(requestHash(request)).toBe(requestHash(JSON.parse(JSON.stringify(request))));
     expect(requestHash(request)).not.toBe(requestHash({ ...request, styles: ["nature"] }));
@@ -97,11 +105,20 @@ describe("voyages sauvegardés : affichage des cartes", () => {
         budget: 780,
         request,
         travel_plan: null,
+        is_public: true,
+        share_token: "7b1f0c9e-2d7a-4f55-9d8e-1a2b3c4d5e6f",
+        shared_at: "2026-09-23T10:00:00Z",
         created_at: "2026-09-23T10:00:00Z",
         updated_at: "2026-09-23T10:00:00Z",
       },
       now,
     );
-    expect(summary).toMatchObject({ flag: "🇵🇹", dates: "12 → 17 juin", budget: 780, travelers: 2 });
+    expect(summary).toMatchObject({
+      flag: "🇵🇹",
+      dates: "12 → 17 juin",
+      budget: 780,
+      travelers: 2,
+      isPublic: true,
+    });
   });
 });

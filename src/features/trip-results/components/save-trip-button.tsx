@@ -22,11 +22,19 @@ import { authUrl, SAVE_INTENT_PARAM, withSaveIntent } from "@/lib/auth/redirect"
  * Le bouton apparaît deux fois sur la page : l'état est partagé par un contexte.
  */
 
+export interface TripSharingState {
+  isPublic: boolean;
+  /** Chemin public (/voyage/partage/<jeton>) quand le partage est actif. */
+  sharePath: string | null;
+}
+
 export type TripSaveConfig =
   /** Voyage tout juste généré (page de résultat). */
   | { mode: "result"; encodedRequest: string; savedTripId: string | null; destinationName: string }
-  /** Voyage ouvert depuis « Mes voyages ». */
-  | { mode: "saved"; savedTripId: string; destinationName: string };
+  /** Voyage ouvert depuis « Mes voyages » par son propriétaire. */
+  | { mode: "saved"; savedTripId: string; destinationName: string; sharing: TripSharingState }
+  /** Voyage partagé, ouvert par un visiteur (lecture seule). */
+  | { mode: "public"; destinationName: string; sharePath: string };
 
 type Dialog = "prompt" | "unavailable" | null;
 
@@ -35,6 +43,18 @@ interface TripSaveContextValue {
   savedId: string | null;
   saving: boolean;
   save: () => void;
+  /** Partage du voyage enregistré (mode « saved »), mis à jour sans rechargement. */
+  sharing: TripSharingState | null;
+  setSharing: (sharing: TripSharingState) => void;
+  /** Lien du PDF à télécharger. */
+  pdfUrl: string;
+}
+
+/** Lien du PDF selon l'origine du voyage (mêmes règles d'accès que la page). */
+export function tripPdfUrl(config: TripSaveConfig) {
+  if (config.mode === "result") return `${routes.tripResult}/pdf?v=${config.encodedRequest}`;
+  if (config.mode === "saved") return `${routes.myTrips}/${config.savedTripId}/pdf`;
+  return `${config.sharePath}/pdf`;
 }
 
 const TripSaveContext = createContext<TripSaveContextValue | null>(null);
@@ -47,7 +67,10 @@ function currentPath() {
 
 export function TripSaveProvider({ config, children }: { config: TripSaveConfig; children: ReactNode }) {
   const { status } = useAuth();
-  const [savedId, setSavedId] = useState<string | null>(config.savedTripId);
+  const [savedId, setSavedId] = useState<string | null>(config.mode === "public" ? null : config.savedTripId);
+  const [sharing, setSharing] = useState<TripSharingState | null>(
+    config.mode === "saved" ? config.sharing : null,
+  );
   const [saving, setSaving] = useState(false);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [returnPath, setReturnPath] = useState<string>(routes.myTrips);
@@ -107,7 +130,9 @@ export function TripSaveProvider({ config, children }: { config: TripSaveConfig;
   const closeToast = useCallback(() => setToast(null), []);
 
   return (
-    <TripSaveContext.Provider value={{ config, savedId, saving, save }}>
+    <TripSaveContext.Provider
+      value={{ config, savedId, saving, save, sharing, setSharing, pdfUrl: tripPdfUrl(config) }}
+    >
       {children}
 
       <Modal
@@ -153,10 +178,17 @@ interface SaveTripButtonProps {
   variant?: "primary" | "outline-light";
 }
 
-export function SaveTripButton({ className, variant = "primary" }: SaveTripButtonProps) {
+/** Contexte de la page de voyage (enregistrement, partage, PDF). */
+export function useTripPage() {
   const context = useContext(TripSaveContext);
-  if (!context) throw new Error("SaveTripButton doit être placé dans un TripSaveProvider");
-  const { savedId, saving, save } = context;
+  if (!context) throw new Error("Ce composant doit être placé dans un TripSaveProvider");
+  return context;
+}
+
+export function SaveTripButton({ className, variant = "primary" }: SaveTripButtonProps) {
+  const { config, savedId, saving, save } = useTripPage();
+  // Voyage partagé par quelqu'un d'autre : rien à enregistrer ici.
+  if (config.mode === "public") return null;
 
   if (savedId) {
     return (

@@ -14,6 +14,7 @@ export const routes = {
   home: "/",
   createTrip: "/voyage/nouveau",
   tripResult: "/voyage/resultat",
+  sharedTrip: "/voyage/partage",
   login: "/connexion",
   signUp: "/inscription",
   forgotPassword: "/mot-de-passe-oublie",
