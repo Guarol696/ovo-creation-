@@ -1,0 +1,146 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ */
+/* Design tokens OVO                                                   */
+/* ------------------------------------------------------------------ */
+@theme {
+  /* Bleu nuit */
+  --color-night-50: #eef2fb;
+  --color-night-100: #d6def2;
+  --color-night-200: #aebde3;
+  --color-night-300: #7d93c9;
+  --color-night-400: #4f68a8;
+  --color-night-500: #2f4a8c;
+  --color-night-600: #213872;
+  --color-night-700: #182a59;
+  --color-night-800: #111e42;
+  --color-night-900: #0b1530;
+  --color-night-950: #060c1f;
+
+  /* Orange soleil */
+  --color-sun-300: #ffc98a;
+  --color-sun-400: #ffab52;
+  --color-sun-500: #ff8a2a;
+  --color-sun-600: #f06c0f;
+
+  /* Doré */
+  --color-gold-300: #f3d68f;
+  --color-gold-400: #e9c065;
+  --color-gold-500: #d4a441;
+
+  /* Fonds clairs */
+  --color-sand-50: #fbf8f3;
+  --color-sand-100: #f4eee4;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-4xl: 2rem;
+  --radius-5xl: 2.5rem;
+
+  --animate-fade-up: fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-float: float 6s ease-in-out infinite;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Base                                                                */
+/* ------------------------------------------------------------------ */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-sand-50 font-sans text-night-950 antialiased;
+    overflow-x: clip;
+  }
+
+  /* Décalage des ancres pour le header fixe */
+  :target,
+  section[id] {
+    scroll-margin-top: 5rem;
+  }
+
+  ::selection {
+    @apply bg-sun-400 text-night-950;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-sun-400;
+  }
+}
+
+@utility text-gradient-sun {
+  background-image: linear-gradient(
+    120deg,
+    var(--color-gold-300),
+    var(--color-sun-400) 45%,
+    var(--color-sun-600)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Apparition au scroll (voir components/ui/reveal.tsx) */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+[data-reveal="visible"] {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+}
