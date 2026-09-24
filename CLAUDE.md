@@ -11,3 +11,4 @@
 - Comptes : l'autorisation se vérifie côté serveur (`getCurrentUser`, Server Actions) + RLS ; `useAuth()` ne sert qu'à l'affichage. Toute nouvelle table utilisateur a ses politiques RLS dans `supabase/migrations/`.
 - Premium : déclarer une fonctionnalité ou une limite dans `src/config/premium.ts`, la protéger avec `<PremiumFeature>` (affichage) ET `canUseFeature()` (route/action). Ne jamais retirer une fonctionnalité gratuite existante.
 - Stripe (`src/features/billing`) : clés et Price IDs uniquement côté serveur (variables d'environnement) ; le plan n'est écrit que par le webhook signé, après relecture de l'abonnement chez Stripe (client `service_role`) — jamais depuis une page de succès ni une donnée du navigateur.
+- Mobile d'abord : cibles tactiles ≥ 44 px, texte ≥ 12 px (`text-xs`), aucun défilement horizontal de 320 à 1440 px. Pas de `loading.tsx` sur une route qui fait `redirect()` / `notFound()` (le streaming casse les statuts 404/307).

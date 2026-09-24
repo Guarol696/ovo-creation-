@@ -56,7 +56,7 @@ export function SavedTripsList({ trips: initialTrips, deletedFlash }: SavedTrips
           {trips.map((trip, index) => (
             <li
               key={trip.id}
-              className="animate-fade-up"
+              className="min-w-0 animate-fade-up"
               style={{ animationDelay: `${Math.min(index, 8) * 60}ms` }}
             >
               <SavedTripCard trip={trip} onDeleted={onDeleted} />

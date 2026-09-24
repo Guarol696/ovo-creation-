@@ -11,7 +11,11 @@ const schedule = [
 /** Maquette de téléphone illustrant l'expérience mobile (contenu fictif). */
 export function PhoneMockup() {
   return (
-    <div className="relative mx-auto w-[17.5rem] sm:w-[19rem]">
+    <div
+      role="img"
+      aria-label="Aperçu d'OVO sur téléphone : programme du jour 2 d'un voyage à Barcelone"
+      className="relative mx-auto w-[17.5rem] sm:w-[19rem]"
+    >
       <div
         aria-hidden="true"
         className="absolute inset-x-6 -bottom-8 h-24 rounded-full bg-sun-500/30 blur-3xl"

@@ -15,17 +15,6 @@ import { cn, formatPrice } from "@/lib/utils";
 import type { TravelPlan } from "@/types/travel-plan";
 import { SaveTripButton } from "./save-trip-button";
 
-const sections = [
-  { href: "#pourquoi", label: "Résumé" },
-  { href: "#transport", label: "Transport" },
-  { href: "#hebergement", label: "Hébergement" },
-  { href: "#programme", label: "Programme" },
-  { href: "#carte", label: "Carte" },
-  { href: "#activites", label: "Que faire" },
-  { href: "#restaurants", label: "Où manger" },
-  { href: "#budget", label: "Budget" },
-];
-
 /** Voyage ouvert depuis « Mes voyages ». */
 export interface SavedTripInfo {
   id: string;
@@ -121,7 +110,7 @@ export function ResultHero({ plan, mode, savedTrip }: ResultHeroProps) {
         <dl className="mt-8 grid animate-fade-up grid-cols-1 gap-px overflow-hidden rounded-3xl bg-white/10 ring-1 ring-white/15 backdrop-blur-xl [animation-delay:240ms] min-[480px]:grid-cols-2 lg:grid-cols-4">
           {facts.map(({ icon: Icon, label, value }) => (
             <div key={label} className="bg-night-950/55 px-4 py-3.5">
-              <dt className="flex items-center gap-1.5 text-[0.7rem] font-semibold tracking-wider text-gold-300 uppercase">
+              <dt className="flex items-center gap-1.5 text-xs font-semibold tracking-wider text-gold-300 uppercase">
                 <Icon className="size-3.5" />
                 {label}
               </dt>
@@ -132,7 +121,7 @@ export function ResultHero({ plan, mode, savedTrip }: ResultHeroProps) {
 
         <div className="mt-6 grid animate-fade-up grid-cols-2 gap-3 [animation-delay:320ms] sm:flex sm:flex-wrap">
           {mode !== "public" && <SaveTripButton className="col-span-2" />}
-          <ShareTripButton label="short" className={compact} />
+          <ShareTripButton label="short" className={compact} openOnHash={mode === "saved"} />
           <DownloadTripButton label="short" className={compact} />
           <ButtonLink href={editTripUrl(request)} size="lg" variant="outline-light" className="col-span-2">
             <Pencil className="size-4" />{" "}
@@ -153,24 +142,6 @@ export function ResultHero({ plan, mode, savedTrip }: ResultHeroProps) {
             tes réponses.
           </p>
         )}
-
-        <nav
-          aria-label="Sections du voyage"
-          className="-mx-5 mt-8 scrollbar-none overflow-x-auto px-5 sm:mx-0 sm:px-0"
-        >
-          <ul className="flex gap-2">
-            {sections.map((s) => (
-              <li key={s.href}>
-                <a
-                  href={s.href}
-                  className="inline-flex min-h-10 items-center rounded-full bg-white/[0.07] px-4 text-sm font-medium whitespace-nowrap text-white/85 ring-1 ring-white/10 transition hover:bg-white/15 hover:text-white"
-                >
-                  {s.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
       </Container>
     </section>
   );

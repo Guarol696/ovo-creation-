@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Copy, Globe, Link2, Loader2, Lock, Share2 } from "lucide-react";
-import { useCallback, useId, useRef, useState, useSyncExternalStore, useTransition } from "react";
+import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { FormMessage } from "@/features/auth/components/form-controls";
@@ -29,10 +29,21 @@ const canNativeShare = () => typeof navigator !== "undefined" && typeof navigato
 interface ShareTripButtonProps {
   className?: string;
   label?: "short" | "long";
+  /** Ouvre la fenêtre à l'arrivée sur la page avec `#partager` (bouton « Partager » de « Mes voyages »). */
+  openOnHash?: boolean;
 }
 
-export function ShareTripButton({ className, label = "long" }: ShareTripButtonProps) {
+export function ShareTripButton({ className, label = "long", openOnHash = false }: ShareTripButtonProps) {
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!openOnHash || window.location.hash !== "#partager") return;
+    const { pathname, search } = window.location;
+    window.history.replaceState(window.history.state, "", pathname + search);
+    // Ouverture au montage, déclenchée par l'URL (système externe).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setOpen(true);
+  }, [openOnHash]);
   return (
     <>
       <Button

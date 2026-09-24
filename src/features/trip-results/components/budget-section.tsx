@@ -77,7 +77,7 @@ export function BudgetSection({ budget, request, travelers, childTravelers, nigh
   const activeCategory = CATEGORIES.find((c) => c.id === active);
 
   return (
-    <section id="budget" className="scroll-mt-20 py-14 sm:py-20">
+    <section id="budget" className="scroll-mt-28 py-14 sm:scroll-mt-32 sm:py-20">
       <Container>
         <SectionTitle eyebrow="Budget" title="Combien ça va coûter ?">
           <p>Une première estimation, pour savoir où va ton argent.</p>

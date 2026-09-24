@@ -9,7 +9,7 @@ export function FeatureTable() {
     <div className="overflow-hidden rounded-4xl ring-1 ring-white/10">
       <table className="w-full border-collapse text-left text-sm">
         <caption className="sr-only">Comparaison des fonctionnalités des offres OVO</caption>
-        <thead className="bg-white/[0.06] text-[0.7rem] tracking-wider text-night-100/70 uppercase">
+        <thead className="bg-white/[0.06] text-xs tracking-wider text-night-100/70 uppercase">
           <tr>
             <th scope="col" className="px-3 py-3 font-semibold sm:px-6">
               Fonctionnalité
@@ -19,12 +19,16 @@ export function FeatureTable() {
                 key={plan}
                 scope="col"
                 className={cn(
-                  "w-14 px-1 py-3 text-center font-semibold sm:w-28",
+                  "w-12 px-1 py-3 text-center font-semibold sm:w-28",
                   plan === "medium" && "text-sun-300",
                   plan === "premium" && "text-gold-300",
                 )}
               >
-                {PLANS[plan].shortName}
+                {/* Mobile : emoji de l'offre (le nom reste lu par les lecteurs d'écran). */}
+                <span aria-hidden="true" className="text-lg sm:hidden">
+                  {PLANS[plan].emoji}
+                </span>
+                <span className="max-sm:sr-only">{PLANS[plan].shortName}</span>
               </th>
             ))}
           </tr>

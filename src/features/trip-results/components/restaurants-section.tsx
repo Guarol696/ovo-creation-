@@ -4,6 +4,7 @@ import { CalendarCheck, Info, MapPin, Star, UtensilsCrossed } from "lucide-react
 import { useMemo, useState } from "react";
 import { Container } from "@/components/ui/container";
 import { RESTAURANT_KINDS } from "@/features/trip-engine/services/restaurants";
+import { cn } from "@/lib/utils";
 import type { PlanRestaurant } from "@/types/travel-plan";
 import { DemoBadge } from "./demo-badge";
 import { FilterChips, type FilterOption } from "./filter-chips";
@@ -27,6 +28,10 @@ const ratingFormatter = new Intl.NumberFormat("fr-FR", {
   maximumFractionDigits: 1,
 });
 
+/** Restaurants affichés avant « Voir tout » : 4 sur mobile, 6 sur grand écran. */
+const INITIAL_MOBILE = 4;
+const INITIAL_DESKTOP = 6;
+
 function mealsLabel(meals: PlanRestaurant["meals"]) {
   if (meals.includes("lunch") && meals.includes("dinner")) return "Midi et soir";
   return meals.includes("lunch") ? "Idéal le midi" : "Idéal le soir";
@@ -34,6 +39,7 @@ function mealsLabel(meals: PlanRestaurant["meals"]) {
 
 export function RestaurantsSection({ restaurants }: { restaurants: PlanRestaurant[] }) {
   const [filter, setFilter] = useState<RestaurantFilter>("tous");
+  const [expanded, setExpanded] = useState(false);
   const sorted = useMemo(() => [...restaurants].sort(byScheduleThenRelevance), [restaurants]);
   const options: FilterOption<RestaurantFilter>[] = FILTERS.map((f) => ({
     id: f.id,
@@ -45,7 +51,7 @@ export function RestaurantsSection({ restaurants }: { restaurants: PlanRestauran
   if (restaurants.length === 0) return null;
 
   return (
-    <section id="restaurants" className="scroll-mt-20 py-14 sm:py-20">
+    <section id="restaurants" className="scroll-mt-28 py-14 sm:scroll-mt-32 sm:py-20">
       <Container>
         <SectionTitle eyebrow="Restaurants" title="Où manger ?">
           <p>Des adresses pour tous les budgets, choisies selon ton style de voyage.</p>
@@ -54,10 +60,30 @@ export function RestaurantsSection({ restaurants }: { restaurants: PlanRestauran
         <FilterChips label="Filtrer les restaurants" options={options} value={filter} onChange={setFilter} />
 
         <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-live="polite">
-          {filtered.map((restaurant) => (
-            <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+          {filtered.map((restaurant, index) => (
+            <RestaurantCard
+              key={restaurant.id}
+              restaurant={restaurant}
+              className={cn(
+                !expanded && index >= INITIAL_MOBILE && "max-sm:hidden",
+                !expanded && index >= INITIAL_DESKTOP && "hidden",
+              )}
+            />
           ))}
         </ul>
+
+        {filtered.length > INITIAL_MOBILE && (
+          <div className={cn("mt-6 flex justify-center", filtered.length <= INITIAL_DESKTOP && "sm:hidden")}>
+            <button
+              type="button"
+              aria-expanded={expanded}
+              onClick={() => setExpanded((v) => !v)}
+              className="min-h-11 rounded-full px-5 text-sm font-semibold text-sun-400 ring-1 ring-sun-400/40 transition hover:bg-sun-400/10"
+            >
+              {expanded ? "Voir moins" : `Voir les ${filtered.length} restaurants`}
+            </button>
+          </div>
+        )}
 
         {filtered.length === 0 && (
           <p className="mt-6 rounded-3xl bg-white/[0.04] p-6 text-center text-night-100/70 ring-1 ring-white/10">
@@ -78,18 +104,23 @@ export function RestaurantsSection({ restaurants }: { restaurants: PlanRestauran
   );
 }
 
-function RestaurantCard({ restaurant }: { restaurant: PlanRestaurant }) {
+function RestaurantCard({ restaurant, className }: { restaurant: PlanRestaurant; className?: string }) {
   const scheduled = scheduleLabel(restaurant.schedule);
   const { min, max } = restaurant.priceRange;
 
   return (
-    <li className="flex flex-col overflow-hidden rounded-3xl bg-white/[0.04] ring-1 ring-white/10 transition duration-300 hover:-translate-y-0.5 hover:ring-white/20">
+    <li
+      className={cn(
+        "flex flex-col overflow-hidden rounded-3xl bg-white/[0.04] ring-1 ring-white/10 transition duration-300 hover:-translate-y-0.5 hover:ring-white/20",
+        className,
+      )}
+    >
       <div className="relative grid h-24 place-items-center bg-linear-to-br from-sun-400/25 via-gold-400/10 to-night-800/40">
         <span aria-hidden="true" className="text-5xl drop-shadow">
           {restaurant.emoji}
         </span>
         {scheduled && (
-          <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-sun-400 px-2.5 py-1 text-[0.7rem] font-bold text-night-950">
+          <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-sun-400 px-2.5 py-1 text-xs font-bold text-night-950">
             <CalendarCheck className="size-3" /> {scheduled}
           </span>
         )}
@@ -127,7 +158,7 @@ function RestaurantCard({ restaurant }: { restaurant: PlanRestaurant }) {
             <UtensilsCrossed className="size-3" /> {mealsLabel(restaurant.meals)}
           </span>
         </div>
-        <p className="mt-2 text-[0.7rem] text-night-100/50">Prix indicatif · restaurant fictif (démo)</p>
+        <p className="mt-2 text-xs text-night-100/60">Prix indicatif · restaurant fictif (démo)</p>
       </div>
     </li>
   );

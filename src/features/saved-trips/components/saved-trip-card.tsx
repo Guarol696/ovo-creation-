@@ -1,4 +1,4 @@
-import { ArrowRight, Globe } from "lucide-react";
+import { ArrowRight, Globe, Share2 } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
 import { routes } from "@/config/site";
 import { formatPrice } from "@/lib/utils";
@@ -56,20 +56,28 @@ export function SavedTripCard({ trip, onDeleted }: SavedTripCardProps) {
         )}
       </ul>
 
-      <p className="mt-4 text-xs text-night-100/50">
+      <p className="mt-4 text-xs text-night-100/60">
         Enregistré le{" "}
         <time dateTime={trip.createdAt}>{createdFormatter.format(new Date(trip.createdAt))}</time>
       </p>
 
-      <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-white/10 pt-4">
+      <div className="mt-5 grid grid-cols-2 gap-2 border-t border-white/10 pt-4">
         <ButtonLink
           href={`${routes.myTrips}/${trip.id}`}
-          className="flex-1"
+          className="col-span-2"
           aria-label={`Voir le voyage : ${trip.title}`}
         >
           Voir le voyage <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
         </ButtonLink>
-        <DeleteTripButton tripId={trip.id} title={trip.title} onDeleted={onDeleted} />
+        {/* Ouvre la page du voyage avec la fenêtre de partage (lien public, durée…). */}
+        <ButtonLink
+          href={`${routes.myTrips}/${trip.id}#partager`}
+          variant="outline-light"
+          aria-label={`Partager « ${trip.title} »`}
+        >
+          <Share2 className="size-4" /> Partager
+        </ButtonLink>
+        <DeleteTripButton tripId={trip.id} title={trip.title} onDeleted={onDeleted} className="w-full" />
       </div>
     </article>
   );

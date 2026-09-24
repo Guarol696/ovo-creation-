@@ -1,8 +1,9 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Clock, Info, MapPin, Map as MapIcon } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Clock, Info, MapPin, Map as MapIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Container } from "@/components/ui/container";
+import { ACTIVITY_THEMES } from "@/features/trip-engine/services/activities";
 import { formatDateFr } from "@/lib/dates";
 import { cn, formatPrice } from "@/lib/utils";
 import type {
@@ -60,8 +61,11 @@ export function DayExplorer({ days, map }: DayExplorerProps) {
   const [dayNumber, setDayNumber] = useState(1);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [visible, setVisible] = useState<ReadonlySet<LocationCategory>>(() => new Set(ALL_CATEGORIES));
+  /** Mobile : itinéraire et carte affichés l'un ou l'autre (côte à côte sur grand écran). */
+  const [mobileView, setMobileView] = useState<"itinerary" | "map">("itinerary");
   const mapCardRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
+  const viewToggleRef = useRef<HTMLDivElement>(null);
 
   const day = days.find((d) => d.dayNumber === dayNumber) ?? days[0]!;
   const locationsById = useMemo(() => new Map(map.locations.map((l) => [l.id, l])), [map.locations]);
@@ -74,8 +78,11 @@ export function DayExplorer({ days, map }: DayExplorerProps) {
   // Liens « Voir le jour N » (#jour-N) depuis les autres sections.
   useEffect(() => {
     const onHashChange = () => {
+      if (window.location.hash === "#carte") setMobileView("map");
+      if (window.location.hash === "#programme") setMobileView("itinerary");
       const match = /^#jour-(\d+)$/.exec(window.location.hash);
       if (!match) return;
+      setMobileView("itinerary");
       goToDay(Number(match[1]));
       timelineRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     };
@@ -103,7 +110,11 @@ export function DayExplorer({ days, map }: DayExplorerProps) {
     }
     setSelectedId(locationId);
     if (window.matchMedia("(max-width: 1023px)").matches) {
-      mapCardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      setMobileView("map");
+      // On garde la bascule « Itinéraire / Carte » visible au-dessus de la carte.
+      requestAnimationFrame(() =>
+        (viewToggleRef.current ?? mapCardRef.current)?.scrollIntoView({ behavior: "smooth", block: "start" }),
+      );
     }
   }
 
@@ -129,7 +140,7 @@ export function DayExplorer({ days, map }: DayExplorerProps) {
   const allVisible = ALL_CATEGORIES.every((c) => visible.has(c));
 
   return (
-    <section id="programme" className="scroll-mt-20 py-14 sm:py-20">
+    <section id="programme" className="scroll-mt-28 py-14 sm:scroll-mt-32 sm:py-20">
       <Container>
         <SectionTitle eyebrow="Programme" title="Ton voyage jour par jour">
           <p>Choisis un jour : ses étapes s&apos;affichent et s&apos;allument sur la carte.</p>
@@ -170,9 +181,41 @@ export function DayExplorer({ days, map }: DayExplorerProps) {
           </ul>
         </nav>
 
+        {map.available && (
+          <div
+            ref={viewToggleRef}
+            role="group"
+            aria-label="Affichage du programme"
+            className="mt-4 grid scroll-mt-32 grid-cols-2 gap-1 rounded-full bg-white/[0.06] p-1 ring-1 ring-white/10 lg:hidden"
+          >
+            {(
+              [
+                { id: "itinerary", label: "Itinéraire", Icon: CalendarDays },
+                { id: "map", label: "Carte", Icon: MapIcon },
+              ] as const
+            ).map(({ id, label, Icon }) => (
+              <button
+                key={id}
+                type="button"
+                aria-pressed={mobileView === id}
+                onClick={() => setMobileView(id)}
+                className={cn(
+                  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full text-sm font-semibold transition",
+                  mobileView === id ? "bg-white text-night-950" : "text-white/80 hover:bg-white/10",
+                )}
+              >
+                <Icon className="size-4" /> {label}
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-start">
           {/* Itinéraire du jour */}
-          <div ref={timelineRef} className="min-w-0 scroll-mt-24">
+          <div
+            ref={timelineRef}
+            className={cn("min-w-0 scroll-mt-24", map.available && mobileView === "map" && "max-lg:hidden")}
+          >
             <div className="mb-4 flex items-center justify-between gap-2">
               <button
                 type="button"
@@ -243,13 +286,16 @@ export function DayExplorer({ days, map }: DayExplorerProps) {
           <div
             id="carte"
             ref={mapCardRef}
-            className="min-w-0 scroll-mt-24 rounded-4xl bg-white/[0.04] p-4 ring-1 ring-white/10 sm:p-5 lg:sticky lg:top-24"
+            className={cn(
+              "min-w-0 scroll-mt-40 rounded-4xl bg-white/[0.04] p-4 ring-1 ring-white/10 sm:p-5 lg:sticky lg:top-24",
+              map.available && mobileView === "itinerary" && "max-lg:hidden",
+            )}
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h3 className="flex items-center gap-2 font-display text-lg font-bold">
                 <MapIcon className="size-5 text-sun-400" /> Ton voyage sur la carte
               </h3>
-              <span className="rounded-full bg-white/10 px-2 py-0.5 text-[0.65rem] font-bold tracking-wider text-white/70 uppercase ring-1 ring-white/15">
+              <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs font-bold tracking-wider text-white/70 uppercase ring-1 ring-white/15">
                 Démo
               </span>
             </div>
@@ -310,7 +356,7 @@ export function DayExplorer({ days, map }: DayExplorerProps) {
                   activeDay={day.dayNumber}
                   selectedId={selectedId}
                   onSelect={handleMarkerSelect}
-                  className="mt-3 h-[62svh] min-h-[360px] lg:h-[min(68vh,640px)]"
+                  className="mt-3 h-[52svh] min-h-[320px] lg:h-[min(68vh,640px)]"
                 />
 
                 <p className="mt-3 text-xs text-night-100/55">
@@ -353,6 +399,11 @@ function SlotCard({ slot, selected, onShowOnMap }: SlotCardProps) {
   const period = PERIODS[slot.period];
   const emoji = slot.activity?.emoji ?? slot.restaurant?.emoji ?? period.emoji;
   const area = slot.activity?.area ?? slot.restaurant?.area;
+  const category = slot.activity
+    ? `${ACTIVITY_THEMES[slot.activity.theme].emoji} ${ACTIVITY_THEMES[slot.activity.theme].label}`
+    : slot.restaurant
+      ? `🍴 ${slot.restaurant.cuisine}`
+      : null;
   const clickable = Boolean(slot.locationId && onShowOnMap);
 
   const content = (
@@ -364,7 +415,7 @@ function SlotCard({ slot, selected, onShowOnMap }: SlotCardProps) {
         {emoji}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="flex flex-wrap items-center gap-x-2 text-[0.7rem] font-bold tracking-wider text-night-100/60 uppercase">
+        <span className="flex flex-wrap items-center gap-x-2 text-xs font-bold tracking-wider text-night-100/60 uppercase">
           <span>
             {period.emoji} {period.label}
           </span>
@@ -378,6 +429,7 @@ function SlotCard({ slot, selected, onShowOnMap }: SlotCardProps) {
         <span className="mt-0.5 block font-semibold break-words">{slot.title}</span>
         <span className="mt-0.5 block text-sm leading-relaxed text-night-100/70">{slot.description}</span>
         <span className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-night-100/60">
+          {category && <span>{category}</span>}
           {slot.activity && !slot.activity.fullDay && (
             <span>⏱️ {durationLabel(slot.activity.durationHours)}</span>
           )}

@@ -65,7 +65,7 @@ export function ActivitiesSection({ activities }: { activities: PlanActivity[] }
   if (activities.length === 0) return null;
 
   return (
-    <section id="activites" className="scroll-mt-20 py-14 sm:py-20">
+    <section id="activites" className="scroll-mt-28 py-14 sm:scroll-mt-32 sm:py-20">
       <Container>
         <SectionTitle eyebrow="Activités" title="Que faire ?">
           <p>
@@ -130,17 +130,17 @@ function ActivityCard({ activity }: { activity: PlanActivity }) {
           {activity.emoji}
         </span>
         {activity.mustSee && (
-          <span className="absolute top-3 right-3 rounded-full bg-night-950/60 px-2.5 py-1 text-[0.7rem] font-semibold backdrop-blur">
+          <span className="absolute top-3 right-3 rounded-full bg-night-950/60 px-2.5 py-1 text-xs font-semibold backdrop-blur">
             {MUST_SEE_LABEL.emoji} {MUST_SEE_LABEL.label}
           </span>
         )}
         {scheduled ? (
-          <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-sun-400 px-2.5 py-1 text-[0.7rem] font-bold text-night-950">
+          <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-sun-400 px-2.5 py-1 text-xs font-bold text-night-950">
             <CalendarCheck className="size-3" /> {scheduled}
           </span>
         ) : (
           activity.recommended && (
-            <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-night-950/60 px-2.5 py-1 text-[0.7rem] font-semibold text-gold-300 backdrop-blur">
+            <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-night-950/60 px-2.5 py-1 text-xs font-semibold text-gold-300 backdrop-blur">
               <Sparkles className="size-3" /> Pour toi
             </span>
           )

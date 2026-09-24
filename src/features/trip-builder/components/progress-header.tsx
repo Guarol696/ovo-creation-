@@ -34,14 +34,14 @@ export function ProgressHeader({
         </div>
       )}
 
-      <div className="flex items-end justify-between gap-4">
-        <p className="text-sm font-semibold text-white">
+      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-1">
+        <p className="text-sm font-semibold whitespace-nowrap text-white">
           Étape {current} <span className="text-white/45">/ {total}</span>
         </p>
-        <p className="flex items-center gap-2 text-xs font-bold tracking-[0.18em] text-gold-300 uppercase">
+        <p className="flex min-w-0 flex-wrap items-center justify-end gap-x-2 gap-y-1 text-xs font-bold tracking-[0.18em] text-gold-300 uppercase">
           {label}
           {optional && (
-            <span className="rounded-full bg-white/10 px-2 py-0.5 text-[0.65rem] tracking-wider text-white/70 normal-case">
+            <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs font-semibold tracking-normal text-white/75 normal-case">
               Facultatif
             </span>
           )}

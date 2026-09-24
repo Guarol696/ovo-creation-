@@ -30,7 +30,7 @@ export function DownloadTripButton({
       ) : (
         "Télécharger mon voyage"
       )}
-      <span className="hidden rounded-md bg-white/10 px-1.5 py-0.5 text-[0.65rem] font-bold tracking-wide min-[400px]:inline">
+      <span className="hidden rounded-md bg-white/10 px-1.5 py-0.5 text-xs font-bold tracking-wide min-[400px]:inline">
         PDF
       </span>
     </a>

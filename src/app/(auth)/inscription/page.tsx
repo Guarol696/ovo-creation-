@@ -26,7 +26,10 @@ export default async function SignUpPage({ searchParams }: PageProps<"/inscripti
       footer={
         <>
           Déjà un compte ?{" "}
-          <Link href={authUrl(routes.login, next)} className="font-semibold text-sun-400 hover:underline">
+          <Link
+            href={authUrl(routes.login, next)}
+            className="inline-flex min-h-11 items-center font-semibold text-sun-400 hover:underline"
+          >
             Connecte-toi
           </Link>
         </>

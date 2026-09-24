@@ -42,6 +42,8 @@ export const viewport: Viewport = {
   themeColor: "#060c1f",
   width: "device-width",
   initialScale: 1,
+  // Zones sûres (encoche, barre d'accueil iOS) : utilisées par les barres fixées en bas d'écran.
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

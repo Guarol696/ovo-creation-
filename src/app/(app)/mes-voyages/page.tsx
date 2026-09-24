@@ -87,7 +87,7 @@ export default async function MyTripsPage({ searchParams }: PageProps<"/mes-voya
             </FormMessage>
           </div>
         )}
-        <p className="mt-10 text-center text-xs text-night-100/45">
+        <p className="mt-10 text-center text-xs text-night-100/60">
           Prix et informations indicatifs (données de démonstration), enregistrés tels qu&apos;affichés le
           jour de la sauvegarde.
         </p>

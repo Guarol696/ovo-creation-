@@ -20,7 +20,7 @@ export function AccommodationSection({ accommodation }: { accommodation: PlanAcc
   const type = ACCOMMODATION_LABELS[main.type];
 
   return (
-    <section id="hebergement" className="scroll-mt-20 py-14 sm:py-20">
+    <section id="hebergement" className="scroll-mt-28 py-14 sm:scroll-mt-32 sm:py-20">
       <Container>
         <SectionTitle eyebrow="Hébergement" title="Où dormir ?">
           <p>Un hébergement adapté à ton budget, à ton groupe et à ton style de voyage.</p>
@@ -52,15 +52,13 @@ export function AccommodationSection({ accommodation }: { accommodation: PlanAcc
 
             <dl className="mt-6 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">
               <div className="rounded-2xl bg-night-950/45 px-4 py-3">
-                <dt className="text-[0.7rem] font-semibold tracking-wider text-gold-300 uppercase">
-                  Par nuit
-                </dt>
+                <dt className="text-xs font-semibold tracking-wider text-gold-300 uppercase">Par nuit</dt>
                 <dd className="mt-1 font-display text-lg font-bold tabular-nums">
                   ≈ {formatPrice(main.estimatedPricePerNight)}
                 </dd>
               </div>
               <div className="rounded-2xl bg-night-950/45 px-4 py-3">
-                <dt className="text-[0.7rem] font-semibold tracking-wider text-gold-300 uppercase">
+                <dt className="text-xs font-semibold tracking-wider text-gold-300 uppercase">
                   Pour {nightsLabel(main.nights)}
                 </dt>
                 <dd className="mt-1 font-display text-lg font-bold tabular-nums">

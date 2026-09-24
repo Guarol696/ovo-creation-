@@ -123,6 +123,12 @@
     @apply bg-night-950;
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
+    /* Mobile : un élément amené à l'écran (focus clavier, ancre) ne finit pas sous la barre d'onglets. */
+    scroll-padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+
+    @variant lg {
+      scroll-padding-bottom: 0;
+    }
   }
 
   body {
@@ -229,6 +235,16 @@
   background: var(--color-night-700);
 }
 
+/* Écrans tactiles : boutons de zoom de 44 px (Leaflet force 30 px avec .leaflet-touch). */
+@media (pointer: coarse) {
+  .ovo-map.leaflet-touch .leaflet-bar a {
+    width: 44px;
+    height: 44px;
+    line-height: 44px;
+    font-size: 22px;
+  }
+}
+
 .ovo-map .leaflet-popup-content-wrapper,
 .ovo-map .leaflet-popup-tip {
   background: var(--color-night-900);
@@ -242,15 +258,23 @@
 }
 
 .ovo-map .leaflet-popup-content {
-  margin: 14px 16px;
+  /* À droite : place pour le bouton de fermeture (40 px). */
+  margin: 14px 34px 14px 16px;
   line-height: 1.45;
 }
 
-.ovo-map .leaflet-container a.leaflet-popup-close-button {
+.ovo-map a.leaflet-popup-close-button {
   color: var(--color-night-100);
-  width: 32px;
-  height: 32px;
-  font-size: 20px;
+  width: 40px;
+  height: 40px;
+  font-size: 22px;
+  line-height: 40px;
+}
+
+/* Marqueur : zone tactile de 44 px autour de l'épingle visible (38 px). */
+.ovo-marker {
+  display: grid;
+  place-items: center;
 }
 
 .ovo-pin {
@@ -285,7 +309,7 @@
   border-radius: 9999px;
   background: var(--color-night-950);
   color: #fff;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   border: 1px solid color-mix(in oklab, #fff 40%, transparent);
 }

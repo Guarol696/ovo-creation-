@@ -72,7 +72,7 @@ export function Hero() {
                 key={label}
                 className="bg-night-950/40 px-4 py-3.5 transition-colors group-hover:bg-night-950/30"
               >
-                <p className="flex items-center gap-1.5 text-[0.7rem] font-semibold tracking-wider text-gold-300 uppercase">
+                <p className="flex items-center gap-1.5 text-xs font-semibold tracking-wider text-gold-300 uppercase">
                   <Icon className="size-3.5" />
                   {label}
                 </p>

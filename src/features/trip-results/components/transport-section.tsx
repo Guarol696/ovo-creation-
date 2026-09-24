@@ -16,7 +16,7 @@ export function TransportSection({ transport, travelers }: TransportSectionProps
   const mode = TRANSPORT_LABELS[main.mode];
 
   return (
-    <section id="transport" className="scroll-mt-20 py-14 sm:py-20">
+    <section id="transport" className="scroll-mt-28 py-14 sm:scroll-mt-32 sm:py-20">
       <Container>
         <SectionTitle eyebrow="Transport" title="Comment y aller ?">
           <p>L&apos;option qu&apos;OVO te conseille pour ce voyage, avec les alternatives possibles.</p>
@@ -116,7 +116,7 @@ export function TransportSection({ transport, travelers }: TransportSectionProps
 function Fact({ icon: Icon, label, value }: { icon: typeof Clock; label: string; value: string }) {
   return (
     <div className="rounded-2xl bg-night-950/45 px-4 py-3">
-      <dt className="flex items-center gap-1.5 text-[0.7rem] font-semibold tracking-wider text-gold-300 uppercase">
+      <dt className="flex items-center gap-1.5 text-xs font-semibold tracking-wider text-gold-300 uppercase">
         <Icon className="size-3.5" /> {label}
       </dt>
       <dd className="mt-1 font-display text-lg font-bold tabular-nums">{value}</dd>

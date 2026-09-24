@@ -11,7 +11,7 @@ export function WhySection({ plan }: { plan: TravelPlan }) {
     : "Des options plus abordables";
 
   return (
-    <section id="pourquoi" className="scroll-mt-20 py-14 sm:py-20">
+    <section id="pourquoi" className="scroll-mt-28 py-14 sm:scroll-mt-32 sm:py-20">
       <Container>
         <SectionTitle eyebrow="Ta proposition" title="Pourquoi OVO te recommande ce voyage">
           <p>{plan.summary}</p>

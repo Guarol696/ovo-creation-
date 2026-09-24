@@ -41,7 +41,7 @@ export function WishesStep({ draft, update }: StepProps) {
         <p
           className={cn(
             "mt-2 text-right text-xs tabular-nums",
-            length > WISHES_MAX_LENGTH * 0.9 ? "text-sun-400" : "text-night-100/50",
+            length > WISHES_MAX_LENGTH * 0.9 ? "text-sun-400" : "text-night-100/60",
           )}
         >
           {length} / {WISHES_MAX_LENGTH}

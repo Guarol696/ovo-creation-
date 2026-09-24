@@ -13,7 +13,7 @@ export function Logo({ className, onClick }: LogoProps) {
       href={routes.home}
       onClick={onClick}
       aria-label={`${siteConfig.name} — ${siteConfig.meaning}, accueil`}
-      className={cn("group inline-flex items-center gap-2 text-white", className)}
+      className={cn("group inline-flex min-h-11 items-center gap-2 text-white", className)}
     >
       <span className="relative grid size-9 place-items-center rounded-xl bg-white/10 ring-1 ring-white/15 backdrop-blur-md transition-transform duration-500 group-hover:rotate-[20deg]">
         <span className="size-4.5 rounded-full border-[3.5px] border-sun-400" />

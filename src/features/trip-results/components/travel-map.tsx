@@ -52,14 +52,14 @@ function popupHtml(location: PlanLocation) {
         ? "Gratuit"
         : `≈ ${formatPrice(location.estimatedCostPerPerson)} / pers. (prix indicatif)`;
   return `
-    <div style="min-width:180px;max-width:240px">
-      <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--color-gold-300)">
+    <div style="min-width:min(180px,calc(100vw - 120px));max-width:min(240px,calc(100vw - 120px))">
+      <p style="margin:0;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-gold-300)">
         ${escapeHtml(LOCATION_CATEGORIES[location.category].label)} · ${escapeHtml(location.label)}
       </p>
       <p style="margin:4px 0 0;font-weight:700;font-size:15px">${escapeHtml(location.emoji)} ${escapeHtml(location.name)}</p>
       <p style="margin:6px 0 0;font-size:13px;color:var(--color-night-100)">${escapeHtml(location.description)}</p>
       <p style="margin:8px 0 0;font-size:12px;font-weight:600">${escapeHtml(days)}${price ? ` · ${escapeHtml(price)}` : ""}</p>
-      <p style="margin:6px 0 0;font-size:11px;color:var(--color-night-200)">
+      <p style="margin:6px 0 0;font-size:12px;color:var(--color-night-200)">
         Donnée de démonstration${location.precision === "approximate" ? " · position approximative" : ""}
       </p>
     </div>`;
@@ -89,6 +89,13 @@ function TravelMapComponent({
   const markersRef = useRef(new Map<string, Leaflet.Marker>());
   const onSelectRef = useRef(onSelect);
   const selectedRef = useRef(selectedId);
+  /** Recadrage courant (jour, filtres) : rejoué quand la carte redevient visible. */
+  const refitRef = useRef<() => void>(() => {});
+  /** Carte affichée avec une taille réelle (masquée sur mobile en mode « Itinéraire »). */
+  const hasSize = () => {
+    const el = containerRef.current;
+    return Boolean(el && el.clientWidth > 0 && el.clientHeight > 0);
+  };
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -113,7 +120,7 @@ function TravelMapComponent({
         scrollWheelZoom: false,
       });
       L.control
-        .zoom({ position: "topright", zoomInTitle: "Zoomer", zoomOutTitle: "Dézoomer" })
+        .zoom({ position: "bottomright", zoomInTitle: "Zoomer", zoomOutTitle: "Dézoomer" })
         .addTo(instance);
       L.tileLayer(publicEnv.mapTilesUrl, {
         attribution: publicEnv.mapAttribution,
@@ -129,16 +136,16 @@ function TravelMapComponent({
           icon: L.divIcon({
             html: markerHtml(location),
             className: "ovo-marker",
-            iconSize: [38, 38],
-            iconAnchor: [19, 38],
-            popupAnchor: [0, -36],
+            iconSize: [44, 44],
+            iconAnchor: [22, 41],
+            popupAnchor: [0, -38],
           }),
           title: location.name,
           alt: `${LOCATION_CATEGORIES[location.category].label} : ${location.name}`,
           keyboard: true,
           riseOnHover: true,
         });
-        marker.bindPopup(popupHtml(location), { autoPanPadding: [24, 24] });
+        marker.bindPopup(popupHtml(location), { autoPanPadding: [16, 56] });
         marker.on("click", () => onSelectRef.current(location.id));
         // Fermer la popup du lieu sélectionné le désélectionne (pas celle d'un autre lieu).
         marker.on("popupclose", () => {
@@ -147,7 +154,15 @@ function TravelMapComponent({
         markers.set(location.id, marker);
       }
 
-      resizeObserver = new ResizeObserver(() => instance.invalidateSize());
+      // Carte masquée puis affichée (onglet « Carte » sur mobile) : on recalcule sa taille
+      // et on recadre, sinon Leaflet garde le cadrage calculé pour une carte de 0 px.
+      let hidden = container.clientWidth === 0 || container.clientHeight === 0;
+      resizeObserver = new ResizeObserver(([entry]) => {
+        instance.invalidateSize();
+        const nowHidden = !entry || entry.contentRect.width === 0 || entry.contentRect.height === 0;
+        if (hidden && !nowHidden) refitRef.current();
+        hidden = nowHidden;
+      });
       resizeObserver.observe(container);
       mapRef.current = instance;
       setReady(true);
@@ -194,6 +209,21 @@ function TravelMapComponent({
             .filter((l) => map.center && distanceFromCenter(l, map) <= CITY_RADIUS_KM)
             .map((l) => [l.point.lat, l.point.lng] as Leaflet.LatLngExpression)
         : inFocus;
+    const fit = (animate: boolean) => {
+      const selected = selectedRef.current ? markersRef.current.get(selectedRef.current) : undefined;
+      if (selected && instance.hasLayer(selected)) {
+        instance.setView(selected.getLatLng(), Math.max(instance.getZoom(), 15), { animate });
+        selected.openPopup();
+      } else if (points.length > 1) {
+        instance.fitBounds(L.latLngBounds(points), { padding: [48, 48], maxZoom: 15, animate });
+      } else if (points.length === 1) {
+        instance.setView(points[0]!, 14, { animate });
+      }
+    };
+    refitRef.current = () => fit(false);
+    // Carte masquée : Leaflet ne peut pas calculer de cadrage (taille nulle), on recadrera à l'affichage.
+    if (!hasSize()) return;
+    instance.invalidateSize();
     if (points.length > 1) {
       instance.fitBounds(L.latLngBounds(points), { padding: [48, 48], maxZoom: 15, animate: true });
     } else if (points.length === 1) {
@@ -217,6 +247,9 @@ function TravelMapComponent({
     if (!marker) return;
     if (!instance.hasLayer(marker)) marker.addTo(instance);
     marker.setZIndexOffset(1000);
+    // Carte encore masquée (bascule « Carte » en cours) : centrage et popup au moment de l'affichage.
+    if (!hasSize()) return;
+    instance.invalidateSize();
     instance.flyTo(marker.getLatLng(), Math.max(instance.getZoom(), 15), { duration: 0.6 });
     marker.openPopup();
   }, [ready, selectedId]);

@@ -19,7 +19,7 @@ export function PlanBadge({
         plan === "premium"
           ? "bg-linear-to-r from-gold-300 to-sun-400 text-night-950"
           : "bg-white/10 text-sun-300 ring-1 ring-sun-400/60",
-        size === "xs" ? "px-2 py-0.5 text-[0.65rem]" : "px-2.5 py-1 text-xs",
+        size === "xs" ? "px-2 py-0.5 text-xs" : "px-2.5 py-1 text-xs",
         className,
       )}
     >

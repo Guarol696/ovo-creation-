@@ -24,7 +24,7 @@ export function Toast({ message, tone = "success", onClose, duration = 4500 }: T
     <div
       role="status"
       aria-live="polite"
-      className="pointer-events-none fixed inset-x-0 bottom-[max(1rem,env(safe-area-inset-bottom))] z-[60] flex justify-center px-4"
+      className="pointer-events-none fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-[60] flex justify-center px-4 lg:bottom-[max(1rem,env(safe-area-inset-bottom))]"
     >
       {message && (
         <div

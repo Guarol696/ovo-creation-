@@ -9,6 +9,7 @@ import { HighlightsSection } from "./highlights-section";
 import { RestaurantsSection } from "./restaurants-section";
 import { ResultCta } from "./result-cta";
 import { ResultHero, type SavedTripInfo } from "./result-hero";
+import { ResultSectionNav } from "./result-section-nav";
 import { TripSaveProvider, type TripSaveConfig } from "./save-trip-button";
 import { TransportSection } from "./transport-section";
 import { TravelBookSection } from "./travel-book-section";
@@ -36,6 +37,7 @@ export function TravelPlanView({ plan, save, savedTrip }: TravelPlanViewProps) {
           <div className="absolute top-[70rem] left-[-20%] size-[32rem] rounded-full bg-night-500/25 blur-[140px]" />
         </div>
         <ResultHero plan={plan} mode={save.mode} savedTrip={savedTrip} />
+        <ResultSectionNav />
         <Container className="pt-6">
           <DemoNotice />
         </Container>

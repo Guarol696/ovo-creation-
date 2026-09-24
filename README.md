@@ -284,6 +284,32 @@ Premium inclut tout Medium, et Medium inclut tout le gratuit. Aucune fonctionnal
 
 Sans ces variables, le site fonctionne. Les boutons de paiement indiquent alors que le paiement n'est pas encore activé, et le webhook répond 503.
 
+## Mobile & accessibilité
+
+OVO est pensé d'abord pour le téléphone. Les pages sont vérifiées de 320 px à 1440 px.
+
+- **Navigation mobile** (< 1024 px) :
+  - une barre d'onglets en bas d'écran (`components/layout/mobile-tab-bar.tsx`) : Accueil, Créer, Voyages, Premium, Compte ou Connexion ;
+  - le menu ☰ garde les liens secondaires.
+- **Questionnaire** :
+  - il vit dans le groupe de routes `(focus)` : ni pied de page ni barre d'onglets, pour que « Continuer » et « Générer mon voyage » restent collés en bas de l'écran ;
+  - l'animation « OVO prépare ton voyage… » s'affiche pendant la génération ;
+  - une erreur renvoie au récapitulatif avec un message.
+- **Page du voyage** :
+  - un sommaire des sections reste collé sous l'en-tête, avec la section en cours mise en évidence (`result-section-nav.tsx`) ;
+  - sur mobile, l'itinéraire et la carte sont en onglets « Itinéraire / Carte » ;
+  - « Voir sur la carte » bascule sur la carte et ouvre la fiche du lieu ;
+  - la carte se recadre quand elle redevient visible ;
+  - 4 restaurants sont affichés sur mobile, avec « Voir les N restaurants ».
+- **Mes voyages** : chaque carte propose Voir, Partager (ouvre la fenêtre de partage via `#partager`) et Supprimer (avec confirmation).
+- **Règles de mise en page** :
+  - cibles tactiles d'au moins 44 px (marqueurs et zoom de la carte compris) ;
+  - textes d'au moins 12 px (`text-xs`) ;
+  - textes secondaires au moins en `text-night-100/60` (contraste AA) ;
+  - `scroll-padding-bottom` pour qu'aucun élément amené à l'écran ne finisse sous la barre d'onglets ;
+  - `viewport-fit=cover` et `env(safe-area-inset-*)` pour les iPhone à encoche.
+- **Chargement** : pas de `loading.tsx` sur une route qui appelle `redirect()` ou `notFound()`. Le streaming transformerait une 404 ou une redirection en page 200.
+
 ## Feuille de route
 
 - [x] Étape 1 — Fondations + landing page
@@ -296,3 +322,4 @@ Sans ces variables, le site fonctionne. Les boutons de paiement indiquent alors 
 - [x] Étape 8 — Partage d'un voyage (lien public contrôlé) et export PDF
 - [x] Étape 9 — OVO Premium : offre, page `/premium`, droits côté serveur, badge, carnet de voyage PDF (sans paiement)
 - [x] Étape 10 — Abonnements Stripe (OVO Medium, OVO Premium) : Checkout, webhooks, Customer Portal, droits synchronisés
+- [x] Étape 11 — Optimisation mobile & UX : onglets mobiles, questionnaire plein écran, sommaire du voyage, Itinéraire / Carte, accessibilité

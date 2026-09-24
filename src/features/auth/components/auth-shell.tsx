@@ -27,7 +27,7 @@ export function AuthShell({ eyebrow, title, description, children, footer }: Aut
           <div className="mt-7">{children}</div>
         </div>
         {footer && <div className="mt-6 text-center text-sm text-night-100/75">{footer}</div>}
-        <p className="mt-6 flex items-center justify-center gap-1.5 text-xs text-night-100/50">
+        <p className="mt-6 flex items-center justify-center gap-1.5 text-xs text-night-100/60">
           <ShieldCheck className="size-3.5" /> Tes données restent privées : toi seul·e vois tes voyages.
         </p>
       </div>

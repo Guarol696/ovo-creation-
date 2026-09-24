@@ -113,11 +113,18 @@ export function TripSummary({ request, onEdit, onGenerate, onRestart, error, hea
         </p>
       )}
 
-      <div className="mt-8 flex flex-col-reverse items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Button variant="ghost-light" onClick={onRestart}>
           <RotateCcw className="size-4" /> Tout recommencer
         </Button>
-        <Button size="lg" onClick={onGenerate}>
+        <Button size="lg" onClick={onGenerate} className="hidden sm:inline-flex">
+          <Sparkles className="size-5" /> Générer mon voyage
+        </Button>
+      </div>
+
+      {/* Mobile : bouton principal collé en bas de l'écran pendant toute la lecture du récap. */}
+      <div className="sticky bottom-0 z-30 -mx-5 mt-6 border-t border-white/10 bg-night-950/85 px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-xl sm:hidden">
+        <Button size="lg" onClick={onGenerate} className="w-full">
           <Sparkles className="size-5" /> Générer mon voyage
         </Button>
       </div>

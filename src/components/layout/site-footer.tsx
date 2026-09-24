@@ -3,6 +3,7 @@ import { footerNav, siteConfig, socialLinks } from "@/config/site";
 import { InstagramIcon, TikTokIcon } from "@/components/icons/social-icons";
 import { Container } from "@/components/ui/container";
 import { Logo } from "./logo";
+import { MobileTabBar } from "./mobile-tab-bar";
 
 const socials = [
   { label: "Instagram", href: socialLinks.instagram, Icon: InstagramIcon },
@@ -18,7 +19,8 @@ export function SiteFooter() {
         aria-hidden="true"
         className="pointer-events-none absolute -bottom-48 left-1/2 h-96 w-[40rem] max-w-full -translate-x-1/2 rounded-full bg-sun-500/10 blur-3xl"
       />
-      <Container className="relative py-16 sm:py-20">
+      {/* Mobile : marge basse pour que la barre d'onglets ne masque pas la fin du pied de page. */}
+      <Container className="relative pt-16 pb-[calc(5.5rem+env(safe-area-inset-bottom))] sm:pt-20 lg:pb-20">
         <div className="grid gap-12 md:grid-cols-[1.4fr_1fr_1fr]">
           <div className="max-w-sm">
             <Logo />
@@ -56,12 +58,12 @@ export function SiteFooter() {
           {footerNav.map((group) => (
             <nav key={group.title} aria-label={group.title}>
               <p className="text-xs font-bold tracking-[0.2em] text-gold-300 uppercase">{group.title}</p>
-              <ul className="mt-5 space-y-1">
+              <ul className="mt-4">
                 {group.links.map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="inline-block py-1.5 text-sm text-night-100/75 transition-colors hover:text-white"
+                      className="inline-flex min-h-11 items-center text-sm text-night-100/75 transition-colors hover:text-white lg:min-h-9"
                     >
                       {link.label}
                     </Link>
@@ -72,13 +74,14 @@ export function SiteFooter() {
           ))}
         </div>
 
-        <div className="mt-14 flex flex-col gap-3 border-t border-white/10 pt-8 text-xs text-night-100/50 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-14 flex flex-col gap-3 border-t border-white/10 pt-8 text-xs text-night-100/60 sm:flex-row sm:items-center sm:justify-between">
           <p>
             © {year} {siteConfig.name} — {siteConfig.meaning}. Tous droits réservés.
           </p>
           <p>Fait pour celles et ceux qui ont envie de partir.</p>
         </div>
       </Container>
+      <MobileTabBar />
     </footer>
   );
 }

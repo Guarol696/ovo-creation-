@@ -33,7 +33,10 @@ export default async function LoginPage({ searchParams }: PageProps<"/connexion"
       footer={
         <>
           Pas encore de compte ?{" "}
-          <Link href={authUrl(routes.signUp, next)} className="font-semibold text-sun-400 hover:underline">
+          <Link
+            href={authUrl(routes.signUp, next)}
+            className="inline-flex min-h-11 items-center font-semibold text-sun-400 hover:underline"
+          >
             Crée ton compte gratuitement
           </Link>
         </>
