@@ -26,7 +26,13 @@ good(`NEXT_PUBLIC_SITE_URL = ${siteUrl}`);
 
 // --- Supabase -------------------------------------------------------------
 title("Supabase (comptes, voyages enregistrés, abonnements)");
-const sbUrl = env("NEXT_PUBLIC_SUPABASE_URL").replace(/\/$/, "");
+const sbUrl = (() => {
+  try {
+    return new URL(env("NEXT_PUBLIC_SUPABASE_URL")).origin;
+  } catch {
+    return env("NEXT_PUBLIC_SUPABASE_URL");
+  }
+})();
 const anon = env("NEXT_PUBLIC_SUPABASE_ANON_KEY");
 const service = env("SUPABASE_SERVICE_ROLE_KEY");
 let supabaseOk = false;

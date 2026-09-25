@@ -18,10 +18,25 @@ function resolveSiteUrl() {
   return "http://localhost:3000";
 }
 
+/**
+ * Adresse du projet Supabase réduite à son origine (`https://xxxx.supabase.co`) :
+ * tolère une adresse collée avec un chemin (`/rest/v1/`) ou une barre finale,
+ * qui ferait échouer tous les appels (« Invalid path specified in request URL »).
+ */
+export function normalizeSupabaseUrl(raw: string | undefined) {
+  const value = raw?.trim() ?? "";
+  if (!value) return "";
+  try {
+    return new URL(value).origin;
+  } catch {
+    return value;
+  }
+}
+
 export const publicEnv = {
   siteUrl: resolveSiteUrl(),
-  supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-  supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
+  supabaseUrl: normalizeSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL),
+  supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ?? "",
   /** Clé publiable Stripe (pk_…) : publique par conception, jamais la clé secrète. */
   stripePublishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "",
   /** Fond de carte raster (gratuit par défaut : CARTO, données © OpenStreetMap). */
