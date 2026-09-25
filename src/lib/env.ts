@@ -3,8 +3,23 @@
  * Les variables NEXT_PUBLIC_* doivent être lues de façon statique
  * pour être intégrées au bundle client par Next.js.
  */
+/**
+ * URL publique du site (liens des emails, retours Stripe, partage).
+ * Ordre : NEXT_PUBLIC_SITE_URL (domaine choisi) → URL de production Vercel
+ * → URL du déploiement Vercel → localhost en développement.
+ */
+function resolveSiteUrl() {
+  const explicit = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (explicit) return explicit.replace(/\/$/, "");
+  const vercelProduction = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL;
+  if (vercelProduction) return `https://${vercelProduction}`;
+  const vercelDeployment = process.env.NEXT_PUBLIC_VERCEL_URL;
+  if (vercelDeployment) return `https://${vercelDeployment}`;
+  return "http://localhost:3000";
+}
+
 export const publicEnv = {
-  siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  siteUrl: resolveSiteUrl(),
   supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
   supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
   /** Clé publiable Stripe (pk_…) : publique par conception, jamais la clé secrète. */

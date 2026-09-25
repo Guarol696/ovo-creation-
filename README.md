@@ -15,6 +15,7 @@ le nombre de voyageurs et son style, et OVO lui propose un voyage personnalisé.
 ## Démarrer
 
 > Guide pas à pas (installation, Supabase, Stripe, dépannage) : **[DEMARRAGE.md](DEMARRAGE.md)**.
+> Mise en ligne (Vercel + Supabase + Stripe) : **[MISE-EN-LIGNE.md](MISE-EN-LIGNE.md)**.
 
 ```bash
 npm install
