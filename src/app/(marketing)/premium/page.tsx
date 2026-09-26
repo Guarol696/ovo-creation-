@@ -43,6 +43,10 @@ const FAQ = [
 export default async function PremiumPage({ searchParams }: PageProps<"/premium">) {
   const [entitlements, params] = await Promise.all([getEntitlements(), searchParams]);
   const billing = getBillingStatus();
+  if (!billing.checkoutReady) {
+    // Journal serveur (Vercel → Logs) : noms des réglages manquants ou mal formés, jamais leurs valeurs.
+    console.warn("[stripe] paiement désactivé, à vérifier :", billing.missing.join(", "));
+  }
   const { prices, issues } = await getPlanPrices();
   const priceIssues = showPriceDiagnostics() ? PAID_PLANS.flatMap((plan) => issues[plan]) : [];
   const offer = param(params.offre);

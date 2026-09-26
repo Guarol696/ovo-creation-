@@ -54,9 +54,9 @@ export function getBillingStatus(): BillingStatus {
   const missing: string[] = [];
   if (!isSupabaseConfigured()) missing.push("NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY");
   if (!isAdminConfigured()) missing.push("SUPABASE_SERVICE_ROLE_KEY");
-  if (!env.secretKey) missing.push("STRIPE_SECRET_KEY");
-  if (!env.priceIds.medium) missing.push("STRIPE_MEDIUM_PRICE_ID");
-  if (!env.priceIds.premium) missing.push("STRIPE_PREMIUM_PRICE_ID");
+  if (!env.secretKey) missing.push("STRIPE_SECRET_KEY (vide ou ne commence pas par sk_test_/sk_live_)");
+  if (!env.priceIds.medium) missing.push("STRIPE_MEDIUM_PRICE_ID (vide ou ne commence pas par price_)");
+  if (!env.priceIds.premium) missing.push("STRIPE_PREMIUM_PRICE_ID (vide ou ne commence pas par price_)");
   const coreReady = missing.length === 0;
   if (!env.webhookSecret) missing.push("STRIPE_WEBHOOK_SECRET");
   return {
