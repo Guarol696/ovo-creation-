@@ -10,7 +10,7 @@
  */
 function resolveSiteUrl() {
   const explicit = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  if (explicit) return explicit.replace(/\/$/, "");
+  if (explicit && /^https?:\/\/[^/\s]+/.test(explicit)) return explicit.replace(/\/$/, "");
   const vercelProduction = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL;
   if (vercelProduction) return `https://${vercelProduction}`;
   const vercelDeployment = process.env.NEXT_PUBLIC_VERCEL_URL;

@@ -6,7 +6,7 @@ import { PAID_PLANS, PLANS, type PaidPlanId } from "@/config/premium";
 import { routes } from "@/config/site";
 import { getCurrentUser } from "@/features/auth/server/session";
 import { authUrl } from "@/lib/auth/redirect";
-import { publicEnv } from "@/lib/env";
+import { requestOrigin } from "@/lib/request-origin";
 import { buildCheckoutParams, ONGOING_STATUSES } from "./stripe-mapping";
 import { ensureStripeCustomer } from "./server/customers";
 import { getBillingEnv, getBillingStatus, priceIdFor } from "./server/env";
@@ -82,7 +82,7 @@ export async function startCheckout(_: BillingActionState, formData: FormData): 
         priceId: priceIdFor(paidPlan),
         customerId,
         userId: user.id,
-        siteUrl: publicEnv.siteUrl,
+        siteUrl: await requestOrigin(),
       }),
     );
     url = session.url;
@@ -175,7 +175,7 @@ export async function openBillingPortal(
       ONGOING_STATUSES.includes(row.subscription_status),
     );
     const { portalConfigurationId } = getBillingEnv();
-    const returnUrl = `${publicEnv.siteUrl}${routes.account}?retour=portail`;
+    const returnUrl = `${await requestOrigin()}${routes.account}?retour=portail`;
     const base: Stripe.BillingPortal.SessionCreateParams = {
       customer: row.stripe_customer_id,
       return_url: returnUrl,
