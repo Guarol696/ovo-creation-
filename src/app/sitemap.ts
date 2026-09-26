@@ -9,6 +9,7 @@ const publicPaths = [
   routes.contact,
   routes.terms,
   routes.privacy,
+  routes.legalNotice,
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

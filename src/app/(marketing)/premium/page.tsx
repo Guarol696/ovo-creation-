@@ -1,7 +1,10 @@
 import { AlertTriangle, ChevronDown, FlaskConical } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Container } from "@/components/ui/container";
+import { legal } from "@/config/legal";
 import { PAID_PLANS, PLAN_LIMITS, PLANS, type PlanId } from "@/config/premium";
+import { routes } from "@/config/site";
 import { param } from "@/features/auth/page-params";
 import { getBillingStatus } from "@/features/billing/server/env";
 import { getPlanPrices, showPriceDiagnostics } from "@/features/billing/server/prices";
@@ -125,8 +128,12 @@ export default async function PremiumPage({ searchParams }: PageProps<"/premium"
             highlighted={highlighted}
           />
           <p className="mt-6 text-center text-xs text-night-100/55">
-            Prix TTC, prélevés automatiquement par Stripe à chaque période. Paiement sécurisé, résiliable à
-            tout moment.
+            {legal.vatMention || "Prix TTC"}, prélevés automatiquement par Stripe à chaque période. Paiement
+            sécurisé, résiliable à tout moment. En t&apos;abonnant, tu acceptes les{" "}
+            <Link href={routes.terms} className="underline underline-offset-2 hover:text-white">
+              conditions générales de vente
+            </Link>
+            .
           </p>
         </Container>
       </section>

@@ -26,6 +26,7 @@ export const routes = {
   contact: "/contact",
   terms: "/conditions",
   privacy: "/confidentialite",
+  legalNotice: "/mentions-legales",
   discover: "/#decouvrir",
   howItWorks: "/#comment-ca-marche",
   premium: "/premium",
@@ -61,6 +62,7 @@ export const footerNav: { title: string; links: NavLink[] }[] = [
       { label: "Contact", href: routes.contact },
       { label: "Conditions", href: routes.terms },
       { label: "Confidentialité", href: routes.privacy },
+      { label: "Mentions légales", href: routes.legalNotice },
     ],
   },
 ];
