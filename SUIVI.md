@@ -17,7 +17,7 @@
 ### Avant d'encaisser de vrais clients
 
 1. **Données réelles.** Hôtels, restaurants, activités et prix sont aujourd'hui des données de démonstration, signalées comme telles sur le site. Il faut brancher de vraies sources (API) via `TravelDataSource`.
-2. **Statut juridique : en cours.** Création de la micro-entreprise sur https://formalites.entreprises.gouv.fr (gratuit), commencée puis mise en pause en attendant des papiers. Choix déjà faits :
+2. **Statut juridique : en cours.** Création de la micro-entreprise sur https://formalites.entreprises.gouv.fr (gratuit), **dossier déposé le 27/09/2026** (email de confirmation reçu). En attente du SIRET (1 à 4 semaines), puis choisir un médiateur de la consommation. Choix déjà faits :
    - assurance maladie actuelle : CPAM ;
    - activité : **pas « agence de voyage »** (activité réglementée, et OVO ne vend pas de voyages). Choisir « portail internet » (63.12Z) ou « édition de logiciels » (58.29C), en prestation de services commerciale (BIC) ;
    - versement libératoire : **non** (activable plus tard).
