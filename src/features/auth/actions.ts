@@ -4,7 +4,8 @@ import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { routes } from "@/config/site";
 import { NEXT_PARAM, safeNextPath } from "@/lib/auth/redirect";
-import { isSupabaseConfigured, publicEnv } from "@/lib/env";
+import { isSupabaseConfigured } from "@/lib/env";
+import { requestOrigin } from "@/lib/request-origin";
 import { createClient } from "@/lib/supabase/server";
 import { authErrorMessage } from "./errors";
 import {
@@ -39,9 +40,12 @@ function failure(error: unknown, context: string, values?: Record<string, string
   return { status: "error", message: authErrorMessage(error), values };
 }
 
-/** Lien de retour vers le site (email de confirmation / réinitialisation). */
-const callbackUrl = (next: string) =>
-  `${publicEnv.siteUrl}${routes.authConfirm}?${new URLSearchParams({ [NEXT_PARAM]: next })}`;
+/**
+ * Lien de retour vers le site (email de confirmation / réinitialisation), sur l'adresse
+ * utilisée par le visiteur. Supabase n'accepte que les adresses listées dans ses Redirect URLs.
+ */
+const callbackUrl = async (next: string) =>
+  `${await requestOrigin()}${routes.authConfirm}?${new URLSearchParams({ [NEXT_PARAM]: next })}`;
 
 export async function signIn(_: AuthFormState, formData: FormData): Promise<AuthFormState> {
   if (!isSupabaseConfigured()) return UNAVAILABLE;
@@ -78,7 +82,7 @@ export async function signUp(_: AuthFormState, formData: FormData): Promise<Auth
       password: parsed.data.password,
       options: {
         data: { display_name: parsed.data.displayName },
-        emailRedirectTo: callbackUrl(next),
+        emailRedirectTo: await callbackUrl(next),
       },
     });
     if (error) return failure(error, "inscription", values);
@@ -123,7 +127,7 @@ export async function requestPasswordReset(_: AuthFormState, formData: FormData)
   try {
     const supabase = await createClient();
     const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-      redirectTo: callbackUrl(routes.resetPassword),
+      redirectTo: await callbackUrl(routes.resetPassword),
     });
     // On ne révèle jamais si un compte existe : seules les erreurs techniques sont signalées.
     if (error && (error.status === 429 || error.status === 0 || error.name === "AuthRetryableFetchError")) {

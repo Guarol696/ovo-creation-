@@ -4,7 +4,7 @@ import { publicEnv } from "@/lib/env";
 
 /**
  * Adresse du site telle que le visiteur l'utilise (ex. https://ovo-creation.vercel.app),
- * pour les retours de Stripe (paiement, portail). Ne dépend pas d'une variable
+ * pour les liens de retour (emails de compte, paiement Stripe, portail). Ne dépend pas d'une variable
  * d'environnement mal renseignée ; repli sur NEXT_PUBLIC_SITE_URL si l'en-tête manque.
  */
 export async function requestOrigin(): Promise<string> {

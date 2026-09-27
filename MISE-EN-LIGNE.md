@@ -138,7 +138,7 @@ Si le paiement reste bloqué sur « Confirmation en cours » : vérifie l'URL du
 
 1. Achète un domaine, par exemple chez OVH, Gandi ou Namecheap.
 2. Dans Vercel, ouvre **Settings → Domains → Add** et suis les instructions DNS que Vercel affiche.
-3. Une fois le domaine « Valid », ajoute la variable `NEXT_PUBLIC_SITE_URL` = `https://ton-domaine.fr` dans Vercel, puis relance un déploiement.
+3. Une fois le domaine « Valid », relance un déploiement (**Deployments → ⋯ → Redeploy**). La variable `NEXT_PUBLIC_SITE_URL` est facultative : les liens des emails et de Stripe utilisent l'adresse par laquelle le visiteur arrive.
 4. Remplace l'adresse `vercel.app` par ton domaine :
    - dans Supabase (étape 3) ;
    - dans le webhook Stripe (étape 4).
