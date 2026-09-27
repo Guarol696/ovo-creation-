@@ -27,7 +27,7 @@
 
 ### Recommandé
 
-- **Nom de domaine**, par exemple `ovo-voyage.fr`. On peut l'acheter dans Vercel (Settings → Domains). Il faut ensuite mettre à jour la Site URL et les Redirect URLs dans Supabase, ainsi que l'URL du webhook Stripe.
+- **Nom de domaine : `ovovoyage.com`**, acheté dans Vercel. À faire : le relier au projet (Settings → Domains), ajouter `NEXT_PUBLIC_SITE_URL=https://ovovoyage.com` dans Vercel, puis mettre à jour la Site URL et les Redirect URLs dans Supabase et l'URL du webhook Stripe.
 - **Service d'emails** (Brevo, Resend…) dans Supabase → Authentication → SMTP : le service gratuit de Supabase n'envoie que quelques emails par heure.
 - **Test complet sur téléphone** : annulation et changement d'offre via « Gérer mon abonnement ».
 - **Région des fonctions Vercel** : elles tournent aujourd'hui à Washington (`iad1`). Les placer à Paris (`cdg1`) les rapprocherait des utilisateurs et de Supabase.
