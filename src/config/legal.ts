@@ -12,9 +12,10 @@ export const legal = {
   /** Numéro SIRET (ou RCS + ville pour une société). */
   siret: "",
   /** Adresse postale (domiciliation acceptée). */
-  address: "",
+  // Provisoire : la loi demande l'adresse complète (ou une domiciliation) avant les vrais paiements.
+  address: "Tours (37), France",
   /** Email de contact affiché sur le site (support, données personnelles, rétractation). */
-  email: "",
+  email: "ovovoyage@gmail.com",
   /** Directeur·rice de la publication (en général l'éditeur). */
   publicationDirector: "Gwen Marchal",
   /**
