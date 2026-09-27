@@ -21,7 +21,7 @@
    - assurance maladie actuelle : CPAM ;
    - activité : **pas « agence de voyage »** (activité réglementée, et OVO ne vend pas de voyages). Choisir « portail internet » (63.12Z) ou « édition de logiciels » (58.29C), en prestation de services commerciale (BIC) ;
    - versement libératoire : **non** (activable plus tard).
-3. **Pages légales : à compléter.** Les pages Mentions légales, Conditions générales (CGU + CGV), Confidentialité et Contact sont en ligne. Les champs encore vides (nom, statut, SIRET, adresse, email, mention de TVA, médiateur) s'affichent en jaune « à compléter » : il suffit de les remplir dans `src/config/legal.ts`. Ces textes sont des modèles, à faire relire avant l'ouverture au public.
+3. **Pages légales : à compléter.** Les pages Mentions légales, Conditions générales (CGU + CGV), Confidentialité et Contact sont en ligne. Éditeur, adresse, email et TVA sont remplis ; restent le SIRET et le médiateur, qui s'affichent en jaune « à compléter » : il suffit de les remplir dans `src/config/legal.ts`. Ces textes sont des modèles, à faire relire avant l'ouverture au public.
 4. **Stripe en mode live** : activer le compte (identité, IBAN), recréer les produits, le webhook et le portail en live, remplacer les 4 variables Stripe dans Vercel, puis redéployer. Voir `MISE-EN-LIGNE.md`, section 7.
 5. **Vercel Pro**, obligatoire pour un usage commercial.
 
