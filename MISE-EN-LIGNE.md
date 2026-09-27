@@ -143,6 +143,8 @@ Si le paiement reste bloqué sur « Confirmation en cours » : vérifie l'URL du
    - dans Supabase (étape 3) ;
    - dans le webhook Stripe (étape 4).
 
+   Utilise l'adresse **principale** affichée par Vercel (souvent celle avec `www`). Stripe ne suit pas les redirections : si l'URL du webhook redirige, il échoue avec le code 308.
+
 ## 7. Le jour du lancement réel (paiements live)
 
 Refais l'étape 4 avec l'interrupteur **Test mode désactivé**, c'est-à-dire en mode live. Cela donne de nouveaux produits, des clés `sk_live_…` / `pk_live_…`, un nouveau webhook et un nouveau portail. Remplace ensuite les 5 variables Stripe dans Vercel et relance un déploiement.

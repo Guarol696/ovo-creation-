@@ -27,7 +27,7 @@
 
 ### Recommandé
 
-- **Nom de domaine : `ovovoyage.com`**, acheté dans Vercel. Relié au projet et fonctionnel. À faire : Redeploy, puis mettre à jour la Site URL et les Redirect URLs dans Supabase et l'URL du webhook Stripe.
+- **Nom de domaine : `ovovoyage.com`**, acheté dans Vercel et relié au projet. L'adresse principale est **`https://www.ovovoyage.com`** (`ovovoyage.com` redirige vers le www). Webhook Stripe réglé sur `https://www.ovovoyage.com/api/stripe/webhook` : Stripe ne suit pas les redirections, il faut donc l'URL exacte avec www. Inscription et paiement test vérifiés sur le domaine. Reste : Supabase Site URL `https://www.ovovoyage.com` et Redirect URL `https://www.ovovoyage.com/auth/confirm`, puis Google Search Console.
 - **Service d'emails** (Brevo, Resend…) dans Supabase → Authentication → SMTP : le service gratuit de Supabase n'envoie que quelques emails par heure.
 - **Test complet sur téléphone** : annulation et changement d'offre via « Gérer mon abonnement ».
 - **Région des fonctions Vercel** : elles tournent aujourd'hui à Washington (`iad1`). Les placer à Paris (`cdg1`) les rapprocherait des utilisateurs et de Supabase.
