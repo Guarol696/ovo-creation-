@@ -128,7 +128,7 @@ export default async function PremiumPage({ searchParams }: PageProps<"/premium"
             highlighted={highlighted}
           />
           <p className="mt-6 text-center text-xs text-night-100/55">
-            {legal.vatMention || "Prix TTC"}, prélevés automatiquement par Stripe à chaque période. Paiement
+            {legal.vatMention || "Prix TTC"}. Prélevés automatiquement par Stripe à chaque période. Paiement
             sécurisé, résiliable à tout moment. En t&apos;abonnant, tu acceptes les{" "}
             <Link href={routes.terms} className="underline underline-offset-2 hover:text-white">
               conditions générales de vente

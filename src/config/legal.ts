@@ -6,9 +6,9 @@
  */
 export const legal = {
   /** Nom de l'éditeur : prénom et nom (entrepreneur individuel) ou raison sociale. */
-  publisherName: "",
+  publisherName: "Gwen Marchal (EI)",
   /** Statut, ex. « Entrepreneur individuel (micro-entreprise) » ou « SAS au capital de 1 000 € ». */
-  publisherStatus: "",
+  publisherStatus: "Entrepreneur individuel (micro-entreprise), nom commercial OVO",
   /** Numéro SIRET (ou RCS + ville pour une société). */
   siret: "",
   /** Adresse postale (domiciliation acceptée). */
@@ -16,12 +16,12 @@ export const legal = {
   /** Email de contact affiché sur le site (support, données personnelles, rétractation). */
   email: "",
   /** Directeur·rice de la publication (en général l'éditeur). */
-  publicationDirector: "",
+  publicationDirector: "Gwen Marchal",
   /**
    * Mention de TVA sur les prix. Micro-entreprise en franchise de TVA :
    * « TVA non applicable, article 293 B du CGI ». Sinon : « Prix TTC ».
    */
-  vatMention: "",
+  vatMention: "TVA non applicable, article 293 B du CGI",
   /** Médiateur de la consommation (obligatoire pour vendre à des particuliers). */
   mediator: { name: "", url: "" },
   /** Date de dernière mise à jour des documents légaux. */
