@@ -20,6 +20,7 @@ export const destinationCatalog: CatalogEntry[] = [
   { id: "madrid", name: "Madrid", country: "Espagne", countryCode: "ES" },
   { id: "seville", name: "Séville", country: "Espagne", countryCode: "ES", aliases: ["sevilla"] },
   { id: "ibiza", name: "Ibiza", country: "Espagne", countryCode: "ES" },
+  { id: "valence", name: "Valence", country: "Espagne", countryCode: "ES", aliases: ["valencia"] },
   { id: "rome", name: "Rome", country: "Italie", countryCode: "IT", aliases: ["roma"] },
   { id: "florence", name: "Florence", country: "Italie", countryCode: "IT", aliases: ["firenze"] },
   { id: "venise", name: "Venise", country: "Italie", countryCode: "IT", aliases: ["venezia", "venice"] },
