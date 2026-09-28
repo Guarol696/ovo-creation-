@@ -4,6 +4,7 @@ import { DEMO_GEO } from "./geo";
 import { amsterdam } from "./destinations/amsterdam";
 import { athenes } from "./destinations/athenes";
 import { barcelone } from "./destinations/barcelone";
+import { bordeaux } from "./destinations/bordeaux";
 import { budapest } from "./destinations/budapest";
 import { florence } from "./destinations/florence";
 import { ibiza } from "./destinations/ibiza";
@@ -11,7 +12,9 @@ import { lisbonne } from "./destinations/lisbonne";
 import { londres } from "./destinations/londres";
 import { madrid } from "./destinations/madrid";
 import { marrakech } from "./destinations/marrakech";
+import { marseille } from "./destinations/marseille";
 import { naples } from "./destinations/naples";
+import { nice } from "./destinations/nice";
 import { porto } from "./destinations/porto";
 import { prague } from "./destinations/prague";
 import { rome } from "./destinations/rome";
@@ -36,10 +39,13 @@ export const demoDestinations: DestinationProfile[] = [
   budapest,
   athenes,
   split,
+  bordeaux,
   florence,
   ibiza,
   madrid,
+  marseille,
   naples,
+  nice,
   porto,
   seville,
   valence,

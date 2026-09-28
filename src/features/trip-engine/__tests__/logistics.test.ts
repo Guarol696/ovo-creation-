@@ -120,7 +120,7 @@ describe("test 3 — destination inconnue", () => {
       request({
         destination: {
           mode: "known",
-          place: { id: "nice", name: "Nice", country: "France", countryCode: "FR" },
+          place: { id: "custom:annecy", name: "Annecy", country: "France", countryCode: "FR" },
         },
       }),
     );
@@ -128,6 +128,14 @@ describe("test 3 — destination inconnue", () => {
     expect(plan.destination.isGeneric).toBe(true);
     expect(plan.transport.main.mode).toBe("train");
     expect(plan.transport.source).toBe("generic");
+  });
+
+  it("destination française du catalogue : train conseillé, avion en alternative", async () => {
+    const plan = await generateTravelPlan(request({ destination: known("nice", "Nice", "France", "FR") }));
+    expectBudgetConsistency(plan);
+    expect(plan.destination.isGeneric).toBe(false);
+    expect(plan.transport.main.mode).toBe("train");
+    expect(plan.transport.alternatives.map((o) => o.mode)).toContain("avion");
   });
 
   it("destination libre lointaine : avion avec escale possible", async () => {
