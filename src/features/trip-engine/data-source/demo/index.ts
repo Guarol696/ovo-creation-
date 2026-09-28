@@ -1,6 +1,7 @@
 import { normalizeText } from "@/features/trip-builder/lib/destination-search";
 import type { DestinationProfile, TravelDataSource } from "../types";
 import { DEMO_GEO } from "./geo";
+import { agadir } from "./destinations/agadir";
 import { amsterdam } from "./destinations/amsterdam";
 import { athenes } from "./destinations/athenes";
 import { bali } from "./destinations/bali";
@@ -12,12 +13,14 @@ import { bruxelles } from "./destinations/bruxelles";
 import { budapest } from "./destinations/budapest";
 import { copenhague } from "./destinations/copenhague";
 import { cracovie } from "./destinations/cracovie";
+import { dubai } from "./destinations/dubai";
 import { dublin } from "./destinations/dublin";
 import { edimbourg } from "./destinations/edimbourg";
 import { florence } from "./destinations/florence";
 import { hanoi } from "./destinations/hanoi";
 import { ibiza } from "./destinations/ibiza";
 import { istanbul } from "./destinations/istanbul";
+import { le_caire } from "./destinations/le-caire";
 import { lisbonne } from "./destinations/lisbonne";
 import { londres } from "./destinations/londres";
 import { madrid } from "./destinations/madrid";
@@ -25,6 +28,7 @@ import { malte } from "./destinations/malte";
 import { marrakech } from "./destinations/marrakech";
 import { marseille } from "./destinations/marseille";
 import { mexico } from "./destinations/mexico";
+import { milan } from "./destinations/milan";
 import { montreal } from "./destinations/montreal";
 import { naples } from "./destinations/naples";
 import { new_york } from "./destinations/new-york";
@@ -34,6 +38,7 @@ import { prague } from "./destinations/prague";
 import { reykjavik } from "./destinations/reykjavik";
 import { rio } from "./destinations/rio";
 import { rome } from "./destinations/rome";
+import { santorin } from "./destinations/santorin";
 import { seoul } from "./destinations/seoul";
 import { seville } from "./destinations/seville";
 import { split } from "./destinations/split";
@@ -58,6 +63,7 @@ export const demoDestinations: DestinationProfile[] = [
   budapest,
   athenes,
   split,
+  agadir,
   bali,
   bangkok,
   berlin,
@@ -65,16 +71,19 @@ export const demoDestinations: DestinationProfile[] = [
   bruxelles,
   copenhague,
   cracovie,
+  dubai,
   dublin,
   edimbourg,
   florence,
   hanoi,
   ibiza,
   istanbul,
+  le_caire,
   madrid,
   malte,
   marseille,
   mexico,
+  milan,
   montreal,
   naples,
   new_york,
@@ -82,6 +91,7 @@ export const demoDestinations: DestinationProfile[] = [
   porto,
   reykjavik,
   rio,
+  santorin,
   seoul,
   seville,
   tokyo,
