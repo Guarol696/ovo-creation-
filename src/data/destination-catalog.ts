@@ -66,6 +66,7 @@ export const destinationCatalog: CatalogEntry[] = [
   { id: "tokyo", name: "Tokyo", country: "Japon", countryCode: "JP" },
   { id: "seoul", name: "Séoul", country: "Corée du Sud", countryCode: "KR" },
   { id: "bangkok", name: "Bangkok", country: "Thaïlande", countryCode: "TH" },
+  { id: "hanoi", name: "Hanoï", country: "Viêt Nam", countryCode: "VN", aliases: ["hanoi", "vietnam"] },
   { id: "bali", name: "Bali", country: "Indonésie", countryCode: "ID" },
   {
     id: "reykjavik",

@@ -9,7 +9,7 @@ import { analyzePreferences, detectWishStyles } from "../preferences";
 import { rankDestinations } from "../scoring";
 
 const departure = addDays(todayIso(), 30);
-const tokyo = { id: "tokyo", name: "Tokyo", country: "Japon", countryCode: "JP" };
+const osaka = { id: "custom:osaka", name: "Osaka", country: "Japon", countryCode: "JP" };
 
 function request(overrides: Partial<TripRequest>): TripRequest {
   return {
@@ -49,7 +49,7 @@ function expectCoherent(plan: TravelPlan) {
   const ids = periods(plan).flatMap((s) => (s.activity ? [s.activity.id] : []));
   const repeated = ids.filter((id, i) => ids.indexOf(id) !== i);
   const repeatable = new Set(
-    [...demoDestinations.flatMap((d) => d.activities), ...buildGenericProfile(tokyo).activities]
+    [...demoDestinations.flatMap((d) => d.activities), ...buildGenericProfile(osaka).activities]
       .filter((a) => a.repeatable)
       .map((a) => a.id),
   );
@@ -222,7 +222,7 @@ describe("recommandations", () => {
       request({
         destination: {
           mode: "known",
-          place: { id: "tokyo", name: "Tokyo", country: "Japon", countryCode: "JP" },
+          place: osaka,
         },
       }),
     );

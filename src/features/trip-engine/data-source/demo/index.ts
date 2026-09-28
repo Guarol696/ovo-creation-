@@ -3,6 +3,8 @@ import type { DestinationProfile, TravelDataSource } from "../types";
 import { DEMO_GEO } from "./geo";
 import { amsterdam } from "./destinations/amsterdam";
 import { athenes } from "./destinations/athenes";
+import { bali } from "./destinations/bali";
+import { bangkok } from "./destinations/bangkok";
 import { barcelone } from "./destinations/barcelone";
 import { berlin } from "./destinations/berlin";
 import { bordeaux } from "./destinations/bordeaux";
@@ -13,6 +15,7 @@ import { cracovie } from "./destinations/cracovie";
 import { dublin } from "./destinations/dublin";
 import { edimbourg } from "./destinations/edimbourg";
 import { florence } from "./destinations/florence";
+import { hanoi } from "./destinations/hanoi";
 import { ibiza } from "./destinations/ibiza";
 import { istanbul } from "./destinations/istanbul";
 import { lisbonne } from "./destinations/lisbonne";
@@ -26,8 +29,10 @@ import { nice } from "./destinations/nice";
 import { porto } from "./destinations/porto";
 import { prague } from "./destinations/prague";
 import { rome } from "./destinations/rome";
+import { seoul } from "./destinations/seoul";
 import { seville } from "./destinations/seville";
 import { split } from "./destinations/split";
+import { tokyo } from "./destinations/tokyo";
 import { valence } from "./destinations/valence";
 import { venise } from "./destinations/venise";
 import { vienne } from "./destinations/vienne";
@@ -48,6 +53,8 @@ export const demoDestinations: DestinationProfile[] = [
   budapest,
   athenes,
   split,
+  bali,
+  bangkok,
   berlin,
   bordeaux,
   bruxelles,
@@ -56,6 +63,7 @@ export const demoDestinations: DestinationProfile[] = [
   dublin,
   edimbourg,
   florence,
+  hanoi,
   ibiza,
   istanbul,
   madrid,
@@ -64,7 +72,9 @@ export const demoDestinations: DestinationProfile[] = [
   naples,
   nice,
   porto,
+  seoul,
   seville,
+  tokyo,
   valence,
   venise,
   vienne,
