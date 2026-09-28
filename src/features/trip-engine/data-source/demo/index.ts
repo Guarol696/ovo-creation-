@@ -5,17 +5,20 @@ import { amsterdam } from "./destinations/amsterdam";
 import { athenes } from "./destinations/athenes";
 import { barcelone } from "./destinations/barcelone";
 import { budapest } from "./destinations/budapest";
+import { florence } from "./destinations/florence";
 import { ibiza } from "./destinations/ibiza";
 import { lisbonne } from "./destinations/lisbonne";
 import { londres } from "./destinations/londres";
 import { madrid } from "./destinations/madrid";
 import { marrakech } from "./destinations/marrakech";
+import { naples } from "./destinations/naples";
 import { porto } from "./destinations/porto";
 import { prague } from "./destinations/prague";
 import { rome } from "./destinations/rome";
 import { seville } from "./destinations/seville";
 import { split } from "./destinations/split";
 import { valence } from "./destinations/valence";
+import { venise } from "./destinations/venise";
 import { realRestaurantPoints, realRestaurants } from "./restaurants";
 
 /**
@@ -33,11 +36,14 @@ export const demoDestinations: DestinationProfile[] = [
   budapest,
   athenes,
   split,
+  florence,
   ibiza,
   madrid,
+  naples,
   porto,
   seville,
   valence,
+  venise,
 ].map((profile) => {
   const real = realRestaurants(profile.id);
   const geo = profile.geo ?? DEMO_GEO[profile.id];
