@@ -85,9 +85,9 @@ function expectCoherence(plan: TravelPlan) {
   expect(breakdown.food).toBe(roundTo10((mealsPP + details.snacksPerPerson) * eaters));
   expect(Object.values(breakdown).reduce((a, b) => a + b, 0)).toBe(plan.estimatedBudget.total);
 
-  // 4. Données de démonstration clairement fictives et complètes.
+  // 4. Restaurants réels (signalés) ou exemples clairement fictifs, fiches complètes.
   for (const r of plan.restaurants) {
-    expect(r.name).toMatch(/OVO/);
+    if (!r.real) expect(r.name).toMatch(/OVO/);
     expect(r.rating).toBeGreaterThanOrEqual(4);
     expect(r.rating).toBeLessThanOrEqual(5);
     expect(r.priceRange.min).toBeLessThan(r.priceRange.max);

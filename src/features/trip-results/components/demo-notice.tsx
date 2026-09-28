@@ -1,7 +1,7 @@
 import { Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-/** Rappel honnête : estimations de démonstration, pas de prix en temps réel. */
+/** Rappel honnête : estimations indicatives, pas de prix en temps réel. */
 export function DemoNotice({ className }: { className?: string }) {
   return (
     <p
@@ -12,9 +12,10 @@ export function DemoNotice({ className }: { className?: string }) {
     >
       <Info className="mt-0.5 size-4 shrink-0 text-gold-300" />
       <span>
-        Proposition générée par OVO à partir de données de démonstration. Les prix sont des{" "}
-        <strong className="font-semibold text-white/85">estimations indicatives</strong>, pas des tarifs réels
-        ni garantis : les disponibilités et prix en temps réel arriveront avec nos partenaires.
+        Proposition imaginée par OVO. Les prix sont des{" "}
+        <strong className="font-semibold text-white/85">estimations indicatives</strong>, pas des tarifs
+        garantis : les boutons « Voir les prix » ouvrent les offres réelles de nos partenaires. Les
+        hébergements affichés sont des exemples ; vérifie les horaires des lieux avant d&apos;y aller.
       </span>
     </p>
   );

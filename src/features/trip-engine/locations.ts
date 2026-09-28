@@ -129,15 +129,16 @@ export function buildTripMap({ profile, itinerary, accommodation }: MapInput): T
     });
   }
 
-  // 🍽️ Restaurants (fictifs) : dans leur quartier, sans adresse.
+  // 🍽️ Restaurants : position connue (adresses réelles), sinon dans leur quartier.
   for (const restaurant of itinerary.restaurants) {
+    const known = restaurant.real ? geo.places[restaurant.id] : undefined;
     locations.push({
       id: restaurantLocationId(restaurant.id),
       name: restaurant.name,
       category: "restaurant",
       label: restaurant.cuisine,
       emoji: restaurant.emoji,
-      point: jitter(areaPoint(restaurant.area) ?? geo.center, restaurant.id),
+      point: known ?? jitter(areaPoint(restaurant.area) ?? geo.center, restaurant.id),
       precision: "approximate",
       description: restaurant.description,
       dayNumbers: days(restaurant.schedule),

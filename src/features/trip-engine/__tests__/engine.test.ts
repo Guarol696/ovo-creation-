@@ -118,7 +118,10 @@ describe("scénario 2 — pas de destination, plage + fête, budget moyen", () =
     );
     expectCoherent(plan);
     expect(plan.destination.recommended).toBe(true);
-    expect(["barcelone", "split"]).toContain(plan.destination.id);
+    // Une destination du catalogue à la fois balnéaire et festive (le catalogue s'agrandit).
+    const profile = demoDestinations.find((d) => d.id === plan.destination.id)!;
+    expect(profile.styles.plage ?? 0).toBeGreaterThanOrEqual(2);
+    expect(profile.styles.fete ?? 0).toBeGreaterThanOrEqual(2);
     expect(categories(plan).filter((c) => c === "nightlife").length).toBeGreaterThanOrEqual(3);
     expect(categories(plan)).toContain("plage");
     expect(plan.estimatedBudget.status).not.toBe("over");

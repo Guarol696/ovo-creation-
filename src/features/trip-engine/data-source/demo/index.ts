@@ -11,6 +11,7 @@ import { marrakech } from "./destinations/marrakech";
 import { prague } from "./destinations/prague";
 import { rome } from "./destinations/rome";
 import { split } from "./destinations/split";
+import { realRestaurantPoints, realRestaurants } from "./restaurants";
 
 /**
  * Catalogue de DÉMONSTRATION : prix et contenus indicatifs, rédigés à la main
@@ -27,7 +28,15 @@ export const demoDestinations: DestinationProfile[] = [
   budapest,
   athenes,
   split,
-].map((profile) => ({ ...profile, geo: DEMO_GEO[profile.id] }));
+].map((profile) => {
+  const real = realRestaurants(profile.id);
+  const geo = DEMO_GEO[profile.id];
+  return {
+    ...profile,
+    restaurants: real.length > 0 ? real : profile.restaurants,
+    geo: geo && { ...geo, places: { ...geo.places, ...realRestaurantPoints(profile.id) } },
+  };
+});
 
 export const demoDataSource: TravelDataSource = {
   id: "ovo-demo",
