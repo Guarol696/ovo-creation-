@@ -61,6 +61,10 @@ export default function PrivacyPage() {
           <li>
             Sécurité du site et prévention des abus : <strong>intérêt légitime</strong>.
           </li>
+          <li>
+            Suivi des liens partenaires par Travelpayouts : <strong>ton consentement</strong>, que tu peux
+            retirer à tout moment (« Gérer les cookies »).
+          </li>
         </ul>
         <p>
           OVO ne vend pas tes données, ne fait pas de publicité ciblée et n&apos;envoie pas de newsletter sans
@@ -92,6 +96,10 @@ export default function PrivacyPage() {
             <strong>{providers.maps.name}</strong> : {providers.maps.detail} (ton navigateur les télécharge
             directement, avec ton adresse IP).
           </li>
+          <li>
+            <strong>Travelpayouts</strong> : plateforme d&apos;affiliation, seulement si tu acceptes les
+            cookies partenaires.
+          </li>
         </ul>
         <p>
           Un voyage que tu partages par lien est visible par toute personne qui possède ce lien. Tu peux
@@ -105,17 +113,24 @@ export default function PrivacyPage() {
 
       <LegalSection title="6. Cookies et liens partenaires">
         <p>
-          OVO n&apos;utilise <strong>aucun cookie publicitaire ni de mesure d&apos;audience</strong>. Seuls
-          des cookies indispensables sont déposés : ceux qui te gardent connecté·e à ton compte, et ceux de
-          Stripe pendant le paiement (sécurité et lutte contre la fraude). Ils ne nécessitent pas de
-          consentement.
+          Sans ton accord, OVO ne dépose que des <strong>cookies indispensables</strong> : ceux qui te gardent
+          connecté·e à ton compte, et ceux de Stripe pendant le paiement (sécurité et lutte contre la fraude).
+          Aucun cookie de mesure d&apos;audience.
         </p>
         <p>
-          Les boutons « Voir les vols », « Voir les hébergements » et « Billets &amp; visites » ouvrent le
-          site d&apos;un partenaire (Aviasales, Booking.com, GetYourGuide…), parfois via Travelpayouts, notre
-          plateforme d&apos;affiliation. Le lien contient seulement ta recherche (ville, dates, nombre de
-          voyageurs) et l&apos;identifiant partenaire d&apos;OVO : ni ton nom, ni ton email. Une fois sur le
-          site du partenaire, ses propres cookies et sa politique de confidentialité s&apos;appliquent.
+          <strong>Avec ton accord</strong> (bandeau « Cookies partenaires »), OVO charge l&apos;outil « Drive
+          » de <strong>Travelpayouts</strong>, notre plateforme d&apos;affiliation : il suit les clics vers
+          les sites de réservation partenaires (Aviasales, Booking.com, GetYourGuide…) pour que OVO puisse
+          percevoir une commission, sans surcoût pour toi. Il peut déposer ou lire des cookies et identifiants
+          à cette fin. Il n&apos;est jamais chargé sur les pages de compte, de connexion ou de paiement. Ton
+          choix est gardé dans ton navigateur ; tu peux le modifier à tout moment avec le lien « Gérer les
+          cookies » en bas de chaque page.
+        </p>
+        <p>
+          Les boutons « Voir les vols », « Voir les hébergements » et « Billets &amp; visites » contiennent
+          seulement ta recherche (ville, dates, nombre de voyageurs) et l&apos;identifiant partenaire
+          d&apos;OVO : ni ton nom, ni ton email. Une fois sur le site du partenaire, ses propres cookies et sa
+          politique de confidentialité s&apos;appliquent.
         </p>
       </LegalSection>
 

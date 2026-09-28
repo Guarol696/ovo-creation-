@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Inter } from "next/font/google";
 import { siteConfig } from "@/config/site";
 import { AuthProvider } from "@/features/auth/auth-provider";
+import { CookieConsent } from "@/features/consent/cookie-consent";
 import "./globals.css";
 
 const inter = Inter({
@@ -51,6 +52,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="fr" className={`${inter.variable} ${bricolage.variable}`}>
       <body className="flex min-h-dvh flex-col">
         <AuthProvider>{children}</AuthProvider>
+        <CookieConsent />
       </body>
     </html>
   );

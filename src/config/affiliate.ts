@@ -18,12 +18,18 @@ export interface TravelpayoutsProgram {
 
 export const affiliate = {
   marker: "578967",
+  /**
+   * Script « Drive » de Travelpayouts (suivi des liens partenaires). Chargé
+   * seulement après accord cookies, hors pages de compte et de paiement.
+   */
+  driveScriptSrc: "https://emrldtp.com/NTc4OTY3.js?t=578967",
   /** Vols : Aviasales lit directement le `marker` dans ses liens de recherche. */
   flights: { partner: "Aviasales" },
   hotels: { partner: "Booking.com", program: { trs: "", p: "", campaignId: "" } },
   activities: { partner: "GetYourGuide", program: { trs: "", p: "", campaignId: "" } },
 } as const satisfies {
   marker: string;
+  driveScriptSrc: string;
   flights: { partner: string };
   hotels: { partner: string; program: TravelpayoutsProgram };
   activities: { partner: string; program: TravelpayoutsProgram };

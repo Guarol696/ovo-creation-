@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { footerNav, siteConfig, socialLinks } from "@/config/site";
+import { CookieSettingsButton } from "@/features/consent/cookie-consent";
 import { InstagramIcon, TikTokIcon } from "@/components/icons/social-icons";
 import { Container } from "@/components/ui/container";
 import { Logo } from "./logo";
@@ -78,7 +79,10 @@ export function SiteFooter() {
           <p>
             © {year} {siteConfig.name} — {siteConfig.meaning}. Tous droits réservés.
           </p>
-          <p>Fait pour celles et ceux qui ont envie de partir.</p>
+          <p className="flex flex-wrap items-center gap-x-4">
+            <CookieSettingsButton />
+            <span>Fait pour celles et ceux qui ont envie de partir.</span>
+          </p>
         </div>
       </Container>
       <MobileTabBar />
