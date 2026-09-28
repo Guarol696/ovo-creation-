@@ -6,15 +6,19 @@ import { athenes } from "./destinations/athenes";
 import { barcelone } from "./destinations/barcelone";
 import { berlin } from "./destinations/berlin";
 import { bordeaux } from "./destinations/bordeaux";
+import { bruxelles } from "./destinations/bruxelles";
 import { budapest } from "./destinations/budapest";
 import { copenhague } from "./destinations/copenhague";
+import { cracovie } from "./destinations/cracovie";
 import { dublin } from "./destinations/dublin";
 import { edimbourg } from "./destinations/edimbourg";
 import { florence } from "./destinations/florence";
 import { ibiza } from "./destinations/ibiza";
+import { istanbul } from "./destinations/istanbul";
 import { lisbonne } from "./destinations/lisbonne";
 import { londres } from "./destinations/londres";
 import { madrid } from "./destinations/madrid";
+import { malte } from "./destinations/malte";
 import { marrakech } from "./destinations/marrakech";
 import { marseille } from "./destinations/marseille";
 import { naples } from "./destinations/naples";
@@ -30,8 +34,8 @@ import { vienne } from "./destinations/vienne";
 import { realRestaurantPoints, realRestaurants } from "./restaurants";
 
 /**
- * Catalogue de DÉMONSTRATION : prix et contenus indicatifs, rédigés à la main
- * pour tester le moteur. À remplacer par une vraie source (Supabase, API…).
+ * Catalogue OVO rédigé à la main : vrais lieux et restaurants, prix moyens
+ * indicatifs. Pourra être remplacé par une vraie source (Supabase, API…).
  */
 export const demoDestinations: DestinationProfile[] = [
   lisbonne,
@@ -46,12 +50,16 @@ export const demoDestinations: DestinationProfile[] = [
   split,
   berlin,
   bordeaux,
+  bruxelles,
   copenhague,
+  cracovie,
   dublin,
   edimbourg,
   florence,
   ibiza,
+  istanbul,
   madrid,
+  malte,
   marseille,
   naples,
   nice,

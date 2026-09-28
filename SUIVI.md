@@ -16,8 +16,11 @@
 
 ### Avant d'encaisser de vrais clients
 
-1. **Données réelles : en cours.** Liens partenaires en place (Travelpayouts, marker `578967`, voir `src/config/affiliate.ts`) : vols Aviasales (commission via le marker), hébergements Booking.com et activités GetYourGuide (liens directs, sans commission tant que les paramètres Travelpayouts de ces programmes ne sont pas renseignés). Script « Drive » de Travelpayouts **non installé** volontairement (script tiers sur toutes les pages, cookies publicitaires). Restaurants réels et nouvelles destinations en cours.
-   - Prix des hébergements et du transport : toujours des estimations OVO. Plus tard, prix en temps réel via les API partenaires (`TravelDataSource`).
+1. **Données réelles : bien avancé.**
+   - **30 destinations complètes** (activités réelles, vrais restaurants avec lien Google Maps, carte, prix moyens, meilleurs mois) : Lisbonne, Porto, Barcelone, Madrid, Séville, Valence, Ibiza, Rome, Florence, Naples, Venise, Amsterdam, Bruxelles, Berlin, Copenhague, Vienne, Prague, Budapest, Cracovie, Londres, Édimbourg, Dublin, Athènes, Split, Malte, Istanbul, Marrakech, Nice, Marseille, Bordeaux. Les autres villes ont un programme type (sans adresses).
+   - Les restaurants viennent de connaissances générales (adresses établies) : un établissement peut avoir fermé, d'où le lien Google Maps et la mention « vérifie les horaires ». À relire de temps en temps.
+   - **Liens partenaires** (Travelpayouts, marker `578967`, `src/config/affiliate.ts`) : vols Aviasales (commission via le marker), hébergements Booking.com et activités GetYourGuide (liens directs, sans commission tant que les paramètres Travelpayouts de ces programmes ne sont pas renseignés). Script « Drive » de Travelpayouts **non installé** volontairement (script tiers sur toutes les pages, cookies publicitaires).
+   - Reste : hébergements (encore des exemples), prix en temps réel via les API partenaires (`TravelDataSource`).
 2. **Statut juridique : en cours.** Création de la micro-entreprise sur https://formalites.entreprises.gouv.fr (gratuit), **dossier déposé et signé le 27/09/2026** (formalité INPI n° J00285419354, suivi sur https://procedures.inpi.fr → Entreprises → « Suivre l'avancement d'une formalité d'entreprise »). En attente du SIRET (1 à 4 semaines), puis choisir un médiateur de la consommation. Choix déjà faits :
    - assurance maladie actuelle : CPAM ;
    - activité : **pas « agence de voyage »** (activité réglementée, et OVO ne vend pas de voyages). Choisir « portail internet » (63.12Z) ou « édition de logiciels » (58.29C), en prestation de services commerciale (BIC) ;
