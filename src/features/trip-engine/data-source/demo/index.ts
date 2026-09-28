@@ -24,10 +24,15 @@ import { madrid } from "./destinations/madrid";
 import { malte } from "./destinations/malte";
 import { marrakech } from "./destinations/marrakech";
 import { marseille } from "./destinations/marseille";
+import { mexico } from "./destinations/mexico";
+import { montreal } from "./destinations/montreal";
 import { naples } from "./destinations/naples";
+import { new_york } from "./destinations/new-york";
 import { nice } from "./destinations/nice";
 import { porto } from "./destinations/porto";
 import { prague } from "./destinations/prague";
+import { reykjavik } from "./destinations/reykjavik";
+import { rio } from "./destinations/rio";
 import { rome } from "./destinations/rome";
 import { seoul } from "./destinations/seoul";
 import { seville } from "./destinations/seville";
@@ -69,9 +74,14 @@ export const demoDestinations: DestinationProfile[] = [
   madrid,
   malte,
   marseille,
+  mexico,
+  montreal,
   naples,
+  new_york,
   nice,
   porto,
+  reykjavik,
+  rio,
   seoul,
   seville,
   tokyo,
