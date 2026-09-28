@@ -103,12 +103,19 @@ export default function PrivacyPage() {
         </p>
       </LegalSection>
 
-      <LegalSection title="6. Cookies">
+      <LegalSection title="6. Cookies et liens partenaires">
         <p>
           OVO n&apos;utilise <strong>aucun cookie publicitaire ni de mesure d&apos;audience</strong>. Seuls
           des cookies indispensables sont déposés : ceux qui te gardent connecté·e à ton compte, et ceux de
           Stripe pendant le paiement (sécurité et lutte contre la fraude). Ils ne nécessitent pas de
           consentement.
+        </p>
+        <p>
+          Les boutons « Voir les vols », « Voir les hébergements » et « Billets &amp; visites » ouvrent le
+          site d&apos;un partenaire (Aviasales, Booking.com, GetYourGuide…), parfois via Travelpayouts, notre
+          plateforme d&apos;affiliation. Le lien contient seulement ta recherche (ville, dates, nombre de
+          voyageurs) et l&apos;identifiant partenaire d&apos;OVO : ni ton nom, ni ton email. Une fois sur le
+          site du partenaire, ses propres cookies et sa politique de confidentialité s&apos;appliquent.
         </p>
       </LegalSection>
 

@@ -79,6 +79,7 @@ export function toPlanRestaurant(
   return {
     id: restaurant.id,
     name: restaurant.name,
+    ...(restaurant.real ? { real: true } : {}),
     description: restaurant.description,
     cuisine: restaurant.cuisine,
     emoji: restaurant.emoji,

@@ -6,6 +6,7 @@ export const rome: DestinationProfile = {
   name: "Rome",
   country: "Italie",
   countryCode: "IT",
+  iata: "ROM",
   tagline: "2 000 ans d'histoire et la meilleure pasta de ta vie.",
   description:
     "Un musée à ciel ouvert où l'on passe du Colisée à une trattoria en dix minutes, sous une lumière dorée.",

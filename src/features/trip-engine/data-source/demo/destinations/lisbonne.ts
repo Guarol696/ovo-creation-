@@ -6,6 +6,7 @@ export const lisbonne: DestinationProfile = {
   name: "Lisbonne",
   country: "Portugal",
   countryCode: "PT",
+  iata: "LIS",
   tagline: "Tramways jaunes, miradouros et couchers de soleil sur le Tage.",
   description:
     "Une capitale solaire à taille humaine, entre ruelles pavées, vues panoramiques, fado et plages à 30 minutes.",

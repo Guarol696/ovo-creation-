@@ -84,10 +84,12 @@ export type RestaurantKind = "street-food" | "local" | "bistrot" | "gastronomiqu
 
 export type Meal = "lunch" | "dinner";
 
-/** Restaurant proposé (fictif tant que la source est « demo »). */
+/** Restaurant proposé : adresse réelle si `real`, sinon exemple fictif. */
 export interface PlanRestaurant {
   id: string;
   name: string;
+  /** Établissement réel (absent des voyages enregistrés avant son ajout = fictif). */
+  real?: boolean;
   description: string;
   cuisine: string;
   emoji: string;
@@ -311,6 +313,8 @@ export interface PlanDestination {
   name: string;
   country: string;
   countryCode?: string;
+  /** Code IATA de la ville, pour les recherches de vols. */
+  iata?: string;
   tagline: string;
   description: string;
   image?: { src: string; alt: string };

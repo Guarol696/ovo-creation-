@@ -1,11 +1,12 @@
 "use client";
 
-import { CalendarCheck, Info, MapPin, Star, UtensilsCrossed } from "lucide-react";
+import { CalendarCheck, ExternalLink, Info, MapPin, Star, UtensilsCrossed } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Container } from "@/components/ui/container";
 import { RESTAURANT_KINDS } from "@/features/trip-engine/services/restaurants";
 import { cn } from "@/lib/utils";
 import type { PlanRestaurant } from "@/types/travel-plan";
+import { mapsLink } from "../partner-links";
 import { DemoBadge } from "./demo-badge";
 import { FilterChips, type FilterOption } from "./filter-chips";
 import { byScheduleThenRelevance, scheduleLabel } from "./schedule-label";
@@ -37,7 +38,7 @@ function mealsLabel(meals: PlanRestaurant["meals"]) {
   return meals.includes("lunch") ? "Idéal le midi" : "Idéal le soir";
 }
 
-export function RestaurantsSection({ restaurants }: { restaurants: PlanRestaurant[] }) {
+export function RestaurantsSection({ restaurants, city }: { restaurants: PlanRestaurant[]; city: string }) {
   const [filter, setFilter] = useState<RestaurantFilter>("tous");
   const [expanded, setExpanded] = useState(false);
   const sorted = useMemo(() => [...restaurants].sort(byScheduleThenRelevance), [restaurants]);
@@ -47,6 +48,7 @@ export function RestaurantsSection({ restaurants }: { restaurants: PlanRestauran
     count: sorted.filter(f.test).length,
   }));
   const filtered = sorted.filter(FILTERS.find((f) => f.id === filter)!.test);
+  const realCount = restaurants.filter((r) => r.real).length;
 
   if (restaurants.length === 0) return null;
 
@@ -64,6 +66,7 @@ export function RestaurantsSection({ restaurants }: { restaurants: PlanRestauran
             <RestaurantCard
               key={restaurant.id}
               restaurant={restaurant}
+              city={city}
               className={cn(
                 !expanded && index >= INITIAL_MOBILE && "max-sm:hidden",
                 !expanded && index >= INITIAL_DESKTOP && "hidden",
@@ -93,18 +96,42 @@ export function RestaurantsSection({ restaurants }: { restaurants: PlanRestauran
 
         <p className="mt-6 flex items-start gap-2.5 rounded-3xl bg-amber-400/10 px-4 py-3.5 text-xs leading-relaxed text-amber-50/85 ring-1 ring-amber-300/25">
           <Info className="mt-0.5 size-4 shrink-0 text-amber-200" />
-          <span>
-            <strong className="font-semibold text-amber-100">Restaurants fictifs de démonstration.</strong>{" "}
-            Les noms, notes et prix illustrent le type d&apos;adresse conseillé : ce ne sont pas de vrais
-            établissements.
-          </span>
+          {realCount === restaurants.length ? (
+            <span>
+              <strong className="font-semibold text-amber-100">
+                Adresses réelles sélectionnées par OVO.
+              </strong>{" "}
+              Les prix sont des moyennes indicatives. Vérifie les horaires et les fermetures sur Google Maps
+              avant d&apos;y aller.
+            </span>
+          ) : realCount > 0 ? (
+            <span>
+              <strong className="font-semibold text-amber-100">Adresses réelles et exemples.</strong> Les
+              adresses avec un lien Google Maps existent (vérifie les horaires avant d&apos;y aller) ; les
+              autres, notées « exemple », illustrent le type de restaurant conseillé.
+            </span>
+          ) : (
+            <span>
+              <strong className="font-semibold text-amber-100">Restaurants fictifs de démonstration.</strong>{" "}
+              Les noms, notes et prix illustrent le type d&apos;adresse conseillé : ce ne sont pas de vrais
+              établissements.
+            </span>
+          )}
         </p>
       </Container>
     </section>
   );
 }
 
-function RestaurantCard({ restaurant, className }: { restaurant: PlanRestaurant; className?: string }) {
+function RestaurantCard({
+  restaurant,
+  city,
+  className,
+}: {
+  restaurant: PlanRestaurant;
+  city: string;
+  className?: string;
+}) {
   const scheduled = scheduleLabel(restaurant.schedule);
   const { min, max } = restaurant.priceRange;
 
@@ -140,11 +167,17 @@ function RestaurantCard({ restaurant, className }: { restaurant: PlanRestaurant;
               <MapPin className="size-3" /> {restaurant.area}
             </span>
           )}
-          <span className="inline-flex items-center gap-1">
-            <Star className="size-3 fill-gold-300 text-gold-300" />{" "}
-            {ratingFormatter.format(restaurant.rating)}/5
-          </span>
-          <DemoBadge>Note démo</DemoBadge>
+          {restaurant.real ? (
+            <span className="font-semibold text-gold-300">Adresse réelle</span>
+          ) : (
+            <>
+              <span className="inline-flex items-center gap-1">
+                <Star className="size-3 fill-gold-300 text-gold-300" />{" "}
+                {ratingFormatter.format(restaurant.rating)}/5
+              </span>
+              <DemoBadge>Exemple</DemoBadge>
+            </>
+          )}
         </p>
         <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-night-100/70">
           {restaurant.description}
@@ -158,7 +191,19 @@ function RestaurantCard({ restaurant, className }: { restaurant: PlanRestaurant;
             <UtensilsCrossed className="size-3" /> {mealsLabel(restaurant.meals)}
           </span>
         </div>
-        <p className="mt-2 text-xs text-night-100/60">Prix indicatif · restaurant fictif (démo)</p>
+        {restaurant.real ? (
+          <a
+            href={mapsLink(restaurant.name, city)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 inline-flex min-h-10 items-center gap-1 self-start rounded-full px-3 text-xs font-semibold text-sun-400 ring-1 ring-sun-400/40 transition hover:bg-sun-400/10"
+          >
+            Voir sur Google Maps <ExternalLink aria-hidden="true" className="size-3" />
+            <span className="sr-only"> (nouvel onglet)</span>
+          </a>
+        ) : (
+          <p className="mt-2 text-xs text-night-100/60">Prix indicatif · restaurant fictif (exemple)</p>
+        )}
       </div>
     </li>
   );

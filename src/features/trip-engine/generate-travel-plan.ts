@@ -130,6 +130,7 @@ export async function generateTravelPlan(
       name: profile.name,
       country: profile.country,
       countryCode: profile.countryCode,
+      iata: profile.iata,
       tagline: profile.tagline,
       description: profile.description,
       image: profile.image,

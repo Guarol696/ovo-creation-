@@ -6,6 +6,7 @@ export const marrakech: DestinationProfile = {
   name: "Marrakech",
   country: "Maroc",
   countryCode: "MA",
+  iata: "RAK",
   tagline: "Souks, riads et désert aux portes de la ville.",
   description:
     "Dépaysement total à 3 h de vol : médina bouillonnante, riads apaisants, cuisine épicée et Atlas à l'horizon.",

@@ -6,6 +6,7 @@ export const prague: DestinationProfile = {
   name: "Prague",
   country: "Tchéquie",
   countryCode: "CZ",
+  iata: "PRG",
   tagline: "Ville de conte de fées, bière légendaire et prix doux.",
   description:
     "Ponts médiévaux, clochers gothiques et caves animées : une capitale magique, festive et étonnamment abordable.",

@@ -1,5 +1,6 @@
 import { Container } from "@/components/ui/container";
 import type { TravelPlan } from "@/types/travel-plan";
+import { partnerLinks } from "../partner-links";
 import { AccommodationSection } from "./accommodation-section";
 import { ActivitiesSection } from "./activities-section";
 import { BudgetSection } from "./budget-section";
@@ -29,6 +30,8 @@ interface TravelPlanViewProps {
 }
 
 export function TravelPlanView({ plan, save, savedTrip }: TravelPlanViewProps) {
+  const links = partnerLinks(plan);
+  const city = plan.destination.name;
   return (
     <TripSaveProvider config={save}>
       <div className="relative isolate overflow-x-clip bg-night-950 text-white">
@@ -43,11 +46,15 @@ export function TravelPlanView({ plan, save, savedTrip }: TravelPlanViewProps) {
         </Container>
         <WhySection plan={plan} />
         <HighlightsSection plan={plan} />
-        <TransportSection transport={plan.transport} travelers={plan.travelers.total} />
-        <AccommodationSection accommodation={plan.accommodation} />
+        <TransportSection
+          transport={plan.transport}
+          travelers={plan.travelers.total}
+          flights={links.flights}
+        />
+        <AccommodationSection accommodation={plan.accommodation} hotels={links.hotels} />
         <DayExplorer days={plan.itinerary} map={plan.map} />
-        <ActivitiesSection activities={plan.activities} />
-        <RestaurantsSection restaurants={plan.restaurants} />
+        <ActivitiesSection activities={plan.activities} city={city} booking={links.activities} />
+        <RestaurantsSection restaurants={plan.restaurants} city={city} />
         <BudgetSection
           budget={plan.estimatedBudget}
           request={plan.request}

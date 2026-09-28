@@ -41,6 +41,13 @@ export default function TermsPage() {
             réservation. Toute réservation se fait directement auprès des prestataires, à leurs conditions.
           </li>
           <li>
+            Certains boutons (« Voir les vols », « Voir les hébergements », « Billets &amp; visites ») sont
+            des <strong>liens partenaires</strong> : ils ouvrent le site d&apos;un partenaire (Aviasales,
+            Booking.com, GetYourGuide…). Si tu y réserves, OVO peut percevoir une commission, sans aucun
+            surcoût pour toi. Ces commissions n&apos;influencent pas le choix des destinations ni du
+            programme.
+          </li>
+          <li>
             L&apos;utilisation de base est gratuite et le reste : création de voyages, programme, carte,
             budget, enregistrement, partage et export PDF.
           </li>

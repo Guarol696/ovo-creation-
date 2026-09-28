@@ -6,6 +6,7 @@ export const athenes: DestinationProfile = {
   name: "Athènes",
   country: "Grèce",
   countryCode: "GR",
+  iata: "ATH",
   tagline: "L'Acropole, les rooftops et la mer à 30 minutes.",
   description:
     "Berceau de la démocratie devenu capitale bouillonnante : ruines antiques, street art, tavernes et plages de la Riviera athénienne.",

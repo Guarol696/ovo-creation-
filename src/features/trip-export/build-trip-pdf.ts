@@ -159,12 +159,11 @@ function drawCover(w: PdfWriter, plan: TravelPlan, generatedAt: Date, carnet: bo
       );
   });
 
-  w.textAt(
-    "Prix indicatifs et établissements de démonstration — aucune réservation n'est effectuée.",
-    margin,
-    72,
-    { size: 9, color: COLORS.night300, maxWidth: w.contentWidth },
-  );
+  w.textAt("Prix indicatifs estimés par OVO — aucune réservation n'est effectuée.", margin, 72, {
+    size: 9,
+    color: COLORS.night300,
+    maxWidth: w.contentWidth,
+  });
   w.textAt(`Généré le ${longDate.format(generatedAt)} avec OVO`, margin, 56, {
     size: 9,
     color: COLORS.night300,
@@ -563,12 +562,22 @@ function drawRestaurants(w: PdfWriter, plan: TravelPlan) {
     ...plan.restaurants.filter((r) => r.schedule.length === 0),
   ].slice(0, MAX_RESTAURANTS);
   if (restaurants.length === 0) return;
-  sectionTitle(w, "Restaurants", "Adresses recommandées (établissements fictifs de démonstration).");
+  const allReal = restaurants.every((r) => r.real);
+  const someReal = restaurants.some((r) => r.real);
+  sectionTitle(
+    w,
+    "Restaurants",
+    allReal
+      ? "Adresses réelles sélectionnées par OVO : vérifie les horaires avant d'y aller."
+      : someReal
+        ? "Adresses réelles (à vérifier avant d'y aller) et exemples notés « exemple »."
+        : "Adresses recommandées (établissements fictifs de démonstration).",
+  );
   for (const r of restaurants) {
     const days = [...new Set(r.schedule.map((s) => s.dayNumber))];
     listItem(
       w,
-      r.name,
+      someReal && !r.real ? `${r.name} (exemple)` : r.name,
       `${approx(r.estimatedCostPerPerson)} / pers.`,
       [r.cuisine, RESTAURANT_KINDS[r.kind], r.area, "€".repeat(r.priceLevel), scheduleLabel(days)]
         .filter(Boolean)

@@ -6,6 +6,7 @@ export const amsterdam: DestinationProfile = {
   name: "Amsterdam",
   country: "Pays-Bas",
   countryCode: "NL",
+  iata: "AMS",
   tagline: "Canaux à vélo, musées et cafés cosy.",
   description:
     "Une ville à vivre à vélo, entre canaux bordés de maisons penchées, musées de classe mondiale et nuits électro.",

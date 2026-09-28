@@ -3,15 +3,19 @@ import { Container } from "@/components/ui/container";
 import { LOCAL_MOBILITY_LABELS, TRANSPORT_LABELS } from "@/features/trip-engine/services/transport";
 import { formatPrice } from "@/lib/utils";
 import type { PlanTransport, TransportOption } from "@/types/travel-plan";
+import type { PartnerLink } from "../partner-links";
 import { DemoBadge } from "./demo-badge";
+import { PartnerButton } from "./partner-link";
 import { SectionTitle } from "./section-title";
 
 interface TransportSectionProps {
   transport: PlanTransport;
   travelers: number;
+  /** Recherche de vols chez un partenaire (null si l'avion n'est pas proposé). */
+  flights?: PartnerLink | null;
 }
 
-export function TransportSection({ transport, travelers }: TransportSectionProps) {
+export function TransportSection({ transport, travelers, flights }: TransportSectionProps) {
   const { main, alternatives, local } = transport;
   const mode = TRANSPORT_LABELS[main.mode];
 
@@ -69,8 +73,10 @@ export function TransportSection({ transport, travelers }: TransportSectionProps
 
             <p className="mt-5 flex items-start gap-2 rounded-2xl bg-night-950/40 px-3.5 py-2.5 text-xs text-night-100/70">
               <Info className="mt-0.5 size-3.5 shrink-0 text-gold-300" />
-              Prix indicatif — démonstration. Non connecté aux disponibilités réelles.
+              Prix indicatif, estimé par OVO : les tarifs réels dépendent des dates et des disponibilités.
             </p>
+
+            {flights && <PartnerButton link={flights} className="mt-5" />}
           </article>
 
           {/* Alternatives + sur place */}

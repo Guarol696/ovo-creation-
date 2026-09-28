@@ -45,8 +45,13 @@ export interface ActivityTemplate {
 
 export interface RestaurantTemplate {
   id: string;
-  /** Nom FICTIF (préfixé « OVO ») : aucun établissement réel. */
+  /**
+   * Nom de l'établissement. Réel si `real` est vrai (adresse connue, à vérifier
+   * avant d'y aller), sinon FICTIF (préfixé « OVO »).
+   */
   name: string;
+  /** Établissement réel : pas de note inventée, lien vers Google Maps. */
+  real?: boolean;
   description: string;
   cuisine: string;
   emoji: string;
@@ -102,6 +107,8 @@ export interface DestinationProfile {
   name: string;
   country: string;
   countryCode?: string;
+  /** Code IATA de la ville (aéroport ou groupe d'aéroports), pour les recherches de vols. */
+  iata?: string;
   tagline: string;
   description: string;
   image?: { src: string; alt: string };

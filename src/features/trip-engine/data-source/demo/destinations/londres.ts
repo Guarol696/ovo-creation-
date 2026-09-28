@@ -6,6 +6,7 @@ export const londres: DestinationProfile = {
   name: "Londres",
   country: "Royaume-Uni",
   countryCode: "GB",
+  iata: "LON",
   tagline: "Musées gratuits, marchés street food et nuits sans fin.",
   description:
     "Une métropole qui ne s'arrête jamais : grands musées gratuits, quartiers aux mille ambiances et scène musicale mythique.",

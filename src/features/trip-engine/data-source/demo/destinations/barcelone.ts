@@ -6,6 +6,7 @@ export const barcelone: DestinationProfile = {
   name: "Barcelone",
   country: "Espagne",
   countryCode: "ES",
+  iata: "BCN",
   tagline: "Gaudí le jour, tapas et rooftops la nuit.",
   description:
     "La ville qui a tout : plages en plein centre, architecture folle, marchés gourmands et une vie nocturne légendaire.",

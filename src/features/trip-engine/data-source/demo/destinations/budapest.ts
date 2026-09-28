@@ -6,6 +6,7 @@ export const budapest: DestinationProfile = {
   name: "Budapest",
   country: "Hongrie",
   countryCode: "HU",
+  iata: "BUD",
   tagline: "Bains thermaux le jour, ruin bars la nuit.",
   description:
     "La perle du Danube : thermes Art nouveau, bars installés dans des immeubles en ruine et panoramas grandioses, à petit prix.",

@@ -3,7 +3,9 @@ import { Container } from "@/components/ui/container";
 import { ACCOMMODATION_LABELS } from "@/features/trip-engine/services/accommodation";
 import { formatPrice } from "@/lib/utils";
 import type { AccommodationOption, PlanAccommodation } from "@/types/travel-plan";
+import type { PartnerLink } from "../partner-links";
 import { DemoBadge } from "./demo-badge";
+import { PartnerButton } from "./partner-link";
 import { SectionTitle } from "./section-title";
 
 const ratingFormatter = new Intl.NumberFormat("fr-FR", {
@@ -15,7 +17,14 @@ function nightsLabel(nights: number) {
   return `${nights} nuit${nights > 1 ? "s" : ""}`;
 }
 
-export function AccommodationSection({ accommodation }: { accommodation: PlanAccommodation }) {
+export function AccommodationSection({
+  accommodation,
+  hotels,
+}: {
+  accommodation: PlanAccommodation;
+  /** Recherche d'hébergements réels chez un partenaire. */
+  hotels?: PartnerLink;
+}) {
   const { main, alternatives } = accommodation;
   const type = ACCOMMODATION_LABELS[main.type];
 
@@ -84,6 +93,8 @@ export function AccommodationSection({ accommodation }: { accommodation: PlanAcc
             </ul>
 
             <p className="mt-5 text-sm font-medium text-white">{main.highlight}.</p>
+
+            {hotels && <PartnerButton link={hotels} className="mt-6" />}
           </article>
 
           <div className="flex flex-col gap-5">
@@ -100,9 +111,9 @@ export function AccommodationSection({ accommodation }: { accommodation: PlanAcc
             <p className="flex items-start gap-2.5 rounded-3xl bg-amber-400/10 px-4 py-3.5 text-xs leading-relaxed text-amber-50/85 ring-1 ring-amber-300/25">
               <Info className="mt-0.5 size-4 shrink-0 text-amber-200" />
               <span>
-                <strong className="font-semibold text-amber-100">Établissements fictifs.</strong> Les noms,
-                notes et prix sont des exemples de démonstration pour illustrer le type d&apos;hébergement
-                conseillé, pas de vraies offres.
+                <strong className="font-semibold text-amber-100">Exemples d&apos;hébergement.</strong> Les
+                noms et notes illustrent le type de logement conseillé (quartier, gamme, prix moyen) : ce ne
+                sont pas de vraies offres. Les logements réels sont sur le site partenaire.
               </span>
             </p>
           </div>

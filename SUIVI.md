@@ -16,7 +16,8 @@
 
 ### Avant d'encaisser de vrais clients
 
-1. **Données réelles.** Hôtels, restaurants, activités et prix sont aujourd'hui des données de démonstration, signalées comme telles sur le site. Il faut brancher de vraies sources (API) via `TravelDataSource`.
+1. **Données réelles : en cours.** Liens partenaires en place (Travelpayouts, marker `578967`, voir `src/config/affiliate.ts`) : vols Aviasales (commission via le marker), hébergements Booking.com et activités GetYourGuide (liens directs, sans commission tant que les paramètres Travelpayouts de ces programmes ne sont pas renseignés). Script « Drive » de Travelpayouts **non installé** volontairement (script tiers sur toutes les pages, cookies publicitaires). Restaurants réels et nouvelles destinations en cours.
+   - Prix des hébergements et du transport : toujours des estimations OVO. Plus tard, prix en temps réel via les API partenaires (`TravelDataSource`).
 2. **Statut juridique : en cours.** Création de la micro-entreprise sur https://formalites.entreprises.gouv.fr (gratuit), **dossier déposé et signé le 27/09/2026** (formalité INPI n° J00285419354, suivi sur https://procedures.inpi.fr → Entreprises → « Suivre l'avancement d'une formalité d'entreprise »). En attente du SIRET (1 à 4 semaines), puis choisir un médiateur de la consommation. Choix déjà faits :
    - assurance maladie actuelle : CPAM ;
    - activité : **pas « agence de voyage »** (activité réglementée, et OVO ne vend pas de voyages). Choisir « portail internet » (63.12Z) ou « édition de logiciels » (58.29C), en prestation de services commerciale (BIC) ;
@@ -28,7 +29,7 @@
 ### Recommandé
 
 - **Nom de domaine : `ovovoyage.com`**, acheté dans Vercel et relié au projet. L'adresse principale est **`https://www.ovovoyage.com`** (`ovovoyage.com` redirige vers le www). Webhook Stripe réglé sur `https://www.ovovoyage.com/api/stripe/webhook` : Stripe ne suit pas les redirections, il faut donc l'URL exacte avec www. Inscription et paiement test vérifiés sur le domaine. Reste : Supabase Site URL `https://www.ovovoyage.com` et Redirect URL `https://www.ovovoyage.com/auth/confirm`, puis Google Search Console.
-- **Service d'emails : en cours (Brevo).** Voir `MISE-EN-LIGNE.md`, section 8. Les emails en français aux couleurs d'OVO sont dans `supabase/templates/`.
+- ~~Service d'emails~~ : **fait.** Brevo est branché sur Supabase avec le domaine `ovovoyage.com` authentifié et l'expéditeur `noreply@ovovoyage.com`. Les emails en français aux couleurs d'OVO sont en place (`supabase/templates/`) et ont été testés. Voir `MISE-EN-LIGNE.md`, section 8.
 - **Test complet sur téléphone** : annulation et changement d'offre via « Gérer mon abonnement ».
 - **Région des fonctions Vercel** : elles tournent aujourd'hui à Washington (`iad1`). Les placer à Paris (`cdg1`) les rapprocherait des utilisateurs et de Supabase.
 

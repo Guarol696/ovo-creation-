@@ -6,7 +6,9 @@ import { Container } from "@/components/ui/container";
 import { ACTIVITY_THEMES, MUST_SEE_LABEL } from "@/features/trip-engine/services/activities";
 import { cn, formatPrice } from "@/lib/utils";
 import type { ActivityTheme, PlanActivity, RecommendedMoment } from "@/types/travel-plan";
+import { activityTicketLink, type PartnerLink } from "../partner-links";
 import { FilterChips, type FilterOption } from "./filter-chips";
+import { PARTNER_DISCLOSURE, PartnerButton, PartnerInlineLink } from "./partner-link";
 import { byScheduleThenRelevance, scheduleLabel } from "./schedule-label";
 import { SectionTitle } from "./section-title";
 
@@ -47,7 +49,16 @@ const THEME_TILES: Record<ActivityTheme, string> = {
 
 const priceLevelLabel = (level: number) => (level === 0 ? "Gratuit" : "€".repeat(level));
 
-export function ActivitiesSection({ activities }: { activities: PlanActivity[] }) {
+export function ActivitiesSection({
+  activities,
+  city,
+  booking,
+}: {
+  activities: PlanActivity[];
+  city: string;
+  /** Recherche de visites et activités chez un partenaire. */
+  booking?: PartnerLink;
+}) {
   const [filter, setFilter] = useState<ActivityFilter>("toutes");
   const [expanded, setExpanded] = useState(false);
 
@@ -86,7 +97,7 @@ export function ActivitiesSection({ activities }: { activities: PlanActivity[] }
 
         <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-live="polite">
           {visible.map((activity) => (
-            <ActivityCard key={activity.id} activity={activity} />
+            <ActivityCard key={activity.id} activity={activity} city={city} />
           ))}
         </ul>
 
@@ -106,9 +117,13 @@ export function ActivitiesSection({ activities }: { activities: PlanActivity[] }
               {expanded ? "Voir moins" : `Voir les ${filtered.length} activités`}
             </button>
           )}
-          <p className="flex items-center gap-2 text-xs text-night-100/60">
-            <Info className="size-3.5 text-gold-300" />
-            Prix indicatifs — démonstration. Aucune réservation ni disponibilité réelle.
+          {booking && <PartnerButton link={booking} className="items-center text-center" />}
+          <p className="flex items-start gap-2 text-xs text-night-100/60">
+            <Info className="mt-0.5 size-3.5 shrink-0 text-gold-300" />
+            <span>
+              Prix indicatifs estimés par OVO. Les liens « Billets &amp; visites » ouvrent les offres réelles
+              du partenaire. {PARTNER_DISCLOSURE}
+            </span>
           </p>
         </div>
       </Container>
@@ -116,8 +131,9 @@ export function ActivitiesSection({ activities }: { activities: PlanActivity[] }
   );
 }
 
-function ActivityCard({ activity }: { activity: PlanActivity }) {
+function ActivityCard({ activity, city }: { activity: PlanActivity; city: string }) {
   const theme = ACTIVITY_THEMES[activity.theme];
+  const tickets = activityTicketLink(activity, city);
   const scheduled = scheduleLabel(activity.schedule);
   const firstDay = activity.schedule[0]?.dayNumber;
 
@@ -195,6 +211,11 @@ function ActivityCard({ activity }: { activity: PlanActivity }) {
             <span className="text-xs text-night-100/55">Idée en plus</span>
           )}
         </div>
+        {tickets && (
+          <div className="mt-2">
+            <PartnerInlineLink link={tickets} />
+          </div>
+        )}
       </div>
     </li>
   );

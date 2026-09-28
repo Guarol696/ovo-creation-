@@ -5,6 +5,7 @@ export const split: DestinationProfile = {
   name: "Split",
   country: "Croatie",
   countryCode: "HR",
+  iata: "SPU",
   tagline: "Un palais romain, des îles turquoise et des nuits d'été.",
   description:
     "Porte d'entrée des îles dalmates : vieille ville dans un palais antique, criques cristallines et fêtes en bord de mer.",
