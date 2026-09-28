@@ -60,10 +60,11 @@ describe("liens partenaires", () => {
 
   it("passe par Travelpayouts uniquement quand le programme est renseigné", () => {
     const target = "https://www.getyourguide.fr/s/?q=Rome";
-    expect(viaTravelpayouts(target, { trs: "", p: "", campaignId: "" })).toBe(target);
-    const wrapped = new URL(viaTravelpayouts(target, { trs: "1", p: "2", campaignId: "3" }));
+    expect(viaTravelpayouts(target, { p: "", campaignId: "" })).toBe(target);
+    const wrapped = new URL(viaTravelpayouts(target, { p: "2", campaignId: "3" }));
     expect(wrapped.hostname).toBe("tp.media");
     expect(wrapped.searchParams.get("marker")).toBe(affiliate.marker);
+    expect(wrapped.searchParams.get("trs")).toBe(affiliate.projectId);
     expect(wrapped.searchParams.get("u")).toBe(target);
   });
 

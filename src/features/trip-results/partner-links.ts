@@ -31,10 +31,10 @@ const ddmm = (iso: string) => `${iso.slice(8, 10)}${iso.slice(5, 7)}`;
 
 /** Passe par Travelpayouts quand le programme du partenaire est renseigné (commission). */
 export function viaTravelpayouts(url: string, program: TravelpayoutsProgram) {
-  if (!program.trs || !program.p || !program.campaignId) return url;
+  if (!program.p || !program.campaignId) return url;
   const params = new URLSearchParams({
     marker: affiliate.marker,
-    trs: program.trs,
+    trs: affiliate.projectId,
     p: program.p,
     u: url,
     campaign_id: program.campaignId,
