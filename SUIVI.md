@@ -4,7 +4,7 @@
 
 ## Où en est-on
 
-- **Le site est en ligne** sur https://ovo-creation.vercel.app : il est hébergé par Vercel, qui déploie la branche `claude/ovo-travel-platform-24gema`.
+- **Le site est en ligne** sur https://www.ovovoyage.com (et https://ovo-creation.vercel.app) : il est hébergé par Vercel, qui déploie la branche `claude/ovo-travel-platform-24gema`.
 - **Supabase** est en place : base créée avec `supabase/setup.sql`, Site URL et Redirect URL réglées sur l'adresse Vercel. L'inscription, la connexion et les voyages enregistrés ont été vérifiés en ligne.
 - **Stripe fonctionne en mode test** : produits OVO Medium à 5,99 € et OVO Premium à 9,99 €, webhook vers `/api/stripe/webhook` avec 6 événements, portail client enregistré. Un abonnement de test payé avec la carte 4242 a été vérifié en ligne et apparaît dans « Mon compte ».
 - **Variables Vercel** (Production) : Supabase (URL, clé anon, clé service_role), `CRON_SECRET`, les 4 variables Stripe et la clé publiable.
@@ -12,12 +12,38 @@
   - Vercel refuse d'enregistrer une variable `NEXT_PUBLIC_…` en type « Secret » : il faut choisir le type **Config**.
 - **Logo** : les fichiers PNG et SVG ont été générés et envoyés au propriétaire du projet. Ils ne sont pas dans le dépôt.
 
+## Checklist pour la prochaine séance
+
+**En attente (rien à faire, juste surveiller ses emails) :**
+
+- [ ] SIRET (INSEE, 1 à 4 semaines) → l'envoyer pour le mettre sur le site.
+- [ ] Réponses de Travelpayouts (GetYourGuide, Booking) → générer les liens et les envoyer.
+
+**Dès réception du SIRET :**
+
+- [ ] Choisir un médiateur de la consommation (CM2C ou Medicys) et envoyer son nom + son lien.
+- [ ] Activer Stripe en mode réel (identité, IBAN), puis recréer offres, webhook et portail en live.
+- [ ] Choisir l'hébergement commercial : Vercel Pro (environ 20 $ par mois) ou migration gratuite vers Cloudflare.
+- [ ] Faire relire les textes légaux.
+
+**Quand tu veux (gratuit) :**
+
+- [ ] Google Search Console (voir « Recommandé » plus bas).
+- [ ] Réserver `@ovovoyage` sur Instagram et TikTok, puis envoyer les liens.
+- [ ] Faire tester le site à quelques amis sur téléphone.
+
+**Idées de code pour la suite :** une page par destination pour Google, la page « À propos », OVO installable sur l'écran d'accueil, les hébergements réels et les prix en temps réel.
+
 ## Reste à faire
 
 ### Avant d'encaisser de vrais clients
 
 1. **Données réelles : bien avancé.**
-   - **30 destinations complètes** (activités réelles, vrais restaurants avec lien Google Maps, carte, prix moyens, meilleurs mois) : Lisbonne, Porto, Barcelone, Madrid, Séville, Valence, Ibiza, Rome, Florence, Naples, Venise, Amsterdam, Bruxelles, Berlin, Copenhague, Vienne, Prague, Budapest, Cracovie, Londres, Édimbourg, Dublin, Athènes, Split, Malte, Istanbul, Marrakech, Nice, Marseille, Bordeaux. Les autres villes ont un programme type (sans adresses).
+   - **50 destinations complètes** (activités réelles, vrais restaurants avec lien Google Maps, carte, prix moyens, meilleurs mois) :
+     - Europe : Lisbonne, Porto, Barcelone, Madrid, Séville, Valence, Ibiza, Rome, Florence, Naples, Venise, Milan, Palerme, Amsterdam, Bruxelles, Berlin, Copenhague, Vienne, Prague, Budapest, Cracovie, Ljubljana, Tallinn, Londres, Édimbourg, Dublin, Reykjavik, Athènes, Santorin, Split, Kotor, Malte ;
+     - France : Nice, Marseille, Bordeaux ;
+     - Monde : Istanbul, Tbilissi, Marrakech, Agadir, Le Caire, Dubaï, Tokyo, Séoul, Bangkok, Bali, Hanoï, New York, Montréal, Mexico, Rio de Janeiro.
+     - Les autres villes ont un programme type (sans adresses). Agadir et Kotor ont des restaurants d'exemple (« OVO »), faute d'adresses assez sûres.
    - Les restaurants viennent de connaissances générales (adresses établies) : un établissement peut avoir fermé, d'où le lien Google Maps et la mention « vérifie les horaires ». À relire de temps en temps.
    - **Liens partenaires** (Travelpayouts : identifiant partenaire (marker) `783013`, projet `578967`, voir `src/config/affiliate.ts`) : vols Aviasales (commission via le marker), hébergements Booking.com et activités GetYourGuide (liens directs, sans commission tant que les paramètres Travelpayouts de ces programmes ne sont pas renseignés). Projet en cours d'examen par Travelpayouts (GetYourGuide demande un site d'au moins 2 mois). Script « Drive » de Travelpayouts installé (exigé par Travelpayouts) : chargé **seulement après accord** via le bandeau « Cookies partenaires », jamais sur les pages de compte, connexion ou paiement (`src/features/consent/`). Lien « Gérer les cookies » dans le pied de page.
    - Reste : hébergements (encore des exemples), prix en temps réel via les API partenaires (`TravelDataSource`).

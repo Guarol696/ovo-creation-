@@ -20,8 +20,10 @@ import { florence } from "./destinations/florence";
 import { hanoi } from "./destinations/hanoi";
 import { ibiza } from "./destinations/ibiza";
 import { istanbul } from "./destinations/istanbul";
+import { kotor } from "./destinations/kotor";
 import { le_caire } from "./destinations/le-caire";
 import { lisbonne } from "./destinations/lisbonne";
+import { ljubljana } from "./destinations/ljubljana";
 import { londres } from "./destinations/londres";
 import { madrid } from "./destinations/madrid";
 import { malte } from "./destinations/malte";
@@ -33,6 +35,7 @@ import { montreal } from "./destinations/montreal";
 import { naples } from "./destinations/naples";
 import { new_york } from "./destinations/new-york";
 import { nice } from "./destinations/nice";
+import { palerme } from "./destinations/palerme";
 import { porto } from "./destinations/porto";
 import { prague } from "./destinations/prague";
 import { reykjavik } from "./destinations/reykjavik";
@@ -42,6 +45,8 @@ import { santorin } from "./destinations/santorin";
 import { seoul } from "./destinations/seoul";
 import { seville } from "./destinations/seville";
 import { split } from "./destinations/split";
+import { tallinn } from "./destinations/tallinn";
+import { tbilissi } from "./destinations/tbilissi";
 import { tokyo } from "./destinations/tokyo";
 import { valence } from "./destinations/valence";
 import { venise } from "./destinations/venise";
@@ -78,7 +83,9 @@ export const demoDestinations: DestinationProfile[] = [
   hanoi,
   ibiza,
   istanbul,
+  kotor,
   le_caire,
+  ljubljana,
   madrid,
   malte,
   marseille,
@@ -88,12 +95,15 @@ export const demoDestinations: DestinationProfile[] = [
   naples,
   new_york,
   nice,
+  palerme,
   porto,
   reykjavik,
   rio,
   santorin,
   seoul,
   seville,
+  tallinn,
+  tbilissi,
   tokyo,
   valence,
   venise,

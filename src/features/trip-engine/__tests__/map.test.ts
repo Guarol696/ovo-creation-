@@ -166,7 +166,7 @@ describe("destination sans coordonnées", () => {
   it("programme type : pas de carte, horaires quand même", async () => {
     const plan = await generateTravelPlan(
       request({
-        destination: { mode: "known", place: { id: "custom:tbilissi", name: "Tbilissi", country: "" } },
+        destination: { mode: "known", place: { id: "custom:oulan-bator", name: "Oulan-Bator", country: "" } },
       }),
     );
     expect(plan.map.available).toBe(false);
