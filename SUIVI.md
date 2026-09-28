@@ -17,7 +17,7 @@
 ### Avant d'encaisser de vrais clients
 
 1. **Données réelles.** Hôtels, restaurants, activités et prix sont aujourd'hui des données de démonstration, signalées comme telles sur le site. Il faut brancher de vraies sources (API) via `TravelDataSource`.
-2. **Statut juridique : en cours.** Création de la micro-entreprise sur https://formalites.entreprises.gouv.fr (gratuit), **dossier déposé le 27/09/2026** (email de confirmation reçu). En attente du SIRET (1 à 4 semaines), puis choisir un médiateur de la consommation. Choix déjà faits :
+2. **Statut juridique : en cours.** Création de la micro-entreprise sur https://formalites.entreprises.gouv.fr (gratuit), **dossier déposé et signé le 27/09/2026** (formalité INPI n° J00285419354, suivi sur https://procedures.inpi.fr → Entreprises → « Suivre l'avancement d'une formalité d'entreprise »). En attente du SIRET (1 à 4 semaines), puis choisir un médiateur de la consommation. Choix déjà faits :
    - assurance maladie actuelle : CPAM ;
    - activité : **pas « agence de voyage »** (activité réglementée, et OVO ne vend pas de voyages). Choisir « portail internet » (63.12Z) ou « édition de logiciels » (58.29C), en prestation de services commerciale (BIC) ;
    - versement libératoire : **non** (activable plus tard).
@@ -28,7 +28,7 @@
 ### Recommandé
 
 - **Nom de domaine : `ovovoyage.com`**, acheté dans Vercel et relié au projet. L'adresse principale est **`https://www.ovovoyage.com`** (`ovovoyage.com` redirige vers le www). Webhook Stripe réglé sur `https://www.ovovoyage.com/api/stripe/webhook` : Stripe ne suit pas les redirections, il faut donc l'URL exacte avec www. Inscription et paiement test vérifiés sur le domaine. Reste : Supabase Site URL `https://www.ovovoyage.com` et Redirect URL `https://www.ovovoyage.com/auth/confirm`, puis Google Search Console.
-- **Service d'emails** (Brevo, Resend…) dans Supabase → Authentication → SMTP : le service gratuit de Supabase n'envoie que quelques emails par heure.
+- **Service d'emails : en cours (Brevo).** Voir `MISE-EN-LIGNE.md`, section 8. Les emails en français aux couleurs d'OVO sont dans `supabase/templates/`.
 - **Test complet sur téléphone** : annulation et changement d'offre via « Gérer mon abonnement ».
 - **Région des fonctions Vercel** : elles tournent aujourd'hui à Washington (`iad1`). Les placer à Paris (`cdg1`) les rapprocherait des utilisateurs et de Supabase.
 

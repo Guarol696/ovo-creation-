@@ -151,6 +151,45 @@ Refais l'étape 4 avec l'interrupteur **Test mode désactivé**, c'est-à-dire e
 
 ---
 
+## 8. Emails de compte : Brevo + modèles en français (30 min)
+
+Le service d'email intégré à Supabase n'envoie que quelques emails par heure. Brevo est gratuit jusqu'à 300 emails par jour.
+
+1. **Compte Brevo** : crée un compte sur https://www.brevo.com.
+2. **Domaine d'envoi** : ouvre **Paramètres → Expéditeurs, domaines et IP dédiées → Domaines → Ajouter un domaine**, puis indique `ovovoyage.com`.
+   - Brevo affiche 3 ou 4 enregistrements DNS : code Brevo, DKIM et DMARC.
+   - Ajoute-les dans Vercel, **Domains → ovovoyage.com → DNS Records → Add**, en recopiant le type, le nom et la valeur.
+   - Reviens dans Brevo et clique sur **Authentifier**.
+   - N'envoie pas depuis une adresse `@gmail.com` : ces emails finiraient en spam.
+3. **Expéditeur** : dans **Expéditeurs**, ajoute `OVO`, `noreply@ovovoyage.com`.
+4. **Clé SMTP** : ouvre **SMTP & API → onglet SMTP → Générer une nouvelle clé SMTP**.
+   - Note le **serveur** `smtp-relay.brevo.com`, le **port** `587` et l'**identifiant** (`…@smtp-brevo.com`).
+   - La clé est secrète : colle-la directement dans Supabase et ne l'envoie à personne.
+5. **Supabase** : ouvre **Authentication → Emails → SMTP Settings** (ou « Configure SMTP ») et active **Custom SMTP** :
+
+   | Champ        | Valeur                  |
+   | ------------ | ----------------------- |
+   | Sender email | `noreply@ovovoyage.com` |
+   | Sender name  | `OVO`                   |
+   | Host         | `smtp-relay.brevo.com`  |
+   | Port         | `587`                   |
+   | Username     | l'identifiant Brevo     |
+   | Password     | la clé SMTP Brevo       |
+
+   Clique sur **Save**.
+
+6. **Limite d'envoi** : dans **Authentication → Rate Limits**, passe « emails par heure » à `100`, puis **Save**.
+7. **Emails en français** : ouvre **Authentication → Emails → Templates**.
+
+   | Modèle             | Sujet                          | Contenu (à coller en entier)           |
+   | ------------------ | ------------------------------ | -------------------------------------- |
+   | **Confirm signup** | `Confirme ton compte OVO ✈️`   | `supabase/templates/confirmation.html` |
+   | **Reset password** | `Ton nouveau mot de passe OVO` | `supabase/templates/recovery.html`     |
+
+8. **Test** : crée un compte avec une nouvelle adresse. L'email doit arriver en français, envoyé par OVO. Pense à regarder dans les spams la première fois.
+
+---
+
 ## Note sur les coûts
 
 - **Vercel Hobby** (gratuit) est réservé à un usage **non commercial**. Dès que tu vends des abonnements, passe à **Vercel Pro**, environ 20 $ par mois.
