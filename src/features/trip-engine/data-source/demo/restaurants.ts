@@ -951,7 +951,11 @@ const REAL: Record<string, RealRestaurant[]> = {
 
 /** Restaurants réels d'une destination (liste vide si aucun). */
 export function realRestaurants(destinationId: string): RestaurantTemplate[] {
-  return (REAL[destinationId] ?? []).map(({ at: _at, ...restaurant }) => ({ ...restaurant, real: true }));
+  return (REAL[destinationId] ?? []).map((entry) => {
+    const restaurant: RestaurantTemplate & { at?: GeoPoint } = { ...entry, real: true };
+    delete restaurant.at;
+    return restaurant;
+  });
 }
 
 /** Positions des restaurants réels, à fusionner dans `geo.places`. */
