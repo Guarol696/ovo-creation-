@@ -8,6 +8,7 @@ import { budapest } from "./destinations/budapest";
 import { lisbonne } from "./destinations/lisbonne";
 import { londres } from "./destinations/londres";
 import { marrakech } from "./destinations/marrakech";
+import { porto } from "./destinations/porto";
 import { prague } from "./destinations/prague";
 import { rome } from "./destinations/rome";
 import { split } from "./destinations/split";
@@ -28,9 +29,10 @@ export const demoDestinations: DestinationProfile[] = [
   budapest,
   athenes,
   split,
+  porto,
 ].map((profile) => {
   const real = realRestaurants(profile.id);
-  const geo = DEMO_GEO[profile.id];
+  const geo = profile.geo ?? DEMO_GEO[profile.id];
   return {
     ...profile,
     restaurants: real.length > 0 ? real : profile.restaurants,
