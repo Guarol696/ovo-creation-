@@ -25,7 +25,7 @@ export const legal = {
   /** Médiateur de la consommation (obligatoire pour vendre à des particuliers). */
   mediator: { name: "", url: "" },
   /** Date de dernière mise à jour des documents légaux. */
-  lastUpdated: "2026-09-26",
+  lastUpdated: "2026-10-01",
 } as const;
 
 /** Hébergeur et prestataires techniques (informations publiques des prestataires). */

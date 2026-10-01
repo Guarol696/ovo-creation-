@@ -118,6 +118,11 @@ export default function PrivacyPage() {
           Aucun cookie de mesure d&apos;audience.
         </p>
         <p>
+          Pour compter les visites, OVO utilise <strong>Vercel Web Analytics</strong>, qui fonctionne{" "}
+          <strong>sans cookie</strong> et ne permet pas de t&apos;identifier : il ne garde que des
+          statistiques globales (pages vues, pays, type d&apos;appareil, site de provenance).
+        </p>
+        <p>
           <strong>Avec ton accord</strong> (bandeau « Cookies partenaires »), OVO charge l&apos;outil « Drive
           » de <strong>Travelpayouts</strong>, notre plateforme d&apos;affiliation : il suit les clics vers
           les sites de réservation partenaires (Aviasales, Booking.com, GetYourGuide…) pour que OVO puisse

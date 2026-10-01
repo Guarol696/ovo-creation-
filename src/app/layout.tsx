@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Inter } from "next/font/google";
 import { siteConfig } from "@/config/site";
@@ -53,6 +54,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-dvh flex-col">
         <AuthProvider>{children}</AuthProvider>
         <CookieConsent />
+        <Analytics />
       </body>
     </html>
   );
