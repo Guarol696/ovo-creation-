@@ -21,7 +21,7 @@
 
 **Dès réception du SIRET :**
 
-- [ ] Choisir un médiateur de la consommation (CM2C ou Medicys) et envoyer son nom + son lien.
+- [ ] Médiateur de la consommation : inscription CM2C faite (espace pro, connexion avec SIRET + mot de passe reçu par mail), **reste à payer 48 €** puis envoyer le nom + le lien. À faire avant d'ouvrir les paiements réels.
 - [ ] Activer Stripe en mode réel (identité, IBAN), puis recréer offres, webhook et portail en live.
 - [ ] Choisir l'hébergement commercial : Vercel Pro (environ 20 $ par mois) ou migration gratuite vers Cloudflare.
 - [ ] Faire relire les textes légaux.
