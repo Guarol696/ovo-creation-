@@ -10,7 +10,7 @@ export const legal = {
   /** Statut, ex. « Entrepreneur individuel (micro-entreprise) » ou « SAS au capital de 1 000 € ». */
   publisherStatus: "Entrepreneur individuel (micro-entreprise), nom commercial OVO",
   /** Numéro SIRET (ou RCS + ville pour une société). */
-  siret: "",
+  siret: "130 696 735 00013",
   /** Adresse postale (domiciliation acceptée). */
   address: "9 rue Balzac, 37190 Azay-le-Rideau, France",
   /** Email de contact affiché sur le site (support, données personnelles, rétractation). */

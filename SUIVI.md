@@ -16,7 +16,7 @@
 
 **En attente (rien à faire, juste surveiller ses emails) :**
 
-- [ ] SIRET (INSEE, 1 à 4 semaines) → l'envoyer pour le mettre sur le site.
+- [x] SIRET reçu (130 696 735 00013), affiché dans les mentions légales.
 - [ ] Réponses de Travelpayouts (GetYourGuide, Booking) → générer les liens et les envoyer.
 
 **Dès réception du SIRET :**
@@ -47,11 +47,11 @@
    - Les restaurants viennent de connaissances générales (adresses établies) : un établissement peut avoir fermé, d'où le lien Google Maps et la mention « vérifie les horaires ». À relire de temps en temps.
    - **Liens partenaires** (Travelpayouts : identifiant partenaire (marker) `783013`, projet `578967`, voir `src/config/affiliate.ts`) : vols Aviasales (commission via le marker), hébergements Booking.com et activités GetYourGuide (liens directs, sans commission tant que les paramètres Travelpayouts de ces programmes ne sont pas renseignés). Projet en cours d'examen par Travelpayouts (GetYourGuide demande un site d'au moins 2 mois). Script « Drive » de Travelpayouts installé (exigé par Travelpayouts) : chargé **seulement après accord** via le bandeau « Cookies partenaires », jamais sur les pages de compte, connexion ou paiement (`src/features/consent/`). Lien « Gérer les cookies » dans le pied de page.
    - Reste : hébergements (encore des exemples), prix en temps réel via les API partenaires (`TravelDataSource`).
-2. **Statut juridique : en cours.** Création de la micro-entreprise sur https://formalites.entreprises.gouv.fr (gratuit), **dossier déposé et signé le 27/09/2026** (formalité INPI n° J00285419354, suivi sur https://procedures.inpi.fr → Entreprises → « Suivre l'avancement d'une formalité d'entreprise »). En attente du SIRET (1 à 4 semaines), puis choisir un médiateur de la consommation. Choix déjà faits :
+2. **Statut juridique : en cours.** Création de la micro-entreprise sur https://formalites.entreprises.gouv.fr (gratuit), **dossier déposé et signé le 27/09/2026** (formalité INPI n° J00285419354, suivi sur https://procedures.inpi.fr → Entreprises → « Suivre l'avancement d'une formalité d'entreprise »). **Formalité validée, SIRET 130 696 735 00013.** Reste à choisir un médiateur de la consommation. Choix déjà faits :
    - assurance maladie actuelle : CPAM ;
    - activité : **pas « agence de voyage »** (activité réglementée, et OVO ne vend pas de voyages). Choisir « portail internet » (63.12Z) ou « édition de logiciels » (58.29C), en prestation de services commerciale (BIC) ;
    - versement libératoire : **non** (activable plus tard).
-3. **Pages légales : à compléter.** Les pages Mentions légales, Conditions générales (CGU + CGV), Confidentialité et Contact sont en ligne. Éditeur, adresse, email et TVA sont remplis ; restent le SIRET et le médiateur, qui s'affichent en jaune « à compléter » : il suffit de les remplir dans `src/config/legal.ts`. Ces textes sont des modèles, à faire relire avant l'ouverture au public.
+3. **Pages légales : à compléter.** Les pages Mentions légales, Conditions générales (CGU + CGV), Confidentialité et Contact sont en ligne. Éditeur, adresse, email et TVA sont remplis ; le SIRET est renseigné ; reste le médiateur, qui s'affiche en jaune « à compléter » : il suffit de les remplir dans `src/config/legal.ts`. Ces textes sont des modèles, à faire relire avant l'ouverture au public.
 4. **Stripe en mode live** : activer le compte (identité, IBAN), recréer les produits, le webhook et le portail en live, remplacer les 4 variables Stripe dans Vercel, puis redéployer. Voir `MISE-EN-LIGNE.md`, section 7.
 5. **Vercel Pro**, obligatoire pour un usage commercial.
 
